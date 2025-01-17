@@ -2,43 +2,35 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
- */
 class UserFactory extends Factory
 {
     /**
-     * The current password being used by the factory.
+     * Đặc điểm mô hình này.
+     *
+     * @var string
      */
-    protected static ?string $password;
+    protected $model = User::class;
 
     /**
-     * Define the model's default state.
+     * Định nghĩa mẫu dữ liệu cho factory.
      *
-     * @return array<string, mixed>
+     * @return array
      */
-    public function definition(): array
+    public function definition()
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'first_name' => $this->faker->firstName(),  // Tạo tên đầu tiên ngẫu nhiên
+            'last_name' => $this->faker->lastName(),  // Tạo họ tên ngẫu nhiên
+            'phone_number' => $this->faker->phoneNumber(),  // Tạo số điện thoại ngẫu nhiên
+            'email' => $this->faker->unique()->safeEmail(),  // Tạo email duy nhất
+            'email_verified_at' => now(),  // Đặt thời gian xác minh email
+            'password' => bcrypt('password'),  // Mã hóa mật khẩu
+            'status' => $this->faker->randomElement(['active', 'banned']),  // Chọn trạng thái ngẫu nhiên
+            'sex' => $this->faker->randomElement(['male', 'female', 'other']),  // Chọn giới tính ngẫu nhiên
+            'remember_token' => $this->faker->uuid(),  // Tạo token nhớ
         ];
-    }
-
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
     }
 }
