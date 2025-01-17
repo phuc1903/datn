@@ -8,4 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class Sku extends Model
 {
     use HasFactory;
+    protected $guarded = [];
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    // Quan hệ với Variant Values (các giá trị biến thể)
+    public function variantValues()
+    {
+        return $this->belongsToMany(VariantValue::class, 'sku_variants');
+    }
 }
