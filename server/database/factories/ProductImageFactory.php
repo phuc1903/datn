@@ -24,7 +24,7 @@ class ProductImageFactory extends Factory
     {
         return [
             'product_id' => Product::inRandomOrder()->first()->id,  // Lấy sản phẩm ngẫu nhiên
-            'image_url' => $this->faker->imageUrl(),  // Lấy ảnh ngẫu nhiên từ Faker
+            'image_url' => 'https://placehold.co/640x480.png/00cc44?text=cum',  // Lấy ảnh ngẫu nhiên từ Faker
         ];
     }
 }
