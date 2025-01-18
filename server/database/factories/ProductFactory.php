@@ -4,9 +4,13 @@ namespace Database\Factories;
 
 use App\Models\Product;
 use App\Models\Admin;
+use App\Models\ProductFeedback;
 use App\Models\ProductImage;
+use App\Models\ProductTag;
 use App\Models\Sku;
 use App\Models\SkuVariant;
+use App\Models\Tag;
+use App\Models\User;
 use App\Models\Variant;
 use App\Models\VariantValue;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -49,10 +53,6 @@ class ProductFactory extends Factory
     public function configure()
     {
         return $this->afterCreating(function (Product $product) {
-            // Gọi hàm tạo hình ảnh (ProductImage)
-            $countImageProduct = $this->faker->numberBetween(1, 5); // Random 1 - 5 ảnh cho 1 sản phẩm
-            $this->createImage($product->id, $countImageProduct);
-
             // Gọi hàm tạo biến thể
             $countSKU = (self::COUNT_SKU == 0) ? $this->faker->numberBetween(1, 5) : self::COUNT_SKU; // Nếu COUNT_SKU = 0 thì random 1 - 5
             $countVariant = (self::COUNT_VARIANT == 0) ? $this->faker->numberBetween(1, 3) : self::COUNT_VARIANT; // Nếu COUNT_VARIANT = 0 thì random 1 - 3
@@ -84,17 +84,6 @@ class ProductFactory extends Factory
                     'variant_value_id' => $variantValueId,
                 ]);
             }
-        }
-    }
-
-    // Tạo hình ảnh sản phẩm
-    public function createImage($productId, $count = 1)
-    {
-        for ($i = 0; $i < $count; $i++) {
-            ProductImage::create([
-                'image_url' => 'https://placehold.co/600x400',
-                'product_id' => $productId
-            ]);
         }
     }
 
