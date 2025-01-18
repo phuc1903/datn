@@ -35,5 +35,29 @@ class ProductController extends Controller
             'data' => $products
         ]);
     }
+    public function getProductByCategory($category_id): JsonResponse
+    {
+        $products = Product::with([
+            'images',
+            'categories',
+            'skus.variantValues.variant'
+        ])->whereHas('categories', function ($query) use ($category_id) {
+            $query->where('categories.id', $category_id);
+        })->get();
+
+        if ($products->isEmpty()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No products found for this category'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $products
+        ]);
+    }
+
+
 }
 

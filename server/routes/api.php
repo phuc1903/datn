@@ -13,8 +13,9 @@ use App\Http\Controllers\ProductController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-Route::get('products-with-variants',[ProductController::class,'getAllProductsWithVariants']);
-Route::get('products-with-variants/{id}',[ProductController::class,'getProductsWithVariants']);
+Route::get('products',[ProductController::class,'getAllProductsWithVariants']);
+Route::get('product/{id}',[ProductController::class,'getProductsWithVariants']);
+Route::get('category/{id}',[ProductController::class,'getProductByCategory']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
