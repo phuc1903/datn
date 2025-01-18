@@ -5,8 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class HistoryMonney extends Model
+class HistoryMoney extends Model
 {
     use HasFactory;
-    protected $table = 'history_moneys';
+    protected $guarded = [];
 }
