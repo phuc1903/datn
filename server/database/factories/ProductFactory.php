@@ -21,8 +21,8 @@ class ProductFactory extends Factory
      */
     protected $model = Product::class;
 
-    private const COUNT_SKU = 1; // Số lượng sản phẩm chi tiết
-    private const COUNT_VARIANT = 2; // Số lượng biến thể của sản phẩm chi tiết
+    private const COUNT_SKU = 2; // Số lượng sản phẩm chi tiết
+    private const COUNT_VARIANT = 6; // Số lượng biến thể của sản phẩm chi tiết
 
     /**
      * Định nghĩa mẫu dữ liệu cho factory.
@@ -63,18 +63,25 @@ class ProductFactory extends Factory
     // Tạo sản phẩm chi tiết
     public function createVariant($productId, $countSKU = 1, $countVariant = 2)
     {
+        $variantIds = []; // Lưu danh sách variant_id đã dùng
+
         for ($i = 0; $i < $countSKU; $i++) {
             // Tạo SKU (thông tin chi tiết từng sản phẩm)
             $skuId = $this->createSku($productId);
 
-            // Tạo giá trị biến thể
-            for ($j = 0; $j < $countVariant; $j++) {
-                $variantValueId = $this->createVariantValue();
+            // Nếu đây là lần đầu tiên, tạo danh sách variant_id
+            if (empty($variantIds)) {
+                $variantIds = Variant::inRandomOrder()->limit($countVariant)->pluck('id')->toArray();
+            }
 
-                // Tạo mối quan hệ SKU & VariantValue
+            // Duyệt qua danh sách variant_id và tạo VariantValue mới
+            foreach ($variantIds as $variantId) {
+                $variantValueId = $this->createVariantValue($variantId);
+
+                // Tạo mối quan hệ giữa SKU và VariantValue
                 SkuVariant::create([
                     'sku_id' => $skuId,
-                    'variant_value_id' => $variantValueId
+                    'variant_value_id' => $variantValueId,
                 ]);
             }
         }
@@ -113,11 +120,11 @@ class ProductFactory extends Factory
     }
 
     // Tạo giá trị biến thể
-    public function createVariantValue()
+    public function createVariantValue($variantId)
     {
         $variantValue = VariantValue::create([
-            'variant_id' => Variant::inRandomOrder()->first()->id,
-            'value' => $this->faker->word()
+            'variant_id' => $variantId,
+            'value' => $this->faker->word(),
         ]);
 
         return $variantValue->id;
