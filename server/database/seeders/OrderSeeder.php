@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
+use App\Models\Order;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class CategorySeeder extends Seeder
+class OrderSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,16 +15,16 @@ class CategorySeeder extends Seeder
     {
         /*
         |--------------------
-        | Category
+        | Order
         |--------------------
         |
         | Hàm bổ sung:
-        | - createCategoryChilds(...) : Tạo thêm các category con.
+        | - createOrderItems(...) : Tạo thêm các OrderItems con.
         |
         */
-        Category::factory()
-            ->count(10)
-            ->createCategoryChilds(3)
+        Order::factory()
+            ->count(5)
+            ->createOrderItems(1)
             ->create();
     }
 }

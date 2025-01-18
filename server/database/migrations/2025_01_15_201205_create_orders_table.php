@@ -15,13 +15,12 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
-            $table->string('order_number');
             $table->string('full_name');
             $table->string('email');
             $table->string('phone_number');
             $table->string('address');
             $table->enum('payment_method', ['cod', 'bank']);
-            $table->enum('status', ['pending', 'shipped', 'success', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'shipped', 'success', 'cancel'])->default('pending');
             $table->integer('shipping_cost');
             $table->integer('total_amount');
             $table->string('note')->nullable();
