@@ -8,4 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class HistoryMonney extends Model
 {
     use HasFactory;
+    protected $table = 'history_moneys';
 }

@@ -26,7 +26,11 @@ class DatabaseSeeder extends Seeder
             ProductTagSeeder::class,
             ProductCategorySeeder::class,
 
+            VoucherSeeder::class,
             OrderSeeder::class,
+            OrderVoucherSeeder::class,
+
+            WalletSeeder::class
         ]);
     }
 }
