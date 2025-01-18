@@ -3,8 +3,14 @@
 namespace Database\Factories;
 
 use App\Models\Product;
-use App\Models\Admin;  // Đảm bảo rằng Admin model đã được import
+use App\Models\Admin;
+use App\Models\ProductImage;
+use App\Models\Sku;
+use App\Models\SkuVariant;
+use App\Models\Variant;
+use App\Models\VariantValue;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 class ProductFactory extends Factory
 {
@@ -15,6 +21,9 @@ class ProductFactory extends Factory
      */
     protected $model = Product::class;
 
+    private const COUNT_SKU = 1; // Số lượng sản phẩm chi tiết
+    private const COUNT_VARIANT = 2; // Số lượng biến thể của sản phẩm chi tiết
+
     /**
      * Định nghĩa mẫu dữ liệu cho factory.
      *
@@ -22,13 +31,95 @@ class ProductFactory extends Factory
      */
     public function definition()
     {
+        // Tên product & slug
+        $name = $this->faker->sentence(5);
+
         return [
-            'admin_id' => Admin::inRandomOrder()->first()->id,  // Lấy admin_id ngẫu nhiên từ bảng admins
-            'name' => $this->faker->word(),
-            'slug' => $this->faker->slug(),
+            'admin_id' => Admin::inRandomOrder()->first()->id,
+            'name' => $name,
             'short_description' => $this->faker->sentence(),
             'description' => $this->faker->paragraph(),
             'status' => $this->faker->randomElement(['active', 'archived', 'out_of_stock']),
+            'slug' => Str::slug($name),
+            'created_at' => now(),
+            'updated_at' => now()
         ];
+    }
+
+    public function configure()
+    {
+        return $this->afterCreating(function (Product $product) {
+            // Gọi hàm tạo hình ảnh (ProductImage)
+            $countImageProduct = $this->faker->numberBetween(1, 5); // Random 1 - 5 ảnh cho 1 sản phẩm
+            $this->createImage($product->id, $countImageProduct);
+
+            // Gọi hàm tạo biến thể
+            $countSKU = (self::COUNT_SKU == 0) ? $this->faker->numberBetween(1, 5) : self::COUNT_SKU; // Nếu COUNT_SKU = 0 thì random 1 - 5
+            $countVariant = (self::COUNT_VARIANT == 0) ? $this->faker->numberBetween(1, 3) : self::COUNT_VARIANT; // Nếu COUNT_VARIANT = 0 thì random 1 - 3
+            $this->createVariant($product->id, $countSKU, $countVariant);
+        });
+    }
+
+    // Tạo sản phẩm chi tiết
+    public function createVariant($productId, $countSKU = 1, $countVariant = 2)
+    {
+        for ($i = 0; $i < $countSKU; $i++) {
+            // Tạo SKU (thông tin chi tiết từng sản phẩm)
+            $skuId = $this->createSku($productId);
+
+            // Tạo giá trị biến thể
+            for ($j = 0; $j < $countVariant; $j++) {
+                $variantValueId = $this->createVariantValue();
+
+                // Tạo mối quan hệ SKU & VariantValue
+                SkuVariant::create([
+                    'sku_id' => $skuId,
+                    'variant_value_id' => $variantValueId
+                ]);
+            }
+        }
+    }
+
+    // Tạo hình ảnh sản phẩm
+    public function createImage($productId, $count = 1)
+    {
+        for ($i = 0; $i < $count; $i++) {
+            ProductImage::create([
+                'image_url' => 'https://placehold.co/600x400',
+                'product_id' => $productId
+            ]);
+        }
+    }
+
+    // Tạo SKU
+    public function createSku($productId)
+    {
+        // Giá sản phẩm
+        $price = $this->faker->numberBetween(100000, 2500000);
+
+        // Tạo SKU ngẫu nhiên cho sản phẩm
+        $sku = SKU::create([
+            'product_id' => $productId,
+            'sku_code' => strtoupper(Str::random(10)),
+            'price' => $price,
+            'promotion_price' => $price / 2,
+            'quantity' => $this->faker->randomNumber(2, true),
+            'image_url' => 'https://placehold.co/600x400',
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        return $sku->id;
+    }
+
+    // Tạo giá trị biến thể
+    public function createVariantValue()
+    {
+        $variantValue = VariantValue::create([
+            'variant_id' => Variant::inRandomOrder()->first()->id,
+            'value' => $this->faker->word()
+        ]);
+
+        return $variantValue->id;
     }
 }

@@ -22,15 +22,39 @@ class AdminFactory extends Factory
     public function definition()
     {
         return [
-            'first_name' => $this->faker->firstName(),  // Tạo tên đầu tiên ngẫu nhiên
-            'last_name' => $this->faker->lastName(),  // Tạo họ tên ngẫu nhiên
-            'phone_number' => $this->faker->phoneNumber(),  // Tạo số điện thoại ngẫu nhiên
-            'email' => $this->faker->unique()->safeEmail(),  // Tạo email duy nhất
-            'email_verified_at' => now(),  // Đặt thời gian xác minh email
-            'password' => bcrypt('password'),  // Mã hóa mật khẩu
-            'status' => $this->faker->randomElement(['active', 'banned']),  // Chọn trạng thái ngẫu nhiên
-            'sex' => $this->faker->randomElement(['male', 'female', 'other']),  // Chọn giới tính ngẫu nhiên
-
+            'first_name' => $this->faker->firstName(),
+            'last_name' => $this->faker->lastName(),
+            'phone_number' => $this->faker->phoneNumber(),
+            'email' => $this->faker->unique()->lastName . '@gmail.com',
+            'password' => bcrypt('password'),
+            'status' => $this->faker->randomElement(['active', 'banned']),
+            'sex' => $this->faker->randomElement(['male', 'female', 'other']),
+            'created_at' => now(),
+            'updated_at' => now()
         ];
+    }
+
+    /**
+     * Đặt trạng thái banned.
+     */
+    public function banned()
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'status' => 'banned',
+            ];
+        });
+    }
+
+    /**
+     * Đặt trạng thái active.
+     */
+    public function active()
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'status' => 'active',
+            ];
+        });
     }
 }

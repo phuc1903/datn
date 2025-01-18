@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 class CategoryFactory extends Factory
 {
@@ -21,12 +22,24 @@ class CategoryFactory extends Factory
      */
     public function definition()
     {
+        // Tên category & slug
+        $name = $this->faker->words(3, true);
+
         return [
-            'name' => $this->faker->word(),
+            'name' => $name,
             'short_description' => $this->faker->sentence(),
             'status' => $this->faker->randomElement(['active', 'hidden']),
-            'parent_id' => $this->faker->randomElement([0, 1]),  // Có thể là 0 hoặc là một parent_id hợp lệ
-            'slug' => $this->faker->slug(),
+            'parent_id' => 0,
+            'slug' => Str::slug($name),
+            'created_at' => now(),
+            'updated_at' => now()
         ];
+    }
+
+    public function createCategoryChilds(int $count = 2)
+    {
+        return $this->afterCreating(function (Category $category) use ($count) {
+            Category::factory()->count($count)->create(['parent_id' => $category->id]);
+        });
     }
 }
