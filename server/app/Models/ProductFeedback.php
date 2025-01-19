@@ -8,5 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class ProductFeedback extends Model
 {
     use HasFactory;
+    protected $guarded = [];
     protected $table = 'product_feedbacks';
 }
