@@ -9,5 +9,8 @@ class ProductFeedback extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
+=========
     protected $table = 'product_feedbacks';
+>>>>>>>>> Temporary merge branch 2
 }

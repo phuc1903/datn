@@ -12,13 +12,13 @@ class Product extends Model
 
     public function skus()
     {
-        return $this->hasMany(Sku::class);
+        return $this->hasMany(Sku::class)->select('id', 'sku_code', 'product_id', 'price', 'promotion_price', 'quantity', 'image_url');
     }
 
     // Quan hệ với ảnh sản phẩm
     public function images()
     {
-        return $this->hasMany(ProductImage::class);
+        return $this->hasMany(ProductImage::class)->select('id','product_id','image_url');
     }
 
     // Quan hệ với phản hồi sản phẩm
@@ -30,6 +30,6 @@ class Product extends Model
     // Quan hệ với danh mục (Nhiều danh mục)
     public function categories()
     {
-        return $this->belongsToMany(Category::class, 'product_categories');
+        return $this->belongsToMany(Category::class, 'product_categories')->select('categories.id','name','slug');
     }
 }

@@ -11,7 +11,7 @@ class VariantValue extends Model
     protected $guarded = [];
     public function variant()
     {
-        return $this->belongsTo(Variant::class);
+        return $this->belongsTo(Variant::class)->select('id','name');
     }
 
     // Quan hệ với SKU
