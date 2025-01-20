@@ -25,6 +25,11 @@ class WalletFactory extends Factory
         // Lấy người dùng chưa có ví
         $user = User::whereNotIn('id', $usedUserIds)->inRandomOrder()->first();
 
+        // Nếu trùng id thì tạo User mới và lấy id mới
+        if (User::find($user->id)) {
+            $user = User::factory()->create();
+        }
+
         return [
             'user_id' => $user->id,
             'balance' => $this->faker->numberBetween(0, 2500000),

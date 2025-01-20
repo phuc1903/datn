@@ -70,6 +70,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminSeeder::class,
             UserSeeder::class,
+            WalletSeeder::class,
             CategorySeeder::class,
             TagSeeder::class,
 
@@ -85,7 +86,6 @@ class DatabaseSeeder extends Seeder
             UserVoucherSeeder::class,
             OrderVoucherSeeder::class,
 
-            WalletSeeder::class,
             UserAddressSeeder::class,
             UserFavoriteSeeder::class,
             UserCartSeeder::class,
