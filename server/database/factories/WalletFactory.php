@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\HistoryMonney;
+use App\Models\HistoryMoney;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -39,9 +39,9 @@ class WalletFactory extends Factory
             $currentBalance = $wallet->balance;
 
             // Tạo giao dịch đầu tiên nếu chưa có lịch sử giao dịch
-            if (!HistoryMonney::where('wallet_id', $wallet->id)->exists()) {
+            if (!HistoryMoney::where('wallet_id', $wallet->id)->exists()) {
                 $initialAmount = $this->faker->numberBetween(0, $currentBalance);
-                HistoryMonney::create([
+                HistoryMoney::create([
                     'wallet_id' => $wallet->id,
                     'before' => 0,
                     'amount' => $initialAmount,
@@ -72,7 +72,7 @@ class WalletFactory extends Factory
                 }
 
                 // Tạo lịch sử giao dịch
-                HistoryMonney::create([
+                HistoryMoney::create([
                     'wallet_id' => $wallet->id,
                     'before' => $currentBalance,
                     'amount' => $amount,

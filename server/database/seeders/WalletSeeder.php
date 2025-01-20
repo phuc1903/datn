@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Wallet;
-use App\Models\HistoryMonney;
+use App\Models\HistoryMoney;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
