@@ -13,12 +13,21 @@ class CategoryController extends Controller
         $this->category = $category;
     }
     public function index(){
-        // Lấy tất cả các danh mục cùng với danh mục con của chúng
-        $categories = $this->category->select('id', 'name', 'short_description', 'parent_id', 'slug')->get();
-        return response()->json([
-            'status' => 'success',
-            'data' => $categories
-        ]);
+        try {
+            // Lấy tất cả các danh mục cùng với danh mục con của chúng
+            $categories = $this->category->select('id', 'name', 'short_description', 'parent_id', 'slug')->get();
+            return response()->json([
+                'status' => 'success',
+                'data' => $categories
+            ]);
+        }
+        catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ],500);
+        }
+
     }
 //    public function recursiveCategory(){
 //        // Lấy tất cả các danh mục cùng với danh mục con của chúng

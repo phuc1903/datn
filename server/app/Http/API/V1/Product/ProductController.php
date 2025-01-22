@@ -16,90 +16,127 @@ class ProductController extends Controller
 
     public function index(): JsonResponse
     {
-        $products = $this->product->with([
-            'images',
-            'categories',
-            'skus.variantValues.variant' // Lấy SKU và giá trị biến thể
-        ])->get();
+        try {
+            $products = $this->product->with([
+                'images',
+                'categories',
+                'skus.variantValues.variant' // Lấy SKU và giá trị biến thể
+            ])->get();
 
-        if ($products->isEmpty()) {
+            if ($products->isEmpty()) {
+                return response()->json([
+                    'status' => '500',
+                    'data' => $products,
+                    'message' => 'Products retrieved unsuccessfully.'
+                ], 500);
+            } else {
+                return response()->json([
+                    'status' => '200',
+                    'data' => $products,
+                    'message' => 'Products retrieved successfully.'
+                ], 200);
+            }
+        }
+        catch (\Exception $e) {
             return response()->json([
                 'status' => '500',
-                'data' => $products,
-                'message' => 'Products retrieved unsuccessfully.'
-            ], 500);
-        } else {
-            return response()->json([
-                'status' => '200',
-                'data' => $products,
-                'message' => 'Products retrieved successfully.'
-            ], 200);
+                'data' => $e->getMessage(),
+            ],500);
+
         }
+
     }
     public function getListProductsNotSku(): JsonResponse
     {
-        $products = $this->product->with([
-            'images',
-            'categories'
-        ])->get();
-        if ($products->isEmpty()) {
+        try {
+            $products = $this->product->with([
+                'images',
+                'categories'
+            ])->get();
+            if ($products->isEmpty()) {
+                return response()->json([
+                    'status' => '500',
+                    'data' => $products,
+                    'message' => 'Products retrieved unsuccessfully.'
+                ], 500);
+            } else {
+                return response()->json([
+                    'status' => '200',
+                    'data' => $products,
+                    'message' => 'Products retrieved successfully.'
+                ], 200);
+            }
+        }
+        catch (\Exception $e) {
             return response()->json([
                 'status' => '500',
-                'data' => $products,
-                'message' => 'Products retrieved unsuccessfully.'
-            ], 500);
-        } else {
-            return response()->json([
-                'status' => '200',
-                'data' => $products,
-                'message' => 'Products retrieved successfully.'
-            ], 200);
+                'data' => $e->getMessage(),
+            ],500);
         }
+
     }
     public function getProduct($id): JsonResponse
     {
-        $products = $this->product->with([
-            'images',
-            'categories',
-            'skus.variantValues.variant' // Lấy SKU và giá trị biến thể
-        ])->find($id);
+        try {
+            $products = $this->product->with([
+                'images',
+                'categories',
+                'skus.variantValues.variant' // Lấy SKU và giá trị biến thể
+            ])->find($id);
 
-        if ($products->isEmpty()) {
-            return response()->json([
-                'status' => '404',
-                'data' => $products,
-                'message' => 'Products retrieved unsuccessfully.'
-            ], 404);
-        } else {
-            return response()->json([
-                'status' => '200',
-                'data' => $products,
-                'message' => 'Product not found .'
-            ], 200);
+            if ($products->isEmpty()) {
+                return response()->json([
+                    'status' => '404',
+                    'data' => $products,
+                    'message' => 'Products retrieved unsuccessfully.'
+                ], 404);
+            } else {
+                return response()->json([
+                    'status' => '200',
+                    'data' => $products,
+                    'message' => 'Product not found .'
+                ], 200);
+            }
         }
+        catch (\Exception $e) {
+            return response()->json([
+                'status' => '500',
+                'data' => $e->getMessage()
+            ],500);
+        }
+
     }
     public function getProductByCategory($category_id): JsonResponse
     {
-        $products = $this->product->with([
-            'images',
-            'categories',
-            'skus.variantValues.variant'
-        ])->whereHas('categories', function ($query) use ($category_id) {
-            $query->where('categories.id', $category_id);
-        })->get();
+        try {
+            $products = $this->product->with([
+                'images',
+                'categories',
+                'skus.variantValues.variant'
+            ])->whereHas('categories', function ($query) use ($category_id) {
+                $query->where('categories.id', $category_id);
+            })->get();
 
-        if ($products->isEmpty()) {
-            return response()->json([
-                'status' => '404',
-                'data' => $products,
-                'message' => 'Products not found.'
-            ], 404);
-        } else {
-            return response()->json([
-                'status' => '200',
-                'data' => $products,
-                'message' => 'Products retrieved successfully.'
-            ], 200);
+            if ($products->isEmpty()) {
+                return response()->json([
+                    'status' => '404',
+                    'data' => $products,
+                    'message' => 'Products not found.'
+                ], 404);
+            } else {
+                return response()->json([
+                    'status' => '200',
+                    'data' => $products,
+                    'message' => 'Products retrieved successfully.'
+                ], 200);
+            }
         }
+        catch (\Exception $e) {
+            return response()->json([
+                'status' => '500',
+                'data' => $e->getMessage(),
+            ],500);
+        }
+
     }
 }
