@@ -42,9 +42,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::prefix('users')->controller(UserController::class)->group(function () {
     Route::get('/', 'index');
     Route::get('/{id}', 'show');
-    Route::get('/orders/{id}', 'orders');
-    Route::get('/vouchers/{id}', 'vouchers');
-    Route::get('/carts/{id}', 'carts');
-    Route::get('/favorites/{id}', 'favorites');
-    Route::get('/feedbacks/{id}', 'feedbacks');
+    Route::get('/{id}/orders', 'orders');
+    Route::get('/{id}/vouchers', 'vouchers');
+    Route::get('/{id}/carts', 'carts');
+    Route::get('/{id}/favorites', 'favorites');
+    Route::get('/{id}/feedbacks', 'feedbacks');
 });

@@ -76,7 +76,7 @@ class UserController extends Controller
     /*
     |--------------------------------------------------------------------------
     | Lấy danh sách đơn hàng User
-    | Path: /api/users/orders/{{userId}}
+    | Path: /api/users/{{userId}}/orders
     |--------------------------------------------------------------------------
     */
     public function orders($userId)
@@ -112,7 +112,7 @@ class UserController extends Controller
     /*
     |--------------------------------------------------------------------------
     | Lấy danh sách mã giảm giá User
-    | Path: /api/users/vouchers/{{userId}}
+    | Path: /api/users/{{userId}}/vouchers
     |--------------------------------------------------------------------------
     */
     public function vouchers($userId)
@@ -185,7 +185,7 @@ class UserController extends Controller
     /*
     |--------------------------------------------------------------------------
     | Lấy danh sách yêu thích sản phẩm User
-    | Path: /api/users/favorites/{{userId}}
+    | Path: /api/users/{{userId}}/favorites
     |--------------------------------------------------------------------------
     */
     public function favorites($userId)
@@ -221,7 +221,7 @@ class UserController extends Controller
     /*
     |--------------------------------------------------------------------------
     | Lấy danh sách đánh giả sản phẩm User
-    | Path: /api/users/feedbacks/{{userId}}
+    | Path: /api/users/{{userId}}/feedbacks
     |--------------------------------------------------------------------------
     */
     public function feedbacks($userId)
