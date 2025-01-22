@@ -11,4 +11,9 @@ class ProductFeedback extends Model
     protected $guarded = [];
 
     protected $table = 'product_feedbacks';
+
+    public function product()
+    {
+        return $this->beLongsTo(Product::class, 'product_id');
+    }
 }

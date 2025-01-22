@@ -10,4 +10,8 @@ class UserCart extends Model
     use HasFactory;
     protected $guarded = [];
 
+    public function sku()
+    {
+        return $this->beLongsTo(Sku::class, 'sku_id');
+    }
 }

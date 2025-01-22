@@ -10,4 +10,8 @@ class UserFavorite extends Model
     use HasFactory;
     protected $guarded = [];
 
+    public function product()
+    {
+        return $this->beLongsTo(Product::class, 'product_id');
+    }
 }
