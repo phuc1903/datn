@@ -84,18 +84,18 @@ class ProductController extends Controller
                 'skus.variantValues.variant' // Lấy SKU và giá trị biến thể
             ])->find($id);
 
-            if ($products->isEmpty()) {
-                return response()->json([
-                    'status' => '404',
-                    'data' => $products,
-                    'message' => 'Products retrieved unsuccessfully.'
-                ], 404);
-            } else {
+            if ($products) {
                 return response()->json([
                     'status' => '200',
                     'data' => $products,
-                    'message' => 'Product not found .'
+                    'message' => 'Products retrieved unsuccessfully.'
                 ], 200);
+            } else {
+                return response()->json([
+                    'status' => '402',
+                    'data' => $products,
+                    'message' => 'Product not found .'
+                ], 404);
             }
         }
         catch (\Exception $e) {
