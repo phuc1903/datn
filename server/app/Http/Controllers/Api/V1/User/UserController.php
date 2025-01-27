@@ -23,14 +23,14 @@ class UserController extends Controller
                 ->get();
 
             return response()->json([
-                'status' => 200,
-                'message' => 'Success',
+                'status' => 'success',
+                'message' => 'Got all users',
                 'data' => $users
             ], 200);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
             return response()->json([
-                'status' => 500,
+                'status' => 'error',
                 'message' => $e->getMessage()
             ], 500);
         }
@@ -52,7 +52,7 @@ class UserController extends Controller
             // Không tìm thấy User
             if (!$users) {
                 return response()->json([
-                    'status' => 404,
+                    'status' => 'error',
                     'message' => 'User not found',
                     'data' => NULL
                 ], 404);
@@ -60,14 +60,14 @@ class UserController extends Controller
 
             // Tìm thấy User
             return response()->json([
-                'status' => 200,
-                'message' => 'Success',
+                'status' => 'success',
+                'message' => 'Got user data',
                 'data' => $users
             ], 200);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
             return response()->json([
-                'status' => 500,
+                'status' => 'error',
                 'message' => $e->getMessage()
             ], 500);
         }
@@ -88,7 +88,7 @@ class UserController extends Controller
             // Không tìm thấy User
             if (!$user) {
                 return response()->json([
-                    'status' => 404,
+                    'status' => 'error',
                     'message' => 'User not found',
                     'data' => NULL
                 ], 404);
@@ -96,14 +96,14 @@ class UserController extends Controller
 
             // Trả về danh sách orders
             return response()->json([
-                'status' => 200,
-                'message' => 'Success',
+                'status' => 'success',
+                'message' => 'Got user orders',
                 'data' => $user
             ], 200);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
             return response()->json([
-                'status' => 500,
+                'status' => 'error',
                 'message' => $e->getMessage()
             ], 500);
         }
@@ -124,7 +124,7 @@ class UserController extends Controller
             // Không tìm thấy User
             if (!$user) {
                 return response()->json([
-                    'status' => 404,
+                    'status' => 'error',
                     'message' => 'User not found',
                     'data' => null
                 ], 404);
@@ -132,14 +132,14 @@ class UserController extends Controller
 
             // Trả về danh sách vouchers của user
             return response()->json([
-                'status' => 200,
-                'message' => 'Success',
+                'status' => 'success',
+                'message' => 'Got user vouchers',
                 'data' => $user
             ], 200);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
             return response()->json([
-                'status' => 500,
+                'status' => 'error',
                 'message' => $e->getMessage()
             ], 500);
         }
@@ -161,7 +161,7 @@ class UserController extends Controller
             // Không tìm thấy User
             if (!$user) {
                 return response()->json([
-                    'status' => 404,
+                    'status' => 'error',
                     'message' => 'User not found',
                     'data' => NULL
                 ], 404);
@@ -169,14 +169,14 @@ class UserController extends Controller
 
             // Trả về danh sách orders
             return response()->json([
-                'status' => 200,
-                'message' => 'Success',
+                'status' => 'success',
+                'message' => 'Got user carts',
                 'data' => $user
             ], 200);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
             return response()->json([
-                'status' => 500,
+                'status' => 'error',
                 'message' => $e->getMessage()
             ], 500);
         }
@@ -197,7 +197,7 @@ class UserController extends Controller
             // Không tìm thấy User
             if (!$user) {
                 return response()->json([
-                    'status' => 404,
+                    'status' => 'error',
                     'message' => 'User not found',
                     'data' => NULL
                 ], 404);
@@ -205,14 +205,14 @@ class UserController extends Controller
 
             // Trả về danh sách orders
             return response()->json([
-                'status' => 200,
-                'message' => 'Success',
+                'status' => 'success',
+                'message' => 'Got user favorites',
                 'data' => $user
             ], 200);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
             return response()->json([
-                'status' => 500,
+                'status' => 'error',
                 'message' => $e->getMessage()
             ], 500);
         }
@@ -233,7 +233,7 @@ class UserController extends Controller
             // Không tìm thấy User
             if (!$user) {
                 return response()->json([
-                    'status' => 404,
+                    'status' => 'error',
                     'message' => 'User not found',
                     'data' => NULL
                 ], 404);
@@ -241,14 +241,14 @@ class UserController extends Controller
 
             // Trả về danh sách orders
             return response()->json([
-                'status' => 200,
-                'message' => 'Success',
+                'status' => 'success',
+                'message' => 'Got user product feedbacks',
                 'data' => $user
             ], 200);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
             return response()->json([
-                'status' => 500,
+                'status' => 'error',
                 'message' => $e->getMessage()
             ], 500);
         }
