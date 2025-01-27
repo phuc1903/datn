@@ -46,5 +46,5 @@ Route::prefix('users')->controller(UserController::class)->group(function () {
     Route::get('/{id}/vouchers', 'vouchers');
     Route::get('/{id}/carts', 'carts');
     Route::get('/{id}/favorites', 'favorites');
-    Route::get('/{id}/feedbacks', 'feedbacks');
+    Route::get('/{id}/product-feedbacks', 'productFeedbacks');
 });

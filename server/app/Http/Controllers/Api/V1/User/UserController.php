@@ -19,7 +19,7 @@ class UserController extends Controller
     {
         try {
             // Eager load các mối quan hệ liên quan
-            $users = User::with('addresses', 'carts.sku.product', 'carts.sku.variantValues', 'favorites.product', 'vouchers.productVoucher', 'wallet', 'feedbacks.product', 'orders.items.product', 'orders.items.sku', 'orders.items.sku.variantValues')
+            $users = User::with('addresses', 'carts.sku.product', 'carts.sku.variantValues', 'favorites.product', 'vouchers.productVoucher', 'wallet', 'productFeedbacks.product', 'orders.items.product', 'orders.items.sku', 'orders.items.sku.variantValues')
                 ->get();
 
             return response()->json([
@@ -46,7 +46,7 @@ class UserController extends Controller
     {
         try {
             // Eager load các mối quan hệ liên quan
-            $users = User::with('addresses', 'carts.sku.product', 'carts.sku.variantValues', 'favorites.product', 'vouchers.productVoucher', 'wallet', 'feedbacks.product', 'orders.items.product', 'orders.items.sku', 'orders.items.sku.variantValues')
+            $users = User::with('addresses', 'carts.sku.product', 'carts.sku.variantValues', 'favorites.product', 'vouchers.productVoucher', 'wallet', 'productFeedbacks.product', 'orders.items.product', 'orders.items.sku', 'orders.items.sku.variantValues')
                 ->find($userId);
 
             // Không tìm thấy User
@@ -221,14 +221,14 @@ class UserController extends Controller
     /*
     |--------------------------------------------------------------------------
     | Lấy danh sách đánh giả sản phẩm User
-    | Path: /api/users/{{userId}}/feedbacks
+    | Path: /api/users/{{userId}}/product-feedbacks
     |--------------------------------------------------------------------------
     */
-    public function feedbacks($userId)
+    public function productFeedbacks($userId)
     {
         try {
             // Lấy user kèm theo danh sách orders
-            $user = User::with('feedbacks.product')->find($userId);
+            $user = User::with('productFeedbacks.product')->find($userId);
 
             // Không tìm thấy User
             if (!$user) {
