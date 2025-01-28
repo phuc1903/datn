@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\API\V1\Product;
+namespace App\Http\Controllers\Api\V1\Product;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
@@ -23,18 +23,18 @@ class ProductController extends Controller
                 'skus.variantValues.variant' // Lấy SKU và giá trị biến thể
             ])->get();
 
-            if ($products->isEmpty()) {
-                return response()->json([
-                    'status' => '500',
-                    'data' => $products,
-                    'message' => 'Products retrieved unsuccessfully.'
-                ], 500);
-            } else {
+            if ($products) {
                 return response()->json([
                     'status' => '200',
                     'data' => $products,
-                    'message' => 'Products retrieved successfully.'
+                    'message' => 'Products retrieved unsuccessfully.'
                 ], 200);
+            } else {
+                return response()->json([
+                    'status' => '402',
+                    'data' => $products,
+                    'message' => 'Product not found .'
+                ], 404);
             }
         }
         catch (\Exception $e) {
