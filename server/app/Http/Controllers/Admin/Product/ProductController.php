@@ -5,15 +5,15 @@ namespace App\Http\Controllers\Admin\Product;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
-
-class ProducController extends Controller
+use App\DataTables\ProductsDataTable;
+class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(ProductsDataTable $datatables)
     {
-        //
+        return $datatables->render('Pages.Product.Index');
     }
 
     /**
