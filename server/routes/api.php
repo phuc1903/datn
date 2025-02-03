@@ -15,20 +15,28 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
+/*
+|--------------------------------------------------------------------------
+| ProductController
+|--------------------------------------------------------------------------
+*/
 Route::prefix('products')->group(function () {
     Route::get('/', [ProductController::class, 'index']);
     Route::get('/{id}', [ProductController::class, 'getProduct']);
     Route::get('/category/{id}', [ProductController::class, 'getProductByCategory']);
 });
 
-
-
-Route::get('categories',[CategoryController::class,'index']);
-
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+/*
+|--------------------------------------------------------------------------
+| CategoryController
+|--------------------------------------------------------------------------
+*/
+Route::prefix('categories')->group(function () {
+    Route::get('/',[CategoryController::class,'index']);
 });
-
 
 /*
 |--------------------------------------------------------------------------

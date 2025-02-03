@@ -14,6 +14,12 @@ class ProductController extends Controller
         $this->product = $product;
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy toàn bộ thông tin toàn bộ Products
+    | Path: api/products
+    |--------------------------------------------------------------------------
+    */
     public function index(): JsonResponse
     {
         try {
@@ -25,27 +31,33 @@ class ProductController extends Controller
 
             if ($products) {
                 return response()->json([
-                    'status' => '200',
+                    'status' => 'success',
                     'data' => $products,
                     'message' => 'Products retrieved unsuccessfully.'
                 ], 200);
             } else {
                 return response()->json([
-                    'status' => '402',
+                    'status' => 'error',
                     'data' => $products,
-                    'message' => 'Product not found .'
+                    'message' => 'Dont have any products'
                 ], 404);
             }
         }
         catch (\Exception $e) {
             return response()->json([
-                'status' => '500',
+                'status' => 'error',
                 'data' => $e->getMessage(),
             ],500);
 
         }
 
     }
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy thông tin toàn bộ Products không có SKU
+    | Path:
+    |--------------------------------------------------------------------------
+    */
     public function getListProductsNotSku(): JsonResponse
     {
         try {
@@ -55,13 +67,13 @@ class ProductController extends Controller
             ])->get();
             if ($products->isEmpty()) {
                 return response()->json([
-                    'status' => '500',
+                    'status' => 'error',
                     'data' => $products,
                     'message' => 'Products retrieved unsuccessfully.'
                 ], 500);
             } else {
                 return response()->json([
-                    'status' => '200',
+                    'status' => 'success',
                     'data' => $products,
                     'message' => 'Products retrieved successfully.'
                 ], 200);
@@ -69,12 +81,18 @@ class ProductController extends Controller
         }
         catch (\Exception $e) {
             return response()->json([
-                'status' => '500',
+                'status' => 'error',
                 'data' => $e->getMessage(),
             ],500);
         }
 
     }
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy thông tin 1 Product
+    | Path: api/products/{id}
+    |--------------------------------------------------------------------------
+    */
     public function getProduct($id): JsonResponse
     {
         try {
@@ -86,26 +104,31 @@ class ProductController extends Controller
 
             if ($products) {
                 return response()->json([
-                    'status' => '200',
+                    'status' => 'success',
                     'data' => $products,
                     'message' => 'Products retrieved unsuccessfully.'
                 ], 200);
             } else {
                 return response()->json([
-                    'status' => '402',
-                    'data' => $products,
+                    'status' => 'error',
                     'message' => 'Product not found .'
                 ], 404);
             }
         }
         catch (\Exception $e) {
             return response()->json([
-                'status' => '500',
+                'status' => 'error',
                 'data' => $e->getMessage()
             ],500);
         }
 
     }
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy thông tin toàn bộ Products theo Category
+    | Path: api/products/category/{id}
+    |--------------------------------------------------------------------------
+    */
     public function getProductByCategory($category_id): JsonResponse
     {
         try {
@@ -119,13 +142,12 @@ class ProductController extends Controller
 
             if ($products->isEmpty()) {
                 return response()->json([
-                    'status' => '404',
-                    'data' => $products,
+                    'status' => 'error',
                     'message' => 'Products not found.'
                 ], 404);
             } else {
                 return response()->json([
-                    'status' => '200',
+                    'status' => 'success',
                     'data' => $products,
                     'message' => 'Products retrieved successfully.'
                 ], 200);
@@ -133,7 +155,7 @@ class ProductController extends Controller
         }
         catch (\Exception $e) {
             return response()->json([
-                'status' => '500',
+                'status' => 'error',
                 'data' => $e->getMessage(),
             ],500);
         }

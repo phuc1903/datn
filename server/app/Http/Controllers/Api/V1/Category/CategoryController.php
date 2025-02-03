@@ -12,14 +12,27 @@ class CategoryController extends Controller
     {
         $this->category = $category;
     }
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy thông tin toàn bộ Category (chưa đệ quy)
+    | Path: api/categories
+    |--------------------------------------------------------------------------
+    */
     public function index(){
         try {
             // Lấy tất cả các danh mục cùng với danh mục con của chúng
             $categories = $this->category->select('id', 'name', 'short_description', 'parent_id', 'slug')->get();
-            return response()->json([
-                'status' => 'success',
-                'data' => $categories
-            ]);
+            if ($categories) {
+                return response()->json([
+                    'status' => 'success',
+                    'data' => $categories
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Categories not found'
+                ], 404);
+            }
         }
         catch (\Exception $e) {
             return response()->json([
