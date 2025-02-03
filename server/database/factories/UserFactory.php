@@ -2,39 +2,60 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
- */
 class UserFactory extends Factory
 {
     /**
-     * Define the model's default state.
+     * Đặc điểm mô hình này.
      *
-     * @return array<string, mixed>
+     * @var string
      */
-    public function definition(): array
+    protected $model = User::class;
+
+    /**
+     * Định nghĩa mẫu dữ liệu cho factory.
+     *
+     * @return array
+     */
+    public function definition()
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-            'remember_token' => Str::random(10),
+            'first_name' => $this->faker->firstName(),
+            'last_name' => $this->faker->lastName(),
+            'phone_number' => $this->faker->phoneNumber(),
+            'email' => $this->faker->unique()->lastName . '@gmail.com',
+            'password' => bcrypt('password'),
+            'status' => $this->faker->randomElement(['active', 'banned']),
+            'sex' => $this->faker->randomElement(['male', 'female', 'other']),
+            'created_at' => now(),
+            'updated_at' => now()
         ];
     }
 
+
     /**
-     * Indicate that the model's email address should be unverified.
-     *
-     * @return $this
+     * Đặt trạng thái banned.
      */
-    public function unverified(): static
+    public function banned()
     {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
+        return $this->state(function () {
+            return [
+                'status' => 'banned',
+            ];
+        });
+    }
+
+    /**
+     * Đặt trạng thái active.
+     */
+    public function active()
+    {
+        return $this->state(function () {
+            return [
+                'status' => 'active',
+            ];
+        });
     }
 }
