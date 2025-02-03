@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Auth\AuthenticatorController;
 use App\Http\Controllers\Api\V1\Category\CategoryController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
 use App\Http\Controllers\Api\V1\User\UserController;
@@ -29,6 +30,24 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+/*
+|--------------------------------------------------------------------------
+| AuthController
+|--------------------------------------------------------------------------
+*/
+Route::prefix('auth')->controller(AuthenticatorController::class)->group(function () {
+    // Unauthenticated 
+    Route::post('/login', 'login');
+    Route::post('/register', 'register');
+    Route::post('/forgot-password', 'forgotPassword');
+    Route::post('/reset-password', 'resetPassword');
+
+    // Authenticated 
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', 'logout');
+        Route::post('/change-password', 'changePassword');
+    });
+});
 
 /*
 |--------------------------------------------------------------------------
