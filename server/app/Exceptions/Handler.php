@@ -47,16 +47,11 @@ class Handler extends ExceptionHandler
         });
     }
 
-
     public function unauthenticated($request, AuthenticationException $exception)
     {
         // Nếu request là API, trả về JSON
         if ($request->expectsJson()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Authentication failed. Please log in again',
-                'error' => null
-            ], 401);
+            return ResponseError('Authentication failed. Please log in again', null, 401);
         }
 
         // Nếu là web, chuyển hướng về trang login
