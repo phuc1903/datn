@@ -3,6 +3,12 @@
 namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Auth\Authenticator\ChangePasswordRequest;
+use App\Http\Requests\Api\V1\Auth\Authenticator\ForgotPasswordRequest;
+use App\Http\Requests\Api\V1\Auth\Authenticator\LoginRequest;
+use App\Http\Requests\Api\V1\Auth\Authenticator\LogoutRequest;
+use App\Http\Requests\Api\V1\Auth\Authenticator\RegisterRequest;
+use App\Http\Requests\Api\V1\Auth\Authenticator\ResetPasswordRequest;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -18,19 +24,9 @@ class AuthenticatorController extends Controller
     | Path: /api/auth/login
     |--------------------------------------------------------------------------
     */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|email|max:255',
-                'password' => 'required|max:255',
-            ]);
-
-            // Kiểm tra đầu vào
-            if ($validator->fails()) {
-                return ResponseError('Validation error', $validator->errors(), 400);
-            }
-
             $user = User::where('email', $request->email)->first();
 
             // Không tìm thấy User
@@ -64,22 +60,9 @@ class AuthenticatorController extends Controller
     | Path: /api/auth/register
     |--------------------------------------------------------------------------
     */
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|email|max:255',
-                'password' => 'required|max:255',
-                'first_name' => 'required|max:255',
-                'last_name' => 'required|max:255',
-                'phone_number' => 'required|max:255',
-            ]);
-
-            // Kiểm tra đầu vào
-            if ($validator->fails()) {
-                return ResponseError('Validation error', $validator->errors(), 400);
-            }
-
             $user = User::where('email', $request->email)->first();
 
             // User đã tồn tại
@@ -87,7 +70,7 @@ class AuthenticatorController extends Controller
                 return ResponseError('User is found', NULL, 403);
             }
 
-            // Tào tài khoản
+            // Tạo tài khoản
             $user = User::create([
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
@@ -117,18 +100,9 @@ class AuthenticatorController extends Controller
     | Path: /api/auth/logout
     |--------------------------------------------------------------------------
     */
-    public function logout(Request $request)
+    public function logout(LogoutRequest $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|email|max:255'
-            ]);
-
-            // Kiểm tra đầu vào
-            if ($validator->fails()) {
-                return ResponseError('Validation error', $validator->errors(), 400);
-            }
-
             $user = User::where('email', $request->email)->first();
 
             // Không tìm thấy User
@@ -137,10 +111,14 @@ class AuthenticatorController extends Controller
             }
 
             // Xóa token
-            $user->tokens()->where('tokenable_id', $user->id)->delete();
+            $token = $user->tokens()->where('tokenable_id', $user->id)->delete();
+
+            // Lỗi token
+            if (!$token) {
+                return ResponseError('Token not found', NULL, 404);
+            }
 
             // Phản hồi kết quả
-
             return ResponseSuccess('Logout successfully');
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
@@ -154,21 +132,9 @@ class AuthenticatorController extends Controller
     | Path: /api/auth/change-password
     |--------------------------------------------------------------------------
     */
-    public function changePassword(Request $request)
+    public function changePassword(ChangePasswordRequest $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|email|max:255',
-                'current_password' => 'required|max:255',
-                'new_password' => 'required|max:255|confirmed',
-                'new_password_confirmation' => 'required|max:255',
-            ]);
-
-            // Kiểm tra đầu vào
-            if ($validator->fails()) {
-                return ResponseError('Validation error', $validator->errors(), 400);
-            }
-
             $user = User::where('email', $request->email)->first();
 
             // Không tìm thấy User
@@ -209,19 +175,9 @@ class AuthenticatorController extends Controller
     | Path: /api/auth/forgot-password
     |--------------------------------------------------------------------------
     */
-    public function forgotPassword(Request $request)
+    public function forgotPassword(ForgotPasswordRequest $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|email|max:255',
-                'debug' => 'nullable',
-            ]);
-
-            // Kiểm tra đầu vào
-            if ($validator->fails()) {
-                return ResponseError('Validation error', $validator->errors(), 400);
-            }
-
             $user = User::where('email', $request->email)->first();
 
             // Không tìm thấy User
@@ -268,20 +224,9 @@ class AuthenticatorController extends Controller
     | Path: /api/auth/forgot-password
     |--------------------------------------------------------------------------
     */
-    public function resetPassword(Request $request)
+    public function resetPassword(ResetPasswordRequest $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|email|max:255',
-                'token' => 'required',
-                'password' => 'required|max:255',
-            ]);
-
-            // Kiểm tra đầu vào
-            if ($validator->fails()) {
-                return ResponseError('Validation error', $validator->errors(), 400);
-            }
-
             $user = User::where('email', $request->email)->first();
 
             // Không tìm thấy User
