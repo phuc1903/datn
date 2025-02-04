@@ -28,52 +28,33 @@ class AuthenticatorController extends Controller
 
             // Kiểm tra đầu vào
             if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Validation error',
-                    'errors' => $validator->errors()
-                ], 400);
+                return ResponseError('Validation error', $validator->errors(), 400);
             }
 
             $user = User::where('email', $request->email)->first();
 
             // Không tìm thấy User
             if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                    'errors' => NULL
-                ], 404);
+                return ResponseError('User not found', NULL, 404);
             }
 
             // Mật khẩu không hợp lệ
             if (!Hash::check($request->password, $user->password)) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Invalid credentials',
-                    'errors' => NULL
-                ], 401);
+                return ResponseError('Invalid credentials', NULL, 401);
             }
 
             // Tạo token
             $token = $user->createToken($request->email)->plainTextToken;
 
             // Phản hồi kết quả
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Login successfully',
-                'data' => [
-                    'user' => $user,
-                    'token' => $token
-                ]
-            ], 200);
+            $success = [
+                'user' => $user,
+                'token' => $token
+            ];
+            return ResponseSuccess('Login successfully', $success);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-                'errors' => $e
-            ], 500);
+            return ResponseError($e->getMessage(), NULL, 500);
         }
     }
 
@@ -96,22 +77,14 @@ class AuthenticatorController extends Controller
 
             // Kiểm tra đầu vào
             if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Validation error',
-                    'errors' => $validator->errors()
-                ], 400);
+                return ResponseError('Validation error', $validator->errors(), 400);
             }
 
             $user = User::where('email', $request->email)->first();
 
             // User đã tồn tại
             if ($user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User is found',
-                    'errors' => NULL
-                ], 403);
+                return ResponseError('User is found', NULL, 403);
             }
 
             // Tào tài khoản
@@ -127,21 +100,14 @@ class AuthenticatorController extends Controller
             $token = $user->createToken($request->email)->plainTextToken;
 
             // Phản hồi kết quả
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Register successfully',
-                'data' => [
-                    'user' => $user,
-                    'token' => $token
-                ]
-            ], 200);
+            $success = [
+                'user' => $user,
+                'token' => $token
+            ];
+            return ResponseSuccess('Register successfully', $success);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-                'errors' => $e
-            ], 500);
+            return ResponseError($e->getMessage(), NULL, 500);
         }
     }
 
@@ -160,40 +126,25 @@ class AuthenticatorController extends Controller
 
             // Kiểm tra đầu vào
             if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Validation error',
-                    'errors' => $validator->errors()
-                ], 400);
+                return ResponseError('Validation error', $validator->errors(), 400);
             }
 
             $user = User::where('email', $request->email)->first();
 
             // Không tìm thấy User
             if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                    'errors' => NULL
-                ], 404);
+                return ResponseError('User not found', NULL, 404);
             }
 
             // Xóa token
             $user->tokens()->where('tokenable_id', $user->id)->delete();
 
             // Phản hồi kết quả
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Logout successfully',
-                'data' => NULL
-            ], 200);
+
+            return ResponseSuccess('Logout successfully');
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-                'errors' => $e
-            ], 500);
+            return ResponseError($e->getMessage(), NULL, 500);
         }
     }
 
@@ -215,33 +166,20 @@ class AuthenticatorController extends Controller
 
             // Kiểm tra đầu vào
             if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Validation error',
-                    'errors' => $validator->errors()
-                ], 400);
+                return ResponseError('Validation error', $validator->errors(), 400);
             }
 
             $user = User::where('email', $request->email)->first();
 
             // Không tìm thấy User
             if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                    'errors' => NULL
-                ], 404);
+                return ResponseError('User not found', NULL, 404);
             }
 
             // Kiểm tra mật khẩu 
             if (!Hash::check($request->current_password, $user->password)) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Invalid credentials',
-                    'errors' => [
-                        'current_password' => 'Current password is incorrect'
-                    ]
-                ], 401);
+                $errors = ['current_password' => 'Current password is incorrect'];
+                return ResponseError('Invalid credentials', $errors, 401);
             }
 
             // Đổi mật khẩu
@@ -257,20 +195,11 @@ class AuthenticatorController extends Controller
             $token = $user->createToken($request->email)->plainTextToken;
 
             // Phản hồi kết quả
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Change password successfully',
-                'data' => [
-                    'token' => $token
-                ]
-            ], 200);
+            $success = ['token' => $token];
+            return ResponseSuccess('Change password successfully', $success);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-                'errors' => $e
-            ], 500);
+            return ResponseError($e->getMessage(), NULL, 500);
         }
     }
 
@@ -290,22 +219,14 @@ class AuthenticatorController extends Controller
 
             // Kiểm tra đầu vào
             if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Validation error',
-                    'errors' => $validator->errors()
-                ], 400);
+                return ResponseError('Validation error', $validator->errors(), 400);
             }
 
             $user = User::where('email', $request->email)->first();
 
             // Không tìm thấy User
             if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                    'errors' => NULL
-                ], 404);
+                return ResponseError('User not found', NULL, 404);
             }
 
             // Token bảo mật (remember_token) 
@@ -324,24 +245,20 @@ class AuthenticatorController extends Controller
             }
 
             // Phản hồi kết quả
-            $responseData = [
+            $success = [
                 'status' => 'success',
                 'message' => 'Please check Email to reset password',
                 'data' => null
             ];
 
             if ($request->boolean('debug')) {
-                $responseData['data'] = ['token' => $token];
+                $success['data'] = ['token' => $token];
             }
 
-            return response()->json($responseData, 200);
+            return ResponseSuccess('Please check Email to reset password', $success);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-                'errors' => $e
-            ], 500);
+            return ResponseError($e->getMessage(), NULL, 500);
         }
     }
 
@@ -362,31 +279,19 @@ class AuthenticatorController extends Controller
 
             // Kiểm tra đầu vào
             if ($validator->fails()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Validation error',
-                    'errors' => $validator->errors()
-                ], 400);
+                return ResponseError('Validation error', $validator->errors(), 400);
             }
 
             $user = User::where('email', $request->email)->first();
 
             // Không tìm thấy User
             if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                    'errors' => NULL
-                ], 404);
+                return ResponseError('User not found', NULL, 404);
             }
 
             // Kiểm tra Token bảo mật (remember_token) 
             if (($user->remember_token === NULL) || !hash_equals($user->remember_token, $request->token)) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Token is not found',
-                    'errors' => NULL
-                ], 404);
+                return ResponseError('Token is not found', NULL, 404);
             }
 
             // Đổi mật khẩu
@@ -395,17 +300,10 @@ class AuthenticatorController extends Controller
             $user->save();
 
             // Phản hồi kết quả
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Reset password successfully',
-            ]);
+            return ResponseSuccess('Reset password successfully');
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-                'errors' => $e
-            ], 500);
+            return ResponseError($e->getMessage(), NULL, 500);
         }
     }
 }
