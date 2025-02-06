@@ -19,13 +19,19 @@ const Header = () => {
   const categories: Category[] = [
     {
       id: 1,
-      name: 'Trang Chủ',
-      path: '/',
+      name: 'Chăm sóc da',
+      path: '/skincare',
+      subcategories: [
+        { name: 'Tẩy trang', path: '/skincare/cleansing' },
+        { name: 'Serum', path: '/skincare/serums' },
+        { name: 'Kem dưỡng', path: '/skincare/moisturizers' },
+        { name: 'Mặt nạ', path: '/skincare/masks' }
+      ]
     },
     {
       id: 2,
-      name: 'Sản phẩm',
-      path: '/shop',
+      name: 'Trang điểm',
+      path: '/makeup',
       subcategories: [
         { name: 'Kem nền', path: '/makeup/foundation' },
         { name: 'Son môi', path: '/makeup/lips' },
@@ -35,13 +41,15 @@ const Header = () => {
     },
     {
       id: 3,
-      name: 'Về chúng tôi',
-      path: '/about',
-    },
-    {
-      id: 4,
-      name: 'Liên hệ',
-      path: '/contact',
+      name: 'Thương hiệu',
+      path: '/brands',
+      subcategories: [
+        { name: 'Estée Lauder', path: '/brands/estee-lauder' },
+        { name: 'Dior', path: '/brands/dior' },
+        { name: 'La Mer', path: '/brands/la-mer' },
+        { name: 'Lancôme', path: '/brands/lancome' },
+        { name: 'Tất cả sản phẩm ', path: '/shop' }
+      ]
     },
   ];
 
@@ -53,7 +61,7 @@ const Header = () => {
         </div>
       </div>
       
-      <header className="bg-white shadow-sm z-50 sticky">
+      <header className="bg-white shadow-sm relative z-50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="flex items-center">
@@ -69,21 +77,19 @@ const Header = () => {
                     className="flex items-center text-gray-700 hover:text-pink-600 py-4 text-sm font-medium"
                   >
                     {category.name}
-                    {category.subcategories && <ChevronDown className="ml-1 h-4 w-4 transition-transform group-hover:rotate-180" />}
+                    <ChevronDown className="ml-1 h-4 w-4 transition-transform group-hover:rotate-180" />
                   </Link>
-                  {Array.isArray(category.subcategories) &&
-                    <div className="hidden group-hover:block absolute top-full left-0 w-48 bg-white shadow-lg rounded-lg py-2 transition-all duration-300">
-                      {category.subcategories.map((sub) => (
-                        <Link
-                          key={sub.path}
-                          href={sub.path}
-                          className="block px-4 py-2 text-sm text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition-colors"
-                        >
-                          {sub.name}
-                        </Link>
-                      ))}
-                    </div>
-                    }
+                  <div className="hidden group-hover:block absolute top-full left-0 w-48 bg-white shadow-lg rounded-lg py-2 transition-all duration-300">
+                    {category.subcategories.map((sub) => (
+                      <Link
+                        key={sub.path}
+                        href={sub.path}
+                        className="block px-4 py-2 text-sm text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition-colors"
+                      >
+                        {sub.name}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               ))}
             </nav>
@@ -159,20 +165,18 @@ const Header = () => {
                 >
                   {category.name}
                 </Link>
-                {Array.isArray(category.subcategories) &&
-                  <div className="ml-4 space-y-2">
-                    {category.subcategories.map((sub) => (
-                      <Link
-                        key={sub.path}
-                        href={sub.path}
-                        className="block text-sm text-gray-600 hover:text-pink-600"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        {sub.name}
-                      </Link>
-                    ))}
-                  </div>
-                }
+                <div className="ml-4 space-y-2">
+                  {category.subcategories.map((sub) => (
+                    <Link
+                      key={sub.path}
+                      href={sub.path}
+                      className="block text-sm text-gray-600 hover:text-pink-600"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {sub.name}
+                    </Link>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
