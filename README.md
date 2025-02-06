@@ -54,6 +54,7 @@ cd server
 
 ```bash
 composer install
+npm install
 ```
 
 Add .env
@@ -73,6 +74,10 @@ Run the backend project
 
 ```bash
 php artisan serve
+```
+
+```bash
+npm run dev
 ```
 
 ## Run FrontEnd
