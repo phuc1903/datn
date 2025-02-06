@@ -30,25 +30,13 @@ class ProductController extends Controller
             ])->get();
 
             if ($products) {
-                return response()->json([
-                    'status' => 'success',
-                    'data' => $products,
-                    'message' => 'Products retrieved unsuccessfully.'
-                ], 200);
+                return ResponseSuccess('Products retrieved successfully.',$products);
             } else {
-                return response()->json([
-                    'status' => 'error',
-                    'data' => $products,
-                    'message' => 'Dont have any products'
-                ], 404);
+                return ResponseError('Dont have any products',null,404);
             }
         }
         catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'data' => $e->getMessage(),
-            ],500);
-
+            return  ResponseError($e->getMessage(),null,500);
         }
 
     }
@@ -65,19 +53,12 @@ class ProductController extends Controller
                 'images',
                 'categories'
             ])->get();
-            if ($products->isEmpty()) {
-                return response()->json([
-                    'status' => 'error',
-                    'data' => $products,
-                    'message' => 'Products retrieved unsuccessfully.'
-                ], 500);
+            if ($products) {
+                return ResponseSuccess('Products retrieved successfully.',$products,200);
             } else {
-                return response()->json([
-                    'status' => 'success',
-                    'data' => $products,
-                    'message' => 'Products retrieved successfully.'
-                ], 200);
+                return ResponseError('Dont have any products',null,404);
             }
+
         }
         catch (\Exception $e) {
             return response()->json([
@@ -101,25 +82,15 @@ class ProductController extends Controller
                 'categories',
                 'skus.variantValues.variant' // Lấy SKU và giá trị biến thể
             ])->find($id);
-
             if ($products) {
-                return response()->json([
-                    'status' => 'success',
-                    'data' => $products,
-                    'message' => 'Products retrieved unsuccessfully.'
-                ], 200);
+                return ResponseSuccess('Products retrieved successfully.',$products,200);
             } else {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Product not found .'
-                ], 404);
+                return ResponseError('Product not found',null,404);
             }
+
         }
         catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'data' => $e->getMessage()
-            ],500);
+            return ResponseError($e->getMessage(),null,500);
         }
 
     }
@@ -140,24 +111,16 @@ class ProductController extends Controller
                 $query->where('categories.id', $category_id);
             })->get();
 
-            if ($products->isEmpty()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Products not found.'
-                ], 404);
+            if ($products) {
+                return ResponseSuccess('Products retrieved successfully.',$products,200);
             } else {
-                return response()->json([
-                    'status' => 'success',
-                    'data' => $products,
-                    'message' => 'Products retrieved successfully.'
-                ], 200);
+                return ResponseError('Dont have any products',null,404);
             }
+
         }
         catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'data' => $e->getMessage(),
-            ],500);
+            return ResponseError($e->getMessage(),null,500);
+
         }
 
     }
