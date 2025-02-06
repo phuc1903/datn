@@ -61,10 +61,8 @@ class ProductController extends Controller
 
         }
         catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'data' => $e->getMessage(),
-            ],500);
+            return ResponseError($e->getMessage(),null,500);
+
         }
 
     }

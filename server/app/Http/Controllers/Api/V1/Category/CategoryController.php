@@ -29,7 +29,7 @@ class CategoryController extends Controller
             }
         }
         catch (\Exception $e) {
-            return ResponseError('$e->getMessage()',null,500);
+            return ResponseError($e->getMessage(),null,500);
         }
 
     }
