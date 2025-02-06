@@ -9,11 +9,12 @@ use App\Http\Requests\Api\V1\Auth\Authenticator\LoginRequest;
 use App\Http\Requests\Api\V1\Auth\Authenticator\LogoutRequest;
 use App\Http\Requests\Api\V1\Auth\Authenticator\RegisterRequest;
 use App\Http\Requests\Api\V1\Auth\Authenticator\ResetPasswordRequest;
+use App\Mail\ForgotPasswordMail;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
 
 class AuthenticatorController extends Controller
 {
@@ -189,29 +190,32 @@ class AuthenticatorController extends Controller
             $token = hash('sha256', Str::random(60));
             $user->remember_token = $token;
             $user->save();
+            $urlReset = url('reset-password/' . $token); // CẤU HÌNH ĐƯỜNG DẪN RESET
 
-            // Gữi mail reset password
-            // ...
-
-            // Debug
-            if (isset($request->debug) && ($request->debug === true)) {
-                $data['data'] = [
-                    'token' => $token
-                ];
+            // Kiểm tra cấu hình mail
+            if (hasCompleteMailConfig() != true) {
+                return ResponseError('Cấu hình email không hợp lệ hoặc bị thiếu. Vui lòng kiểm tra lại cấu hình', null, 500);
             }
+
+            // Gữi email
+            $email = $user->email;
+            $requestTime = time();
+            $userAgent = request()->header('User-Agent');
+            $userIpAddress = request()->ip();
+            Mail::to($user->email)->send(new ForgotPasswordMail(
+                $email,
+                $urlReset,
+                $requestTime,
+                $userAgent,
+                $userIpAddress
+            ));
 
             // Phản hồi kết quả
-            $success = [
-                'status' => 'success',
-                'message' => 'Please check Email to reset password',
-                'data' => null
-            ];
-
-            if ($request->boolean('debug')) {
-                $success['data'] = ['token' => $token];
+            if (isset($request->debug) && ($request->debug == true)) {
+                return ResponseSuccess('Vui lòng kiểm tra email', ['token' => $token]);
             }
 
-            return ResponseSuccess('Please check Email to reset password', $success);
+            return ResponseSuccess('Vui lòng kiểm tra email');
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
             return ResponseError($e->getMessage(), NULL, 500);

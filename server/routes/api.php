@@ -34,8 +34,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 |--------------------------------------------------------------------------
 | AuthController
 |--------------------------------------------------------------------------
+|
+| middleware(throttle:15,1) : Giới hạn 15 request trong 1 phút. Nếu vượt
+| giới hạn thì sẽ trả ra lỗi 429. Kiểm tra nội dung được custom trong
+| Exceptions/Handled.php => ThrottleRequestsException
+|
 */
-Route::prefix('auth')->controller(AuthenticatorController::class)->group(function () {
+Route::middleware(['throttle:15,1'])->prefix('auth')->controller(AuthenticatorController::class)->group(function () {
     // Unauthenticated 
     Route::post('/login', 'login');
     Route::post('/register', 'register');
