@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { ChevronUp, ChevronDown, Diamond, Filter,Search  } from 'lucide-react';
+// import { ChevronUpIcon, ChevronDownIcon, CheckIcon, Square2StackIcon, CreditCardIcon, ArchiveBoxIcon, GiftIcon } from "@heroicons/react/24/outline";
 // import { SearchIcon } from '@heroicons/react/24/solid';
 
 const ProductListingPage = () => {
@@ -9,32 +10,63 @@ const ProductListingPage = () => {
   const [searchTerm, setSearchTerm] = useState("UI/UX Design");
   const FilterSearchHeader = ({ searchTerm, setSearchTerm }) => {
     return (
-      <div className="bg-white shadow-md py-4 mb-4" style={{ paddingLeft: '100px', paddingRight: '100px' }}>
-      <div className="flex items-center gap-4">
-        {/* Filter Button */}
-        <button className="bg-pink-500 text-white py-2 px-6 rounded-lg flex items-center gap-2 hover:bg-pink-600 transition">
-          <Filter className="w-5 h-5" />
-          <span>Filter</span>
-        </button>
+      <div className="bg-white py-4 mb-4 px-[120px] shadow-md">
+        <div className="flex items-center gap-4">
+          {/* Filter Button */}
+          <button className="flex items-center gap-2 border border-pink-500 text-pink-500 py-2 px-4 rounded-lg hover:bg-pink-100 transition">
+  {/* <Filter className="w-5 h-5" /> */}
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-sliders-vertical">
+  <line x1="4" x2="4" y1="21" y2="14" />
+  <line x1="4" x2="4" y1="10" y2="3" />
+  <line x1="12" x2="12" y1="21" y2="12" />
+  <line x1="12" x2="12" y1="8" y2="3" />
+  <line x1="20" x2="20" y1="21" y2="16" />
+  <line x1="20" x2="20" y1="12" y2="3" />
+  <line x1="2" x2="6" y1="14" y2="14" />
+  <line x1="10" x2="14" y1="8" y2="8" />
+  <line x1="18" x2="22" y1="16" y2="16" />
+</svg>
 
-        {/* Search Bar */}
-        <div className="flex-grow relative">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Tìm kiếm sản phẩm..."
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-          />
-          <Search className="absolute right-3 top-3 text-gray-400" />
+  <span className="font-medium">Filter</span>
+  <span className="bg-pink-500 text-white text-xs font-bold px-2 py-0.5 rounded">3</span>
+</button>
+
+  
+          {/* Search Bar */}
+          <div className="flex-grow relative">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="UI/UX Design"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+            />
+            <Search className="absolute right-3 top-3 text-gray-400 w-5 h-5" />
+          </div>
+  
+          {/* Sort Dropdown */}
+          <select className="border border-gray-300 px-2 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 relative pr-2">
+  <option>Giá từ thấp đến cao</option>
+  <option>Giá từ cao đến thấp</option>
+</select>
+
+        </div>
+  
+        {/* Suggestions & Results Count */}
+        <div className="mt-4 flex justify-between items-center text-sm text-gray-500">
+          <div>
+            Gợi ý:{" "}
+            <span className="text-pink-500 cursor-pointer hover:underline">user interface</span>,{" "}
+            <span className="text-pink-500 cursor-pointer hover:underline">user experience</span>,{" "}
+            <span className="text-pink-500 cursor-pointer hover:underline">web design</span>,{" "}
+            <span className="text-pink-500 cursor-pointer hover:underline">interface</span>,{" "}
+            <span className="text-pink-500 cursor-pointer hover:underline">app</span>
+          </div>
+          <div className="text-gray-600 font-medium">
+            <strong>3,145,684</strong> results find for <span className="italic">"ui/ux design"</span>
+          </div>
         </div>
       </div>
-
-      {/* Suggestions */}
-      <div className="mt-2 text-gray-500 text-sm">
-        Gợi ý: <span className="text-pink-500">user interface</span>, <span className="text-pink-500">user experience</span>, <span className="text-pink-500">web design</span>, <span className="text-pink-500">interface</span>, <span className="text-pink-500">app</span>
-      </div>
-    </div>
     );
   };
 
@@ -122,9 +154,19 @@ const ProductListingPage = () => {
                 onClick={() => toggleCategory('category1')}
               >
                 <span className="flex-shrink-0">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <rect width="16" height="16" rx="4"/>
-                  </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-cpu">
+  <rect width="16" height="16" x="4" y="4" rx="2"/>
+  <rect width="6" height="6" x="9" y="9" rx="1"/>
+  <path d="M15 2v2"/>
+  <path d="M15 20v2"/>
+  <path d="M2 15h2"/>
+  <path d="M2 9h2"/>
+  <path d="M20 15h2"/>
+  <path d="M20 9h2"/>
+  <path d="M9 2v2"/>
+  <path d="M9 20v2"/>
+</svg>
+
                 </span>
                 <span>Danh mục 1</span>
                 {expandedCategories.category1 ? 
@@ -150,7 +192,7 @@ const ProductListingPage = () => {
                           type="checkbox"
                           checked={selectedFilters.categories.includes(item.name)}
                           onChange={() => handleFilterChange('categories', item.name)}
-                          className="w-4 h-4 rounded border-gray-300 text-pink-500 focus:ring-pink-500"
+                          className="w-4 h-4 rounded border-gray-300 accent-pink-500 focus:ring-pink-500 "
                         />
                         <span className="text-sm text-gray-600">{item.name}</span>
                       </div>
@@ -164,11 +206,20 @@ const ProductListingPage = () => {
             {[2, 3, 4, 5].map((num) => (
               <div key={num} className="flex items-center gap-2 cursor-pointer">
                 {num === 2 ? (
-                  <Diamond className="w-4 h-4" />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-handshake">
+  <path d="m11 17 2 2a1 1 0 1 0 3-3"/>
+  <path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/>
+  <path d="m21 3 1 11h-2"/>
+  <path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/>
+  <path d="M3 4h8"/>
+</svg>
+
                 ) : (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <rect width="16" height="16" rx="4"/>
-                  </svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-credit-card">
+  <rect width="20" height="14" x="2" y="5" rx="2"/>
+  <line x1="2" x2="22" y1="10" y2="10"/>
+</svg>
+
                 )}
                 <span>Danh mục {num}</span>
                 <ChevronDown className="w-4 h-4 ml-auto" />
@@ -200,7 +251,7 @@ const ProductListingPage = () => {
                     type="checkbox"
                     checked={selectedFilters.ratings.includes(rating.toString())}
                     onChange={() => handleFilterChange('ratings', rating.toString())}
-                    className="w-4 h-4 rounded border-gray-300 text-pink-500 focus:ring-pink-500"
+                    className="w-4 h-4 rounded border-gray-300 accent-pink-500 focus:ring-pink-500"
                   />
                   <div className="flex items-center">
                     <span className="text-sm mr-1">{rating}</span>
@@ -315,7 +366,7 @@ const ProductListingPage = () => {
 
           {/* Product Grid Section */}
           <div className="lg:col-span-9">
-            <div className="hidden lg:flex justify-between items-center mb-6">
+            {/* <div className="hidden lg:flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold text-gray-800">Tất cả sản phẩm</h1>
               <select 
                 value={sortOption}
@@ -327,7 +378,7 @@ const ProductListingPage = () => {
                 <option value="price_desc">Giá cao đến thấp</option>
                 <option value="rating">Đánh giá cao nhất</option>
               </select>
-            </div>
+            </div> */}
 
             {/* Mobile Sort */}
             <div className="lg:hidden mb-4">
