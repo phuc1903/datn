@@ -2,12 +2,20 @@
 
 namespace App\Models;
 
+use App\Enums\Category\CategoryStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
     use HasFactory;
+
+    protected $guarded = [];
+
+    protected $casts = [
+        'random_flag' => 'boolean',
+        'category_status' => CategoryStatus::class
+    ];
 
     // Quan hệ một-nhiều (self-referencing)
     public function parent()
@@ -34,4 +42,3 @@ class Category extends Model
         return $children;
     }
 }
-

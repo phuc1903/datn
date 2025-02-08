@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Auth\AuthenticatorController;
 use App\Http\Controllers\Api\V1\Category\CategoryController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
 use App\Http\Controllers\Api\V1\User\UserController;
@@ -36,6 +37,30 @@ Route::prefix('products')->group(function () {
 */
 Route::prefix('categories')->group(function () {
     Route::get('/',[CategoryController::class,'index']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| AuthController
+|--------------------------------------------------------------------------
+|
+| middleware(throttle:15,1) : Giới hạn 15 request trong 1 phút. Nếu vượt
+| giới hạn thì sẽ trả ra lỗi 429. Kiểm tra nội dung được custom trong
+| Exceptions/Handled.php => ThrottleRequestsException
+|
+*/
+Route::middleware(['throttle:15,1'])->prefix('auth')->controller(AuthenticatorController::class)->group(function () {
+    // Unauthenticated 
+    Route::post('/login', 'login');
+    Route::post('/register', 'register');
+    Route::post('/forgot-password', 'forgotPassword');
+    Route::post('/reset-password', 'resetPassword');
+
+    // Authenticated 
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', 'logout');
+        Route::post('/change-password', 'changePassword');
+    });
 });
 
 /*

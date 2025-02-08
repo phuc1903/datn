@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Category\CategoryStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('short_description');
-            $table->enum('status', ['active', 'hidden'])->default('active');
+            $table->enum('status', CategoryStatus::getValues())->default(CategoryStatus::Active);
             $table->bigInteger('parent_id')->unsigned()->default(0);
             $table->string('slug')->unique();
             $table->timestamps();

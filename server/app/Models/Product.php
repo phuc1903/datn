@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Product\ProductStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -9,6 +10,11 @@ class Product extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
+    protected $casts = [
+        'random_flag' => 'boolean',
+        'product_status' => ProductStatus::class
+    ];
 
     public function skus()
     {
@@ -18,7 +24,7 @@ class Product extends Model
     // Quan hệ với ảnh sản phẩm
     public function images()
     {
-        return $this->hasMany(ProductImage::class)->select('id','product_id','image_url');
+        return $this->hasMany(ProductImage::class)->select('id', 'product_id', 'image_url');
     }
 
     // Quan hệ với phản hồi sản phẩm
@@ -30,6 +36,6 @@ class Product extends Model
     // Quan hệ với danh mục (Nhiều danh mục)
     public function categories()
     {
-        return $this->belongsToMany(Category::class, 'product_categories')->select('categories.id','name','slug');
+        return $this->belongsToMany(Category::class, 'product_categories')->select('categories.id', 'name', 'slug');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Product\ProductStatus;
 use App\Models\Product;
 use App\Models\Admin;
 use App\Models\ProductFeedback;
@@ -43,7 +44,7 @@ class ProductFactory extends Factory
             'name' => $name,
             'short_description' => $this->faker->sentence(),
             'description' => $this->faker->paragraph(),
-            'status' => $this->faker->randomElement(['active', 'archived', 'out_of_stock']),
+            'status' => $this->faker->randomElement(ProductStatus::getValues()),
             'slug' => Str::slug($name),
             'is_hot' => $this->faker->randomElement([1,0]),
             'created_at' => now(),

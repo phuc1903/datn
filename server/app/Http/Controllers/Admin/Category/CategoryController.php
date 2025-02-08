@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\Category;
 
+use App\DataTables\Category\CategoryDataTable;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
@@ -11,9 +12,9 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(CategoryDataTable $dataTables)
     {
-        //
+        return $dataTables->render('Pages.Category.Index');
     }
 
     /**
