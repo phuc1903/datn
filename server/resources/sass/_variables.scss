@@ -1,7 +1,96 @@
-// Body
-$body-bg: #f8fafc;
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
 
-// Typography
-$font-family-sans-serif: 'Nunito', sans-serif;
+// 🖋️ Typography
+$font-family-sans-serif: "Nunito", sans-serif;
 $font-size-base: 0.9rem;
 $line-height-base: 1.6;
+
+// 🎨 Primary Colors
+$primary-50: #fef1f8;
+$primary-100: #ffe4f2;
+$primary-200: #ffcae7;
+$primary-300: #ff9ed1;
+$primary-400: #ff62b1;
+$primary-500: #ff3492;
+$primary-600: #ed0e69; // 🎯 Màu chính
+$primary-700: #d20453;
+$primary-800: #ad0744;
+$primary-900: #900b3b;
+$primary-950: #59001f;
+
+// 🎨 Neutral Colors (Thêm vào Bootstrap)
+$neuture-50: #f4f2f3;
+$neuture-100: #e2e0df;
+$neuture-200: #c6c3c2;
+$neuture-300: #a69f9e;
+$neuture-400: #8c8383;
+$neuture-500: #827878; // 🎯 Màu chính
+$neuture-600: #6b6364;
+$neuture-700: #575152;
+$neuture-800: #4c4748;
+$neuture-900: #443f41;
+$neuture-950: #252324;
+$neuture: $neuture-500; // Định nghĩa màu chính để thêm vào Bootstrap
+
+// 🎨 Secondary Colors
+$secondary-50: #f2fbf4;
+$secondary-100: #e1f7e7;
+$secondary-200: #c5edcf;
+$secondary-300: #9bdeac;
+$secondary-400: #63c57c;
+$secondary-500: #3ea959;
+$secondary-600: #2e8b46; // 🎯 Màu chính
+$secondary-700: #276e3a;
+$secondary-800: #245731;
+$secondary-900: #1f482b;
+$secondary-950: #072c18;
+
+// 🎨 Success Colors
+$success-50: #f1fcf5;
+$success-100: #defaea;
+$success-200: #bef4d4;
+$success-300: #8beab2;
+$success-400: #52d689;
+$success-500: #27ae60; // 🎯 Màu chính
+$success-600: #1d9c53;
+$success-700: #1a7b43;
+$success-800: #1a6139;
+$success-900: #175031;
+$success-950: #072c18;
+
+// 🎨 Danger Colors
+$danger-50: #fef2f2;
+$danger-100: #ffe1e1;
+$danger-200: #ffc9c9;
+$danger-300: #ffa2a2;
+$danger-400: #fc6d6d;
+$danger-500: #f43f3f; // 🎯 Màu chính
+$danger-600: #e01e1e;
+$danger-700: #be1717;
+$danger-800: #9d1717;
+$danger-900: #821a1a;
+$danger-950: #470808;
+
+// 🎨 Warning Colors
+$warning-50: #fffdea;
+$warning-100: #fff6c5;
+$warning-200: #ffed85;
+$warning-300: #ffdd46;
+$warning-400: #ffca1b;
+$warning-500: #ffa800; // 🎯 Màu chính
+$warning-600: #e27f00;
+$warning-700: #bb5802;
+$warning-800: #984308;
+$warning-900: #7c370b;
+$warning-950: #481b00;
+
+// 🔥 Thêm màu "neuture" vào theme Bootstrap
+$theme-colors: (
+    "primary": $primary-600,
+    "secondary": $secondary-600,
+    "success": $success-500,
+    "danger": $danger-500,
+    "warning": $warning-500,
+    "neuture": $neuture,
+);

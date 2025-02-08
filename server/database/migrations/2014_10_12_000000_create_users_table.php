@@ -1,5 +1,8 @@
 <?php
 
+namespace App\Enums\User\UserSex;
+
+use App\Enums\User\UserSex;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -20,7 +23,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('status', ['active', 'banned'])->default('active');
-            $table->enum('sex', ['male', 'female','other'])->default('other');
+            $table->enum('sex', UserSex::getValues())->default(UserSex::Other);
             $table->rememberToken();
             $table->timestamps();
         });

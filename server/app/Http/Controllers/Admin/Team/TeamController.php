@@ -1,20 +1,19 @@
 <?php
 
-namespace App\Http\Controllers\Admin\User;
+namespace App\Http\Controllers\Admin\Team;
 
-use App\DataTables\User\UserDataTable;
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\admin;
 use Illuminate\Http\Request;
 
-class UserController extends Controller
+class TeamController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(UserDataTable $dataTables)
+    public function index()
     {
-        return $dataTables->render('Pages.User.Index');
+        return view('Pages.Team.Index');
     }
 
     /**
@@ -36,7 +35,7 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
+    public function show(admin $admin)
     {
         //
     }
@@ -44,7 +43,7 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(User $user)
+    public function edit(admin $admin)
     {
         //
     }
@@ -52,7 +51,7 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(Request $request, admin $admin)
     {
         //
     }
@@ -60,7 +59,7 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user)
+    public function destroy(admin $admin)
     {
         //
     }

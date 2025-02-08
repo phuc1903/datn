@@ -9,6 +9,6 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        return view('Pages.Dashboard');
+        return view('Pages.Dashboard.Index');
     }
 }
