@@ -45,6 +45,7 @@ class ProductFactory extends Factory
             'description' => $this->faker->paragraph(),
             'status' => $this->faker->randomElement(['active', 'archived', 'out_of_stock']),
             'slug' => Str::slug($name),
+            'is_hot' => $this->faker->randomElement([1,0]),
             'created_at' => now(),
             'updated_at' => now()
         ];

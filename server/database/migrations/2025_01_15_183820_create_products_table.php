@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('slug');
             $table->mediumText('short_description');
             $table->longText('description');
+            $table->boolean('is_hot')->default(0);
             $table->enum('status', ['active', 'archived','out_of_stock'])->default('active');
             $table->timestamps();
             $table->foreign('admin_id')->references('id')->on('admins')->onDelete('cascade');
