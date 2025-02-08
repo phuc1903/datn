@@ -14,6 +14,12 @@ class ProductController extends Controller
         $this->product = $product;
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy toàn bộ thông tin toàn bộ Products
+    | Path: api/products
+    |--------------------------------------------------------------------------
+    */
     public function index(): JsonResponse
     {
         try {
@@ -24,28 +30,22 @@ class ProductController extends Controller
             ])->get();
 
             if ($products) {
-                return response()->json([
-                    'status' => '200',
-                    'data' => $products,
-                    'message' => 'Products retrieved unsuccessfully.'
-                ], 200);
+                return ResponseSuccess('Products retrieved successfully.',$products);
             } else {
-                return response()->json([
-                    'status' => '402',
-                    'data' => $products,
-                    'message' => 'Product not found .'
-                ], 404);
+                return ResponseError('Dont have any products',null,404);
             }
         }
         catch (\Exception $e) {
-            return response()->json([
-                'status' => '500',
-                'data' => $e->getMessage(),
-            ],500);
-
+            return  ResponseError($e->getMessage(),null,500);
         }
 
     }
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy thông tin toàn bộ Products không có SKU
+    | Path:
+    |--------------------------------------------------------------------------
+    */
     public function getListProductsNotSku(): JsonResponse
     {
         try {
@@ -53,28 +53,25 @@ class ProductController extends Controller
                 'images',
                 'categories'
             ])->get();
-            if ($products->isEmpty()) {
-                return response()->json([
-                    'status' => '500',
-                    'data' => $products,
-                    'message' => 'Products retrieved unsuccessfully.'
-                ], 500);
+            if ($products) {
+                return ResponseSuccess('Products retrieved successfully.',$products,200);
             } else {
-                return response()->json([
-                    'status' => '200',
-                    'data' => $products,
-                    'message' => 'Products retrieved successfully.'
-                ], 200);
+                return ResponseError('Dont have any products',null,404);
             }
+
         }
         catch (\Exception $e) {
-            return response()->json([
-                'status' => '500',
-                'data' => $e->getMessage(),
-            ],500);
+            return ResponseError($e->getMessage(),null,500);
+
         }
 
     }
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy thông tin 1 Product
+    | Path: api/products/{id}
+    |--------------------------------------------------------------------------
+    */
     public function getProduct($id): JsonResponse
     {
         try {
@@ -83,29 +80,24 @@ class ProductController extends Controller
                 'categories',
                 'skus.variantValues.variant' // Lấy SKU và giá trị biến thể
             ])->find($id);
-
             if ($products) {
-                return response()->json([
-                    'status' => '200',
-                    'data' => $products,
-                    'message' => 'Products retrieved unsuccessfully.'
-                ], 200);
+                return ResponseSuccess('Products retrieved successfully.',$products,200);
             } else {
-                return response()->json([
-                    'status' => '402',
-                    'data' => $products,
-                    'message' => 'Product not found .'
-                ], 404);
+                return ResponseError('Product not found',null,404);
             }
+
         }
         catch (\Exception $e) {
-            return response()->json([
-                'status' => '500',
-                'data' => $e->getMessage()
-            ],500);
+            return ResponseError($e->getMessage(),null,500);
         }
 
     }
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy thông tin toàn bộ Products theo Category
+    | Path: api/products/category/{id}
+    |--------------------------------------------------------------------------
+    */
     public function getProductByCategory($category_id): JsonResponse
     {
         try {
@@ -117,25 +109,16 @@ class ProductController extends Controller
                 $query->where('categories.id', $category_id);
             })->get();
 
-            if ($products->isEmpty()) {
-                return response()->json([
-                    'status' => '404',
-                    'data' => $products,
-                    'message' => 'Products not found.'
-                ], 404);
+            if ($products) {
+                return ResponseSuccess('Products retrieved successfully.',$products,200);
             } else {
-                return response()->json([
-                    'status' => '200',
-                    'data' => $products,
-                    'message' => 'Products retrieved successfully.'
-                ], 200);
+                return ResponseError('Dont have any products',null,404);
             }
+
         }
         catch (\Exception $e) {
-            return response()->json([
-                'status' => '500',
-                'data' => $e->getMessage(),
-            ],500);
+            return ResponseError($e->getMessage(),null,500);
+
         }
 
     }

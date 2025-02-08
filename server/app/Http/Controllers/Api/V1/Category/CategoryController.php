@@ -12,37 +12,25 @@ class CategoryController extends Controller
     {
         $this->category = $category;
     }
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy thông tin toàn bộ Category (chưa đệ quy)
+    | Path: api/categories
+    |--------------------------------------------------------------------------
+    */
     public function index(){
         try {
             // Lấy tất cả các danh mục cùng với danh mục con của chúng
             $categories = $this->category->select('id', 'name', 'short_description', 'parent_id', 'slug')->get();
-            return response()->json([
-                'status' => 'success',
-                'data' => $categories
-            ]);
+            if ($categories) {
+                return ResponseSuccess('Get Categories successfully',$categories,200);
+            } else {
+                return ResponseError('Categories not found',null,404);
+            }
         }
         catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ],500);
+            return ResponseError($e->getMessage(),null,500);
         }
 
     }
-//    public function recursiveCategory(){
-//        // Lấy tất cả các danh mục cùng với danh mục con của chúng
-//        $categories = $this->category->select('id', 'name', 'short_description', 'parent_id', 'slug')
-//            ->where('parent_id',0)
-//            ->with(['children' => function ($query) {
-//                $query->where('status', '!=', 'hidden')
-//                    ->select('id', 'name', 'short_description', 'parent_id', 'slug'); // Lọc các trường của danh mục con
-//            }])
-//            ->where('status', '!=', 'hidden') // Lọc danh mục chính có trạng thái khác "hidden"
-//            ->get();
-//
-//        return response()->json([
-//            'status' => 'success',
-//            'data' => $categories
-//        ]);
-//    }
 }
