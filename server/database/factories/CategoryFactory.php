@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Category\CategoryStatus;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -28,7 +29,7 @@ class CategoryFactory extends Factory
         return [
             'name' => $name,
             'short_description' => $this->faker->sentence(),
-            'status' => $this->faker->randomElement(['active', 'hidden']),
+            'status' => $this->faker->randomElement(CategoryStatus::getValues()),
             'parent_id' => 0,
             'slug' => Str::slug($name),
             'created_at' => now(),

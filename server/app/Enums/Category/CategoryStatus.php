@@ -1,17 +1,35 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Enums\Category;
 
 use BenSampo\Enum\Enum;
 
 /**
- * @method static static OptionOne()
- * @method static static OptionTwo()
- * @method static static OptionThree()
+ * @method static static Active()
+ * @method static static Hidden()
  */
 final class CategoryStatus extends Enum
 {
-    const OptionOne = 0;
-    const OptionTwo = 1;
-    const OptionThree = 2;
+    const Active = 'active';
+    const Hidden = 'hidden';
+
+    public function label(): string
+    {
+        return match ($this->value) {
+            self::Active => "Đang hoạt động",
+            self::Hidden => "Đang ẩn",
+            default => "Không xác định",
+        };
+    }
+
+    public function badge(): string
+    {
+        return match ($this->value) {
+            self::Active => "<span class='badge text-bg-success text-white'>{$this->label()}</span>",
+            self::Hidden => "<span class='badge text-bg-neuture text-white'>{$this->label()}</span>",
+            default => "<span class='badge text-bg-info text-white'> Không xác định</span>",
+        };
+    }
 }

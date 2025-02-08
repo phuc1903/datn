@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Product\ProductStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -18,7 +19,7 @@ return new class extends Migration
             $table->string('slug');
             $table->mediumText('short_description');
             $table->longText('description');
-            $table->enum('status', ['active', 'archived','out_of_stock'])->default('active');
+            $table->enum('status', ProductStatus::getValues())->default(ProductStatus::Active);
             $table->timestamps();
             $table->foreign('admin_id')->references('id')->on('admins')->onDelete('cascade');
         });
