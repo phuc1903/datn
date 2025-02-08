@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -44,6 +45,17 @@ class Handler extends ExceptionHandler
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+
+        // Xử lý ThrottleRequestsException (custom nội dung giới hạn request của middleware('throttle'))
+        $this->renderable(function (ThrottleRequestsException $e, $request) {
+            if ($request->expectsJson()) {
+                return ResponseError(
+                    'Bạn đã gửi quá nhiều yêu cầu trong thời gian ngắn. Vui lòng thử lại sau ít phút.',
+                    ['retry_after' => $e->getHeaders()['Retry-After'] ?? 60],
+                    429
+                );
+            }
         });
     }
 
