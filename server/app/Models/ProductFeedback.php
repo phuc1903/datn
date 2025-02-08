@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Product\ProductFeedbackStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -11,6 +12,10 @@ class ProductFeedback extends Model
     protected $guarded = [];
 
     protected $table = 'product_feedbacks';
+    protected $casts = [
+        'random_flag' => 'boolean',
+        'product_feedback_status' => ProductFeedbackStatus::class,
+    ];
 
     public function product()
     {

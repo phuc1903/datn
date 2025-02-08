@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\Category\CategoryController;
 use App\Http\Controllers\Admin\Dashboard\DashboardController;
 use App\Http\Controllers\Admin\Order\OrderController;
+use App\Http\Controllers\Admin\Product\FeedbackController;
 use App\Http\Controllers\Admin\Product\ProductController;
 use App\Http\Controllers\Admin\Team\TeamController;
 use App\Http\Controllers\Admin\User\UserController;
@@ -27,6 +28,7 @@ Route::prefix('/admin')->as('admin.')->group(function () {
     Route::resource('user', UserController::class);
     Route::resource('team', TeamController::class);
     Route::resource('order', OrderController::class);
+    Route::resource('feedback-product', FeedbackController::class);
 });
 
 Auth::routes();

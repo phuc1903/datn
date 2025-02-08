@@ -19,7 +19,7 @@ class VariantSeeder extends Seeder
         |--------------------
         */
         Variant::factory()
-            ->count(4)
+            ->count(10)
             ->create();
     }
 }

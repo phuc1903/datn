@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Blog\BlogStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -18,7 +19,7 @@ return new class extends Migration
             $table->text('description');
             $table->mediumText('short_description');
             $table->string('image_url');
-            $table->enum('status', ['archived','draft','published'])->default('draft');
+            $table->enum('status', BlogStatus::getValues())->default(BlogStatus::Draft);
             $table->unsignedBigInteger('admin_id');
             $table->foreign('admin_id')->references('id')->on('admins')->onDelete('cascade');
             $table->timestamps();

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Product\ProductVoucherType;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Voucher;
@@ -19,7 +20,7 @@ class ProductVoucherFactory extends Factory
      */
     public function definition(): array
     {
-        $type = $this->faker->randomElement(['product', 'category']);
+        $type = $this->faker->randomElement(ProductVoucherType::getValues());
 
         return [
             'voucher_id' => Voucher::factory(),

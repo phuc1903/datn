@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Wallet\HistoryMoneysType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -19,7 +20,7 @@ return new class extends Migration
             $table->integer('amount');
             $table->integer('after');
             $table->string('note')->nullable();
-            $table->enum('type', ['deposit', 'withdraw','shopping']);
+            $table->enum('type', HistoryMoneysType::getValues());
             $table->timestamps();
         });
     }

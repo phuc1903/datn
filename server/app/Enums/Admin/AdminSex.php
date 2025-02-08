@@ -1,8 +1,6 @@
-<?php
+<?php declare(strict_types=1);
 
-declare(strict_types=1);
-
-namespace App\Enums\User;
+namespace App\Enums\Admin;
 
 use BenSampo\Enum\Enum;
 
@@ -10,12 +8,15 @@ use BenSampo\Enum\Enum;
  * @method static static Male()
  * @method static static Female()
  * @method static static Other()
+ * @method static static label()
+ * @method static static badge()
  */
-final class UserSex extends Enum
+final class AdminSex extends Enum
 {
     const Male = 'male';
     const Female = 'female';
     const Other = 'other';
+
     public function label(): string
     {
         return match ($this->value) {
