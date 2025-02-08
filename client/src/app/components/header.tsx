@@ -1,12 +1,20 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, ShoppingBag, User, Heart, ChevronDown, Menu } from 'lucide-react';
 
 interface Category {
   id: number;
   name: string;
-  path: string;
+  short_description: string;
+  parent_id: number;
+  slug: string;
+}
+
+interface ProcessedCategory {
+  id: number;
+  name: string;
+  slug: string;
   subcategories: {
     name: string;
     path: string;
@@ -15,8 +23,45 @@ interface Category {
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [categories, setCategories] = useState<ProcessedCategory[]>([]);
   
-  const categories: Category[] = [
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/categories');
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+          // Process categories
+          const mainCategories = result.data.filter((cat: Category) => cat.parent_id === 0);
+          
+          const processedCategories = mainCategories.map((mainCat: Category) => {
+            const subCategories = result.data
+              .filter((cat: Category) => cat.parent_id === mainCat.id)
+              .map((subCat: Category) => ({
+                name: subCat.name,
+                path: `/shop/${subCat.slug}`
+              }));
+            
+            return {
+              id: mainCat.id,
+              name: mainCat.name,
+              slug: mainCat.slug,
+              subcategories: subCategories
+            };
+          });
+          
+          setCategories(processedCategories);
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
+
+  const staticCategories = [
     {
       id: 1,
       name: 'Trang Chủ',
@@ -26,12 +71,12 @@ const Header = () => {
       id: 2,
       name: 'Sản phẩm',
       path: '/shop',
-      subcategories: [
-        { name: 'Kem nền', path: '/makeup/foundation' },
-        { name: 'Son môi', path: '/makeup/lips' },
-        { name: 'Phấn mắt', path: '/makeup/eyes' },
-        { name: 'Má hồng', path: '/makeup/blush' }
-      ]
+      subcategories: categories.length > 0 ? categories.flatMap(cat => 
+        cat.subcategories.map(sub => ({
+          name: sub.name,
+          path: sub.path
+        }))
+      ) : []
     },
     {
       id: 3,
@@ -62,28 +107,32 @@ const Header = () => {
             </Link>
 
             <nav className="hidden md:flex items-center space-x-8">
-              {categories.map((category) => (
+              {staticCategories.map((category) => (
                 <div key={category.id} className="group relative">
                   <Link 
                     href={category.path}
                     className="flex items-center text-gray-700 hover:text-pink-600 py-4 text-sm font-medium"
                   >
                     {category.name}
-                    {category.subcategories && <ChevronDown className="ml-1 h-4 w-4 transition-transform group-hover:rotate-180" />}
-                  </Link>
-                  {Array.isArray(category.subcategories) &&
-                    <div className="hidden group-hover:block absolute top-full left-0 w-48 bg-white shadow-lg rounded-lg py-2 transition-all duration-300">
-                      {category.subcategories.map((sub) => (
-                        <Link
-                          key={sub.path}
-                          href={sub.path}
-                          className="block px-4 py-2 text-sm text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition-colors"
-                        >
-                          {sub.name}
-                        </Link>
-                      ))}
-                    </div>
+                    {category.subcategories && category.subcategories.length > 0 && 
+                      <ChevronDown className="ml-1 h-4 w-4 transition-transform group-hover:rotate-180" />
                     }
+                  </Link>
+                  {category.subcategories && category.subcategories.length > 0 && (
+                    <div className="hidden group-hover:block absolute top-full left-0 w-screen max-w-4xl bg-white shadow-lg rounded-lg py-6 px-8 transition-all duration-300">
+                      <div className="grid grid-cols-4 gap-4">
+                        {category.subcategories.map((sub, index) => (
+                          <Link
+                            key={`${sub.path}-${index}`}
+                            href={sub.path}
+                            className="block px-4 py-2 text-sm text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition-colors rounded-lg"
+                          >
+                            {sub.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </nav>
@@ -150,7 +199,7 @@ const Header = () => {
                 className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-pink-300 text-sm"
               />
             </div>
-            {categories.map((category) => (
+            {staticCategories.map((category) => (
               <div key={category.id} className="mb-6">
                 <Link
                   href={category.path}
@@ -159,20 +208,20 @@ const Header = () => {
                 >
                   {category.name}
                 </Link>
-                {Array.isArray(category.subcategories) &&
-                  <div className="ml-4 space-y-2">
-                    {category.subcategories.map((sub) => (
+                {category.subcategories && category.subcategories.length > 0 && (
+                  <div className="ml-4 grid grid-cols-2 gap-2">
+                    {category.subcategories.map((sub, index) => (
                       <Link
-                        key={sub.path}
+                        key={`${sub.path}-${index}`}
                         href={sub.path}
-                        className="block text-sm text-gray-600 hover:text-pink-600"
+                        className="block text-sm text-gray-600 hover:text-pink-600 hover:bg-pink-50 px-2 py-1 rounded"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         {sub.name}
                       </Link>
                     ))}
                   </div>
-                }
+                )}
               </div>
             ))}
           </div>

@@ -241,7 +241,7 @@ export default function ProductDetail() {
                   {/* Quantity */}
                   <div>
                     <h3 className="text-sm font-medium text-gray-900 mb-4">Số lượng:</h3>
-                    <div className="flex items-center space-x-4">
+                    <div className="text-black flex items-center space-x-4">
                       <button
                         className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50"
                         onClick={() => handleQuantityChange(quantity - 1)}
@@ -300,7 +300,7 @@ export default function ProductDetail() {
         </div>
 
         {/* Product Details Tabs */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-white rounded-xl text-black shadow-lg overflow-hidden">
           <div className="border-b">
             <nav className="flex">
               {["description", "specifications", "reviews"].map((tab) => (

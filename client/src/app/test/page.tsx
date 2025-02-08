@@ -36,7 +36,7 @@ export default function Products() {
       {/* Best Sellers Section */}
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">Sản Phẩm Bán Chạy</h2>
+          <h2 className="text-3xl font-bold text-gray-800">Sản Phẩm Hot</h2>
           <Link href="/bestsellers" className="text-pink-600 hover:text-pink-700 font-medium">
             Xem tất cả
           </Link>
@@ -52,9 +52,7 @@ export default function Products() {
                     fill 
                     className="object-cover transform transition-transform duration-300 group-hover:scale-105" 
                   />
-                  <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-sm">
-                    Best Seller
-                  </div>
+                 
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
                     <h3 className="text-2xl font-semibold text-white mb-3 line-clamp-2">
                       {hotProducts[0].name}
@@ -89,9 +87,7 @@ export default function Products() {
                       fill 
                       className="object-cover transform transition-transform duration-300 group-hover:scale-105" 
                     />
-                    <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-sm">
-                      Best Seller
-                    </div>
+                   
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                       <h3 className="text-base font-semibold text-white mb-2 line-clamp-1">
                         {product.name}
