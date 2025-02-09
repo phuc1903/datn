@@ -1,13 +1,45 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { ChevronUp, ChevronDown, Diamond, Filter,Search  } from 'lucide-react';
+import Link from 'next/link';
+import { API_BASE_URL } from '@/config/config';
 // import { ChevronUpIcon, ChevronDownIcon, CheckIcon, Square2StackIcon, CreditCardIcon, ArchiveBoxIcon, GiftIcon } from "@heroicons/react/24/outline";
 // import { SearchIcon } from '@heroicons/react/24/solid';
 
 const ProductListingPage = () => {
   // const [searchTerm, setSearchTerm] = useState('');
   const [searchTerm, setSearchTerm] = useState("UI/UX Design");
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/products`)
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(data.data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        setLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/categories`)
+      .then((res) => res.json())
+      .then((data) => {
+        setCategories(data.data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        setLoading(false);
+      });
+  }, []);
+
   const FilterSearchHeader = ({ searchTerm, setSearchTerm }) => {
     return (
       <div className="bg-white py-4 mb-4 px-[120px] shadow-md">
@@ -69,6 +101,8 @@ const ProductListingPage = () => {
       </div>
     );
   };
+
+  console.log(categories);
 
   // const [filterCount, setFilterCount] = useState(3); // Example filter count
 
@@ -155,17 +189,17 @@ const ProductListingPage = () => {
               >
                 <span className="flex-shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-cpu">
-  <rect width="16" height="16" x="4" y="4" rx="2"/>
-  <rect width="6" height="6" x="9" y="9" rx="1"/>
-  <path d="M15 2v2"/>
-  <path d="M15 20v2"/>
-  <path d="M2 15h2"/>
-  <path d="M2 9h2"/>
-  <path d="M20 15h2"/>
-  <path d="M20 9h2"/>
-  <path d="M9 2v2"/>
-  <path d="M9 20v2"/>
-</svg>
+                <rect width="16" height="16" x="4" y="4" rx="2"/>
+                <rect width="6" height="6" x="9" y="9" rx="1"/>
+                <path d="M15 2v2"/>
+                <path d="M15 20v2"/>
+                <path d="M2 15h2"/>
+                <path d="M2 9h2"/>
+                <path d="M20 15h2"/>
+                <path d="M20 9h2"/>
+                <path d="M9 2v2"/>
+                <path d="M9 20v2"/>
+              </svg>
 
                 </span>
                 <span>Danh mục 1</span>
@@ -329,11 +363,12 @@ const ProductListingPage = () => {
   );
 
   return (
-    
     <div className="min-h-screen bg-gray-50">
-
-            {/* Header with Search and Filter */}
-            <FilterSearchHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      {/* Header with Search and Filter */}
+      <FilterSearchHeader
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+      />
 
       <div className="container mx-auto px-4 py-4 sm:py-8">
         {/* Mobile Filter Button */}
@@ -350,11 +385,18 @@ const ProductListingPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8">
           {/* Sidebar */}
-          <div className={`lg:col-span-3 ${isMobileFilterOpen ? 'block' : 'hidden'} lg:block fixed lg:relative top-0 left-0 w-full lg:w-auto h-full lg:h-auto z-50 bg-gray-50 lg:bg-transparent overflow-auto`}>
+          <div
+            className={`lg:col-span-3 ${
+              isMobileFilterOpen ? "block" : "hidden"
+            } lg:block fixed lg:relative top-0 left-0 w-full lg:w-auto h-full lg:h-auto z-50 bg-gray-50 lg:bg-transparent overflow-auto`}
+          >
             {isMobileFilterOpen && (
               <div className="p-4 bg-white lg:hidden flex justify-between items-center">
                 <h2 className="font-bold">Bộ lọc</h2>
-                <button onClick={() => setIsMobileFilterOpen(false)} className="text-gray-500">
+                <button
+                  onClick={() => setIsMobileFilterOpen(false)}
+                  className="text-gray-500"
+                >
                   ✕
                 </button>
               </div>
@@ -382,7 +424,7 @@ const ProductListingPage = () => {
 
             {/* Mobile Sort */}
             <div className="lg:hidden mb-4">
-              <select 
+              <select
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
                 className="w-full border rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
@@ -395,40 +437,47 @@ const ProductListingPage = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {[1, 2, 3, 4, 5, 6].map((item) => (
-                <div key={item} className="relative bg-white rounded-lg shadow-md overflow-hidden group p-3 sm:p-4">
+              {products.map((item) => (
+                <div
+                  key={item.id}
+                  className="relative bg-white rounded-lg shadow-md overflow-hidden group p-3 sm:p-4"
+                >
                   <div className="relative w-full aspect-square mb-3 sm:mb-4 overflow-hidden">
-                    <Image
-                      src="/nhuong-quyen-gia-cong-my-pham-blog-coanmy.webp"
-                      alt={`Product ${item}`}
-                      fill
-                      className="object-cover transform transition-transform duration-300 group-hover:scale-110"
-                    />
+                    <Link href={`/product/${item.id}`}>
+                      <Image
+                        src="/nhuong-quyen-gia-cong-my-pham-blog-coanmy.webp"
+                        alt={`Product ${item.name}`}
+                        fill
+                        className="object-cover transform transition-transform duration-300 group-hover:scale-110"
+                      />
+                    </Link>
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
-                    {['Sữa rửa mặt', 'Dưỡng da'].map((tag, idx) => (
+                    {item.categories?.map((cate) => (
                       <span
-                        key={idx}
+                        key={cate.id}
                         className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full"
                       >
-                        {tag}
+                        {cate.name}
                       </span>
                     ))}
                   </div>
 
                   <h3 className="text-sm font-medium mb-2 line-clamp-2 text-gray-800">
-                    Kem dưỡng da La Roche-Posay Cicaplast Baume B5+ hỗ trợ làm dịu...
+                    {item.name}
                   </h3>
                   <p className="text-sm text-gray-600 line-clamp-3">
-                    Sản phẩm này là lựa chọn hoàn hảo để chăm sóc làn da của bạn. Với công thức độc đáo, 
-                    sản phẩm giúp làm sạch sâu, cấp ẩm và bảo vệ da khỏi các tác nhân gây hại từ môi trường. 
-                    Thích hợp cho mọi loại da, bao gồm cả da nhạy cảm.
+                    {item.short_description}
                   </p>
 
                   <div className="mb-3 sm:mb-4 my-[10px]">
-                    <span className="line-through text-gray-500 text-sm mr-2">130.000đ</span>
-                    <span className="text-pink-600 font-bold text-base sm:text-lg">120.000đ</span>
+                    <span className="line-through text-gray-500 text-sm mr-2">
+                      {item.skus[0].price.toLocaleString("vi-VN")}đ
+                    </span>
+                    <span className="text-pink-600 font-bold text-base sm:text-lg">
+                      {item.skus[0].promotion_price.toLocaleString("vi-VN")}đ
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
@@ -454,8 +503,8 @@ const ProductListingPage = () => {
                     key={page}
                     className={`px-3 py-1 rounded-lg ${
                       page === 1
-                        ? 'bg-pink-600 text-white'
-                        : 'text-gray-500 hover:bg-gray-50'
+                        ? "bg-pink-600 text-white"
+                        : "text-gray-500 hover:bg-gray-50"
                     }`}
                   >
                     {page}
@@ -472,7 +521,7 @@ const ProductListingPage = () => {
 
       {/* Mobile Filter Overlay Background */}
       {isMobileFilterOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-40"
           onClick={() => setIsMobileFilterOpen(false)}
         />
