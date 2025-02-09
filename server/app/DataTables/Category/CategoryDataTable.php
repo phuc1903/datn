@@ -48,11 +48,11 @@ class CategoryDataTable extends DataTable
             ->editColumn('updated_at', function ($category) {
                 return Carbon::parse($category->updated_at)->format('d-m-Y');
             })
-            // ->editColumn('image', function ($product) {
-            //     return '<image class="rounded mx-auto d-block image-cover" src="' . $product->skus[0]->image_url . '" style="width: 50px; height: 50px;"/>';
-            // })
+            ->editColumn('image', function ($category) {
+                return '<img class="rounded mx-auto d-block image-cover image-table" src="' . $category->image . '"/>';
+            })
             ->setRowId('id')
-            ->rawColumns(['status', 'action']);
+            ->rawColumns(['status', 'action', 'image']);
     }
 
     /**
@@ -73,7 +73,7 @@ class CategoryDataTable extends DataTable
             ->columns($this->getColumns())
             ->minifiedAjax()
             //->dom('Bfrtip')
-            ->orderBy(1)
+            ->orderBy(2)
             ->selectStyleSingle()
             ->parameters([
                 'language' => [
@@ -108,6 +108,7 @@ class CategoryDataTable extends DataTable
     {
         return [
             Column::make('DT_RowIndex')->title('STT')->orderable(false)->searchable(false),
+            Column::make('image')->title('Ảnh')->orderable(false)->searchable(false),
             Column::make('name')->title('Tên danh mục'),
             Column::make('status')->title('Trạng thái'),
             Column::make('created_at')->title('Ngày thêm')->width(150),
