@@ -5,9 +5,17 @@ import Link from "next/link";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   
+  // Di chuyển hàm getRandomItems lên trước useEffect
+  const getRandomItems = (arr, num) => {
+    const shuffled = [...arr].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, num);
+  };
+  
   useEffect(() => {
+    // Fetch products
     fetch("http://127.0.0.1:8000/api/products")
       .then((res) => res.json())
       .then((data) => {
@@ -18,21 +26,61 @@ export default function Products() {
         console.error("Error fetching data:", error);
         setLoading(false);
       });
+
+    // Fetch categories
+    fetch("http://127.0.0.1:8000/api/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        // Filter only parent categories (parent_id: 0) and get random 4
+        const parentCategories = data.data.filter(cat => cat.parent_id === 0);
+        const randomCategories = getRandomItems(parentCategories, 4);
+        setCategories(randomCategories);
+      })
+      .catch((error) => {
+        console.error("Error fetching categories:", error);
+      });
   }, []);
 
   if (loading) return <p className="text-center text-lg">Đang tải dữ liệu...</p>;
-
-  const getRandomItems = (arr, num) => {
-    const shuffled = [...arr].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, num);
-  };
 
   const hotProducts = getRandomItems(products.filter(p => p.is_hot), 4);
   const newProducts = getRandomItems(products.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)), 5);
   const recommended = getRandomItems(products, 5);
 
+  // Define fixed images for categories
+  const categoryImages = {
+    0: '/oxy.jpg',
+    1: '/makup.jpg',
+    2: '/per.webp',
+    3: '/hair.avif'
+  };
+
   return (
     <main className="min-h-screen bg-gray-50">
+        {/* Categories Section */}
+      <section className="w-full px-4 py-12 bg-pink-100">
+        <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Danh Mục Sản Phẩm</h2>
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
+          {categories.map((category, index) => (
+            <Link
+              key={category.id}
+              href={`/category/${category.slug}`}
+              className="group relative h-48 bg-white rounded-lg shadow-md overflow-hidden"
+            >
+              <img
+                src={categoryImages[index]}
+                alt={category.name}
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-white text-xl font-semibold">{category.name}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* Best Sellers Section */}
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
