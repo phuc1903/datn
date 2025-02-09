@@ -49,7 +49,7 @@ class ProductDataTable extends DataTable
             //     return Carbon::parse($product->updated_at)->format('d-m-Y');
             // })
             ->editColumn('image', function ($product) {
-                return '<image class="rounded mx-auto d-block image-cover" src="' . $product->skus[0]->image_url . '" style="width: 50px; height: 50px;"/>';
+                return '<img class="rounded mx-auto d-block image-cover image-table" src="' . $product->skus[0]->image_url . '"/>';
             })
             ->editColumn('price', function ($product) {
                 $price = $product->price ?? 0;
@@ -84,7 +84,7 @@ class ProductDataTable extends DataTable
             // ->dom('Brtip')
             // ->pageLength(8)
             // ->pagingType('full_numbers')
-            ->orderBy(1)
+            ->orderBy(2)
             ->selectStyleSingle()
             ->parameters([
                 'language' => [

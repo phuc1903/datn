@@ -1,20 +1,19 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Product;
+namespace App\Http\Controllers\Admin\Setting;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
+use App\Models\Setting;
 use Illuminate\Http\Request;
-use App\DataTables\Product\ProductDataTable;
 
-class ProductController extends Controller
+class SettingController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(ProductDataTable $datatables)
+    public function index()
     {
-        return $datatables->render('Pages.Product.Index');
+        return view('Pages.Setting.Index');
     }
 
     /**
@@ -22,7 +21,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-        return view('Pages.Product.Create');
+        //
     }
 
     /**
@@ -36,7 +35,7 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
+    public function show(Setting $setting)
     {
         //
     }
@@ -44,7 +43,7 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Product $product)
+    public function edit(Setting $setting)
     {
         //
     }
@@ -52,7 +51,7 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
+    public function update(Request $request, Setting $setting)
     {
         //
     }
@@ -60,7 +59,7 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy(Setting $setting)
     {
         //
     }
