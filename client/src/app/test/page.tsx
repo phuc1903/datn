@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { API_BASE_URL } from "@/config/config";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -15,7 +16,7 @@ export default function Products() {
   
   useEffect(() => {
     // Fetch products
-    fetch("http://127.0.0.1:8000/api/products")
+    fetch(`${API_BASE_URL}/products`)
       .then((res) => res.json())
       .then((data) => {
         // Filter out out_of_stock products before setting state
@@ -29,10 +30,10 @@ export default function Products() {
       });
 
     // Fetch categories
-    fetch("http://127.0.0.1:8000/api/categories")
+    fetch(`${API_BASE_URL}/categories`)
       .then((res) => res.json())
       .then((data) => {
-        const parentCategories = data.data.filter(cat => cat.parent_id === 0);
+        const parentCategories = data.data.filter((cat) => cat.parent_id === 0);
         const randomCategories = getRandomItems(parentCategories, 4);
         setCategories(randomCategories);
       })
