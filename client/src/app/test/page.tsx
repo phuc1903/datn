@@ -8,7 +8,6 @@ export default function Products() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Di chuyển hàm getRandomItems lên trước useEffect
   const getRandomItems = (arr, num) => {
     const shuffled = [...arr].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, num);
@@ -19,7 +18,9 @@ export default function Products() {
     fetch("http://127.0.0.1:8000/api/products")
       .then((res) => res.json())
       .then((data) => {
-        setProducts(data.data);
+        // Filter out out_of_stock products before setting state
+        const inStockProducts = data.data.filter(product => product.status !== "out_of_stock");
+        setProducts(inStockProducts);
         setLoading(false);
       })
       .catch((error) => {
@@ -31,7 +32,6 @@ export default function Products() {
     fetch("http://127.0.0.1:8000/api/categories")
       .then((res) => res.json())
       .then((data) => {
-        // Filter only parent categories (parent_id: 0) and get random 4
         const parentCategories = data.data.filter(cat => cat.parent_id === 0);
         const randomCategories = getRandomItems(parentCategories, 4);
         setCategories(randomCategories);
@@ -43,8 +43,12 @@ export default function Products() {
 
   if (loading) return <p className="text-center text-lg">Đang tải dữ liệu...</p>;
 
+  // Filter products before selecting random items
   const hotProducts = getRandomItems(products.filter(p => p.is_hot), 4);
-  const newProducts = getRandomItems(products.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)), 5);
+  const newProducts = getRandomItems(
+    products.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
+    5
+  );
   const recommended = getRandomItems(products, 5);
 
   // Define fixed images for categories
@@ -54,7 +58,6 @@ export default function Products() {
     2: '/per.webp',
     3: '/hair.avif'
   };
-
   return (
     <main className="min-h-screen bg-gray-50">
         {/* Categories Section */}
