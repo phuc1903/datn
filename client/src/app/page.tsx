@@ -104,25 +104,23 @@ export default function Home() {
   {/* Bento Grid Layout */}
   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
     {/* Large Featured Item - Left Side */}
-    <div className="bg-white rounded-lg shadow-lg group">
-      <div className="">
-        <Image 
+    <div className="relative bg-white rounded-lg shadow-lg overflow-hidden group md:h-[600px]">
+      <div className="relative h-full">
+        <Image
           src="/oxy.jpg"
           alt="Best Seller 1"
-          layout="responsive"
-          width={100}
-          height={34}
-          objectFit="cover" 
-          />
-        <div className="block absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-sm">
+          fill
+          className="object-cover transform transition-transform duration-300 group-hover:scale-105"
+        />
+        <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-sm">
           Best Seller
         </div>
-        <div className="p-6">
-          <h3 className="text-2xl font-semibold mb-3 line-clamp-2">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
+          <h3 className="text-2xl font-semibold text-white mb-3 line-clamp-2">
             Sản phẩm bán chạy 1
           </h3>
           <div className="flex items-center gap-4 mb-3">
-            <span className="text-xl font-bold">799.000đ</span>
+            <span className="text-white text-xl font-bold">799.000đ</span>
             <div className="text-sm text-gray-200">Đã bán: 1k+</div>
           </div>
           <div className="flex items-center justify-between">
@@ -196,7 +194,7 @@ export default function Home() {
           <button className="bg-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-700 transition-colors">
             Đăng ký tài khoản
           </button>
-          <button className="bg-white text-pink-600 px-6 py-3 rounded-lg font-medium hover:bg-pink-600 hover:text-white transition-colors">
+          <button className="text-pink-600 hover:text-pink-700 font-medium">
             Xem tất cả sản phẩm
           </button>
         </div>
@@ -229,7 +227,7 @@ export default function Home() {
 </section>
 
  {/* Featured Products by Category */}
-{['Sản phẩm nổi bậc', 'Sản phẩm mới', 'Sản phẩm được đánh giá cao', 'Chăm sóc tóc'].map((category, index) => (
+{['Chăm sóc da', 'Trang điểm', 'Nước hoa', 'Chăm sóc tóc'].map((category, index) => (
   <section
     key={category}
     className={`w-full px-4 py-12 ${
@@ -291,6 +289,9 @@ export default function Home() {
 ))}
 
 
+
+
+
 {/* Brand List
 <section className="max-w-7xl mx-auto px-4 py-12">
   <h2 className="text-3xl font-bold text-gray-800 mb-8">Thương hiệu nổi bật</h2>
@@ -345,7 +346,7 @@ export default function Home() {
 
 {/* Blog Section */}
 <section className="max-w-7xl mx-auto px-4 py-12">
-  <h2 className="text-3xl font-bold text-gray-800 mb-8">Bài viết mới nhất</h2>
+  <h2 className="text-3xl font-bold text-gray-800 mb-8">Góc làm đẹp</h2>
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {[1, 2, 3].map((blog) => (
       <div key={blog} className="bg-white rounded-lg shadow-md overflow-hidden">
