@@ -81,6 +81,7 @@ const Footer = () => {
         <div className="mt-8 border-t border-gray-700 pt-4 text-center text-gray-400 text-sm">
           <p>&copy; 2025 Zbeauty. Tất cả quyền được bảo vệ.</p>
         </div>
+
       </div>
     </footer>
   );
