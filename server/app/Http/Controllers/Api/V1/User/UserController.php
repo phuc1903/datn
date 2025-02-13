@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -149,36 +150,27 @@ class UserController extends Controller
     /*
     |--------------------------------------------------------------------------
     | Lấy danh sách giỏ hàng User
-    | Path: /api/users/carts/{{userId}}
+    | Path: /api/users/carts
     |--------------------------------------------------------------------------
     */
-    public function carts($userId)
+    public function carts()
     {
         try {
+            $userId = Auth::id();
+
             // Lấy user kèm theo danh sách orders
             $user = User::with('carts.sku.product', 'carts.sku.variantValues')->find($userId);
 
             // Không tìm thấy User
             if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                    'data' => NULL
-                ], 404);
+                return ResponseError('User not found', null, 404);
             }
 
             // Trả về danh sách orders
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Got user carts',
-                'data' => $user
-            ], 200);
+            return ResponseSuccess('Got user carts', $user);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
+            return ResponseError($e->getMessage(), null, 500);
         }
     }
 
