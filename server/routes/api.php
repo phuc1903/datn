@@ -44,7 +44,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/reset-password', 'resetPassword');
 
         // Authenticated 
-        Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware(['auth:sanctum', 'auth.active'])->group(function () {
             Route::post('/logout', 'logout');
             Route::post('/change-password', 'changePassword');
         });
@@ -58,7 +58,7 @@ Route::prefix('v1')->group(function () {
     */
     Route::prefix('users')->controller(UserController::class)->group(function () {
         // Authenticator
-        Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware(['auth:sanctum', 'auth.active'])->group(function () {
             // Xem sản phẩm giỏ hàng
             Route::get('/carts', 'carts');
         });
@@ -79,7 +79,7 @@ Route::prefix('v1')->group(function () {
     */
     Route::prefix('carts')->controller(CartController::class)->group(function () {
         // Authenticator
-        Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware(['auth:sanctum', 'auth.active'])->group(function () {
             // Thêm sản phẩm giỏ hàng
             Route::post('/', 'addCart');
 

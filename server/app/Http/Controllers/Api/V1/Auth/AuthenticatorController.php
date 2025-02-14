@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
+use App\Enums\User\UserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Auth\Authenticator\ChangePasswordRequest;
 use App\Http\Requests\Api\V1\Auth\Authenticator\ForgotPasswordRequest;
@@ -33,6 +34,11 @@ class AuthenticatorController extends Controller
             // Không tìm thấy User
             if (!$user) {
                 return ResponseError('User not found', NULL, 404);
+            }
+
+            // Trạng thái hoạt động
+            if ($user->status !== UserStatus::Active) {
+                return ResponseError('User is not active', NULL, 401);
             }
 
             // Mật khẩu không hợp lệ
@@ -186,16 +192,21 @@ class AuthenticatorController extends Controller
                 return ResponseError('User not found', NULL, 404);
             }
 
-            // Token bảo mật (remember_token) 
-            $token = hash('sha256', Str::random(60));
-            $user->remember_token = $token;
-            $user->save();
-            $urlReset = url('reset-password/' . $token); // CẤU HÌNH ĐƯỜNG DẪN RESET
+            // Trạng thái hoạt động
+            if ($user->status !== UserStatus::Active) {
+                return ResponseError('User is not active', NULL, 401);
+            }
 
             // Kiểm tra cấu hình mail
             if (hasCompleteMailConfig() != true) {
                 return ResponseError('Cấu hình email không hợp lệ hoặc bị thiếu. Vui lòng kiểm tra lại cấu hình', null, 500);
             }
+
+            // Token bảo mật (remember_token) 
+            $token = hash('sha256', Str::random(60));
+            $user->remember_token = $token;
+            $user->save();
+            $urlReset = url('reset-password/' . $token); // CẤU HÌNH ĐƯỜNG DẪN RESET
 
             // Gữi email
             $email = $user->email;
