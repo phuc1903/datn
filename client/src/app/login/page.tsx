@@ -1,9 +1,10 @@
 "use client";
 import { useState } from "react";
-// import DOMPurify from "dompurify";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -23,17 +24,13 @@ export default function LoginPage() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
-    // Làm sạch dữ liệu đầu vào để tránh XSS
-    const sanitizedValue = DOMPurify.sanitize(value);
-
     setFormData((prev) => ({
       ...prev,
-      [name]: sanitizedValue,
+      [name]: value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const { email, password } = formData;
 
@@ -47,18 +44,43 @@ export default function LoginPage() {
       return;
     }
 
-    // Gửi dữ liệu hợp lệ
-    console.log("Form data submitted:", formData);
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) {
+        throw new Error("Đăng nhập thất bại");
+      }
+
+      const result = await response.json();
+      console.log("Login response:", result);
+      alert("Đăng nhập thành công !");
+
+      if (result.status === "success") {
+        sessionStorage.setItem("accessToken", result.data.token);
+        sessionStorage.setItem("userEmail", email);
+        router.push("/profile");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.");
+    }
   };
 
   const handleGoogleLogin = () => {
+    // Google login implementation will go here
     console.log("Google login clicked");
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
-        {/* Logo */}
         <div className="flex justify-center mb-8">
           <div>
             <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
