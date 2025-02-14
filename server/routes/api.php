@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Product\ProductController;
 use App\Http\Controllers\Api\V1\Slider\SliderController;
 use App\Http\Controllers\Api\V1\User\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\Order\OrderController;
 
 // Version 1
 Route::prefix('v1')->group(function () {
@@ -43,9 +44,11 @@ Route::prefix('v1')->group(function () {
         | OrderController
         |--------------------------------------------------------------------------
         */
-    Route::prefix('orders')->controller(\App\Http\Controllers\Api\V1\Order\OrderController::class)->group(function (){
+    Route::prefix('orders')->controller(OrderController::class)->group(function (){
         Route::middleware('auth:sanctum')->group(function (){
+            Route::get('/','getUserOrder');
             Route::post('create', 'createOrder');
+            Route::get('/{id}','orderUserDetail');
         });
     });
     /*

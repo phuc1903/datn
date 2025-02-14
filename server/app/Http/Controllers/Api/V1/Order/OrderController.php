@@ -14,10 +14,10 @@ use App\Models\Product;
 use App\Models\Sku;
 use App\Models\User;
 use App\Models\Voucher;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
+
 class OrderController extends Controller
 {
     /*
@@ -231,7 +231,39 @@ class OrderController extends Controller
             return ResponseError($e->getMessage(), null, (int)($e->getCode() ?: 500));
         }
     }
+    public function getUserOrder():JsonResponse
+    {
+        try {
+            $user = auth()->user(); // Lấy người dùng đang đăng nhập
+            $orders = $user->orders()
+                ->orderBy('created_at', 'desc') // Sắp xếp theo thời gian tạo mới nhất
+                ->get();
+            if ($orders) {
+                return ResponseSuccess('Order retrieved successfully.',$orders,200);
+            } else {
+                return ResponseError('Dont have any Order',null,404);
+            }
+        }
+        catch (\Exception $e){
+            return ResponseError($e->getMessage(),null,500);
+        }
 
+    }
 
-
+public function orderUserDetail($id):JsonResponse
+{
+    try {
+        $order =Order::
+            with('items')
+            ->find($id); // Load các sản phẩm trong đơn hàng;
+        if ($order) {
+            return ResponseSuccess('Order retrieved successfully.',$order,200);
+        } else {
+            return ResponseError('Order not Found',null,404);
+        }
+    }
+    catch (\Exception $e){
+        return ResponseError($e->getMessage(),null,500);
+    }
+}
 }
