@@ -38,15 +38,23 @@ Route::prefix('v1')->group(function () {
     Route::prefix('sliders')->controller(SliderController::class)->group(function () {
         Route::get('/', 'index');
     });
-
-
+    /*
+        |--------------------------------------------------------------------------
+        | OrderController
+        |--------------------------------------------------------------------------
+        */
+    Route::prefix('orders')->controller(\App\Http\Controllers\Api\V1\Order\OrderController::class)->group(function (){
+        Route::middleware('auth:sanctum')->group(function (){
+            Route::post('create', 'createOrder');
+        });
+    });
     /*
     |--------------------------------------------------------------------------
     | AuthController
     |--------------------------------------------------------------------------
     */
 
-   Route::middleware('auth:sanctum')->post('test',[\App\Http\Controllers\Api\V1\Order\OrderController::class,'createOrder']);
+
 
 
     Route::prefix('auth')->controller(AuthenticatorController::class)->group(function () {
