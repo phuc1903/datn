@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Auth\AuthenticatorController;
+use App\Http\Controllers\Api\V1\Blog\BlogController;
 use App\Http\Controllers\Api\V1\Cart\CartController;
 use App\Http\Controllers\Api\V1\Category\CategoryController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
@@ -92,5 +93,19 @@ Route::prefix('v1')->group(function () {
             // Xóa toàn bộ sản phẩm giỏ hàng
             Route::delete('/', 'deleteAllCart');
         });
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | BlogController
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('blogs')->controller(BlogController::class)->group(function () {
+        // Lấy tất cả các blog
+        Route::get('/', 'getAllBlogs');
+
+        // Lấy chi tiết blog theo ID
+        Route::get('/{blog_id}', 'getDetailBlog');
     });
 });
