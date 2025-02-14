@@ -26,7 +26,7 @@ return new class extends Migration
             $table->integer('shipping_cost');
             $table->integer('total_amount');
             $table->string('note')->nullable();
-            $table->string('reason');
+            $table->string('reason')->nullable();
             $table->timestamps();
         });
     }

@@ -3,8 +3,8 @@
 use App\Http\Controllers\Api\V1\Auth\AuthenticatorController;
 use App\Http\Controllers\Api\V1\Category\CategoryController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
-use App\Http\Controllers\Api\V1\User\UserController;
 use App\Http\Controllers\Api\V1\Slider\SliderController;
+use App\Http\Controllers\Api\V1\User\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Version 1
@@ -14,10 +14,10 @@ Route::prefix('v1')->group(function () {
     | ProductController
     |--------------------------------------------------------------------------
     */
-    Route::prefix('products')->controller(ProductController::class,)->group(function () {
-        Route::get('/','index');
-        Route::get('/{id}','getProduct');
-        Route::get('/category/{id}','getProductByCategory');
+    Route::prefix('products')->controller(ProductController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{id}', 'getProduct');
+        Route::get('/category/{id}', 'getProductByCategory');
     });
 
 
@@ -27,7 +27,7 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('categories')->controller(CategoryController::class)->group(function () {
-        Route::get('/','index');
+        Route::get('/', 'index');
     });
 
     /*
@@ -45,6 +45,10 @@ Route::prefix('v1')->group(function () {
     | AuthController
     |--------------------------------------------------------------------------
     */
+
+   Route::middleware('auth:sanctum')->post('test',[\App\Http\Controllers\Api\V1\Order\OrderController::class,'createOrder']);
+
+
     Route::prefix('auth')->controller(AuthenticatorController::class)->group(function () {
         // Unauthenticated
         Route::post('/login', 'login');
@@ -56,6 +60,7 @@ Route::prefix('v1')->group(function () {
         Route::middleware('auth:sanctum')->group(function () {
             Route::post('/logout', 'logout');
             Route::post('/change-password', 'changePassword');
+
         });
     });
 
