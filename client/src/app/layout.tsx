@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: "Zbeauty HCMC",
   description: "Zbeauty HCMC, a beauty store in HCMc",
   icons: {
-    icon: "/favicon.png", // Đường dẫn đến favicon
+    icon: "/favicon.png", 
     apple: "/apple-touch-icon.png", // Icon cho thiết bị Apple
     other: [
       { rel: "icon", url: "/favicon-32x32.png", sizes: "32x32" },
