@@ -1,23 +1,25 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Auth\AuthenticatorController;
+use App\Http\Controllers\Api\V1\Blog\BlogController;
 use App\Http\Controllers\Api\V1\Cart\CartController;
 use App\Http\Controllers\Api\V1\Category\CategoryController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
 use App\Http\Controllers\Api\V1\User\UserController;
+use App\Http\Controllers\Api\V1\Slider\SliderController;
 use Illuminate\Support\Facades\Route;
 
-// Version 1 
+// Version 1
 Route::prefix('v1')->group(function () {
     /*
     |--------------------------------------------------------------------------
     | ProductController
     |--------------------------------------------------------------------------
     */
-    Route::prefix('products')->group(function () {
-        Route::get('/', [ProductController::class, 'index']);
-        Route::get('/{id}', [ProductController::class, 'getProduct']);
-        Route::get('/category/{id}', [ProductController::class, 'getProductByCategory']);
+    Route::prefix('products')->controller(ProductController::class,)->group(function () {
+        Route::get('/','index');
+        Route::get('/{id}','getProduct');
+        Route::get('/category/{id}','getProductByCategory');
     });
 
 
@@ -26,8 +28,17 @@ Route::prefix('v1')->group(function () {
     | CategoryController
     |--------------------------------------------------------------------------
     */
-    Route::prefix('categories')->group(function () {
-        Route::get('/', [CategoryController::class, 'index']);
+    Route::prefix('categories')->controller(CategoryController::class)->group(function () {
+        Route::get('/','index');
+    });
+
+    /*
+        |--------------------------------------------------------------------------
+        | SliderController
+        |--------------------------------------------------------------------------
+        */
+    Route::prefix('sliders')->controller(SliderController::class)->group(function () {
+        Route::get('/', 'index');
     });
 
 
@@ -37,13 +48,12 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('auth')->controller(AuthenticatorController::class)->group(function () {
-        // Unauthenticated 
+        // Unauthenticated
         Route::post('/login', 'login');
         Route::post('/register', 'register');
         Route::post('/forgot-password', 'forgotPassword');
         Route::post('/reset-password', 'resetPassword');
 
-        // Authenticated 
         Route::middleware(['auth:sanctum', 'auth.active'])->group(function () {
             Route::post('/logout', 'logout');
             Route::post('/change-password', 'changePassword');
@@ -92,5 +102,19 @@ Route::prefix('v1')->group(function () {
             // Xóa toàn bộ sản phẩm giỏ hàng
             Route::delete('/', 'deleteAllCart');
         });
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | BlogController
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('blogs')->controller(BlogController::class)->group(function () {
+        // Lấy tất cả các blog
+        Route::get('/', 'getAllBlogs');
+
+        // Lấy chi tiết blog theo ID
+        Route::get('/{blog_id}', 'getDetailBlog');
     });
 });
