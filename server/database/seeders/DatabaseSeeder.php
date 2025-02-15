@@ -93,6 +93,8 @@ class DatabaseSeeder extends Seeder
             BlogSeeder::class,
             BlogTagSeeder::class,
             BlogProductSeeder::class,
+
+            SliderSeeder::class,
         ]);
     }
 }
