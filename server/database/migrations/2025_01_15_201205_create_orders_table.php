@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\Order\OrderPaymentMethod;
+use App\Enums\Order\OrderStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -19,8 +21,8 @@ return new class extends Migration
             $table->string('email');
             $table->string('phone_number');
             $table->string('address');
-            $table->enum('payment_method', ['cod', 'bank']);
-            $table->enum('status', ['pending', 'shipped', 'success', 'cancel'])->default('pending');
+            $table->enum('payment_method', OrderPaymentMethod::getValues());
+            $table->enum('status', OrderStatus::getValues())->default(OrderStatus::Pending);
             $table->integer('shipping_cost');
             $table->integer('total_amount');
             $table->string('note')->nullable();

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Blog\BlogStatus;
 use App\Models\Admin;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -27,7 +28,7 @@ class BlogFactory extends Factory
             'short_description' => $this->faker->sentence(),
             'description' => $this->faker->paragraph(),
             'image_url' => 'https://placehold.co/600x400',
-            'status' => $this->faker->randomElement(['draft', 'archived', 'published']),
+            'status' => $this->faker->randomElement(BlogStatus::getValues()),
             'slug' => Str::slug($title),
             'created_at' => now(),
             'updated_at' => now()

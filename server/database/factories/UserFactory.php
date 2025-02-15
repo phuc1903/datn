@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\User\UserSex;
+use App\Enums\User\UserStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -27,8 +29,8 @@ class UserFactory extends Factory
             'phone_number' => $this->faker->phoneNumber(),
             'email' => $this->faker->unique()->lastName . '@gmail.com',
             'password' => bcrypt('password'),
-            'status' => $this->faker->randomElement(['active', 'banned']),
-            'sex' => $this->faker->randomElement(['male', 'female', 'other']),
+            'status' => $this->faker->randomElement(UserStatus::getValues()),
+            'sex' => $this->faker->randomElement(UserSex::getValues()),
             'created_at' => now(),
             'updated_at' => now()
         ];

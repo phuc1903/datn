@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Product\ProductFeedbackStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->enum('rating',['1','2','3','4','5']);
             $table->string('content');
-            $table->enum('status',['active','hidden','pending','banned']);
+            $table->enum('status',ProductFeedbackStatus::getValues());
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();

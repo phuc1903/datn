@@ -14,7 +14,7 @@ const SearchPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/products");
+        const response = await fetch("http://127.0.0.1:8000/api/v1/products");
         const data = await response.json();
 
         if (data?.data) {

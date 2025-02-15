@@ -1,7 +1,9 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import Cookies from "js-cookie";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,21 +15,12 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({ email: "", password: "" });
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const validatePassword = (password) => {
-    return password.length >= 8;
-  };
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validatePassword = (password) => password.length >= 8;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -45,13 +38,13 @@ export default function LoginPage() {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/auth/login", {
+      const response = await fetch("http://127.0.0.1:8000/api/v1/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json"
+          "Accept": "application/json",
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
@@ -63,9 +56,11 @@ export default function LoginPage() {
       alert("Đăng nhập thành công !");
 
       if (result.status === "success") {
-        sessionStorage.setItem("accessToken", result.data.token);
-        sessionStorage.setItem("userEmail", email);
-        router.push("/profile");
+        // Lưu token vào cookies thay vì sessionStorage
+        Cookies.set("accessToken", result.data.token, { expires: 1 }); // Lưu token (hết hạn sau 1 ngày)
+        Cookies.set("userEmail", email, { expires: 1 });
+
+        router.push("/profile"); // Chuyển hướng sau khi login
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -73,12 +68,12 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    // Google login implementation will go here
-    console.log("Google login clicked");
-  };
-
+  
+const handleGoogleLogin = () => {
+  console.log("Google login clicked");
+};
   return (
+    
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
         <div className="flex justify-center mb-8">

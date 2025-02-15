@@ -29,6 +29,7 @@ class CategoryFactory extends Factory
         return [
             'name' => $name,
             'short_description' => $this->faker->sentence(),
+            'image' => $this->faker->imageUrl(640, 480),
             'status' => $this->faker->randomElement(CategoryStatus::getValues()),
             'parent_id' => 0,
             'slug' => Str::slug($name),

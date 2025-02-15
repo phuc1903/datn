@@ -24,15 +24,128 @@
     box-sizing: border-box;
 }
 
-html {
-    // font-size: 62.5%;
-}
-
 .logo-sideBar {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
+
+
+.image-table {
+    width: 50px;
+    height: 50px;
+}
+
+.image {
+    object-fit: cover;
+}
+.button {
+    width: fit-content;
+}
+
+.setting {
+
+    .avatar-setting {
+        width: 200px;
+        height: 200px;
+        border-radius: 100% !important;
+    }
+}
+
+.accordion-item {
+
+    border: none !important;
+
+    .accordion-button-custom {
+        background-color: transparent !important;
+        color: white !important;
+        border: none !important;
+
+        // span {
+        //     text-wrap: nowrap;
+        // }
+
+        &::after {
+            filter: brightness(0) invert(1);
+        }
+
+        &:focus {
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        &:not(.collapsed) {
+            background-color: transparent !important;
+            color: white !important;
+            box-shadow: none;
+        }
+    }
+
+    .accordion-button-custom {
+
+        &.active {
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+
+            span {
+                text-align: center;
+            }
+
+            &.text {
+                text-align: center !important;
+            }
+
+            
+            &::after {
+                display: none;
+            }
+        }
+
+    }
+
+    &.no-button {
+        .accordion-button-custom {
+            &::after {
+                display: none;
+            }
+        }
+    }
+
+    &.active {
+
+        // background-color: var(--white) !important; 
+
+        .accordion-button-custom {
+            span,i {
+                color: var(--white) !important;
+                font-size: 1rem;
+            }
+
+            // &::after {
+            //     filter: brightness(1) invert(0);
+            // }
+        }
+
+    }
+
+}
+
+
+a.sidebar-children {
+    display: block;
+    text-decoration: none;
+    padding: 1rem 1rem;
+    color: inherit;
+    transition: background-color 0.3s ease, color 0.3s ease;
+
+    &:hover {
+        background-color: var(--primary) !important;
+        color: white !important;
+        border-radius: 5px; // Bo góc nhẹ
+    }
+}
+
 
 :root {
     --white: #ffffff;
@@ -47,7 +160,7 @@ html {
     --popver-foreground: $neuture-950;
     --border: $neuture-200;
     --input: $neuture-200;
-    --primary: $primary;
+    --primary: #ed0e69;
     --primary-foreground: $primary-50;
     --secondary: $secondary;
     --secondary-foreground: $secondary-50;
@@ -66,7 +179,7 @@ html {
     --popver-foreground: $neuture-50;
     --border: $neuture-700;
     --input: $neuture-700;
-    --primary: $primary;
+    --primary: #ed0e69;
     --primary-foreground: $primary-50;
     --secondary: $secondary;
     --secondary-foreground: $secondary-50;
@@ -75,22 +188,6 @@ html {
 #sidebar-main {
     background-color: var(--foreground);
     color: var(--background);
-
-    // .accordion-button {
-    //     font-size: 18px;
-
-    //     .accordion-button-icon {
-    //         display: block;
-    //         margin-right: 8px;
-    //     }
-    // }
-
-    // .collapse-child-text {
-    //     text-decoration: none;
-    //     font-size: 16px;
-    //     // background-color: var(--foreground);
-    //     color: var(--foreground);
-    // }
 }
 
 .image-cover {
@@ -108,7 +205,7 @@ html {
 
     /* Định dạng cho các nút phân trang khi được active */
     .page-item.active .page-link {
-        background-color: #ed0e69; /* Màu nền active */
+        background-color: var(--primary); /* Màu nền active */
         color: white; /* Màu chữ khi active */
         border: 1px solid #59001f;
     }
@@ -117,7 +214,7 @@ html {
     .page-item:hover .page-link {
         background-color: #59001f; /* Màu nền khi hover */
         color: white; /* Màu chữ khi hover */
-        border: 1px solid #ed0e69;
+        border: 1px solid var(--primary);
     }
 
     table {
@@ -130,7 +227,7 @@ html {
 
     tbody {
         tr.selected td {
-            box-shadow: inset 0 0 0 9999px #ed0e69 !important;
+            box-shadow: inset 0 0 0 9999px var(--primary) !important;
         }
     }
 }

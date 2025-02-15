@@ -20,14 +20,14 @@
 
 <body class="bg-neuture-50 text-neuture-900" id="page-top">
     <div id="app">
-        <div id="wrapper">
+        <div id="wrapper" class="d-flex">
 
             <!-- Sidebar -->
-            <x-side-bar />
+            <x-sidebar.index />
             <!-- End of Sidebar -->
 
             <!-- Content Wrapper -->
-            <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content-wrapper" class="d-flex flex-column w-100">
 
                 <!-- Main Content -->
                 <div id="content">
@@ -40,20 +40,7 @@
                             <i class="fa fa-bars"></i>
                         </button>
 
-                        <!-- Topbar Search -->
-                        {{-- <form
-                            class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-                            <div class="input-group">
-                                <input type="text" class="form-control bg-light border-0 small"
-                                    placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
-                                <div class="input-group-append">
-                                    <button class="btn btn-primary" type="button">
-                                        <i class="fas fa-search fa-sm"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </form> --}}
-                        <x-button type="href" href="chưa có" label="Documentation API" icon="bi bi-book" />
+                        <x-button type="href" href="{{ config('settings.api_url')}}" label="Documentation API" icon="bi bi-book" />
                         <!-- Topbar Navbar -->
                         <ul class="navbar-nav ms-auto">
 

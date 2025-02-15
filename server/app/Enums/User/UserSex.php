@@ -16,10 +16,6 @@ final class UserSex extends Enum
     const Male = 'male';
     const Female = 'female';
     const Other = 'other';
-
-    /**
-     * Lấy nhãn hiển thị của Enum
-     */
     public function label(): string
     {
         return match ($this->value) {
@@ -30,9 +26,6 @@ final class UserSex extends Enum
         };
     }
 
-    /**
-     * Hiển thị badge theo giới tính
-     */
     public function badge(): string
     {
         return match ($this->value) {

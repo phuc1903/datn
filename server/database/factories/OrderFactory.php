@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\Order\OrderPaymentMethod;
+use App\Enums\Order\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -21,14 +23,14 @@ class OrderFactory extends Factory
      */
     public function definition(): array
     {
-        $status = $this->faker->randomElement(['pending', 'shipped', 'success', 'cancel']);
+        $status = $this->faker->randomElement(OrderStatus::getValues());
         return [
             'user_id' => User::inRandomOrder()->first()->id,
             'full_name' => $this->faker->userName(),
             'email' => $this->faker->unique()->userName . '@gmail.com',
             'address' => $this->faker->address(),
             'phone_number' => $this->faker->phoneNumber(),
-            'payment_method' => $this->faker->randomElement(['cod', 'bank']),
+            'payment_method' => $this->faker->randomElement(OrderPaymentMethod::getValues()),
             'status' => $status,
             'shipping_cost' => $this->faker->randomElement([0, 10000]),
             'total_amount' => 0,

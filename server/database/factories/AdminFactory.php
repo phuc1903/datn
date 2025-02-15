@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\Admin\AdminSex;
+use App\Enums\Admin\AdminStatus;
 use App\Models\Admin;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -27,8 +29,8 @@ class AdminFactory extends Factory
             'phone_number' => $this->faker->phoneNumber(),
             'email' => $this->faker->unique()->lastName . '@gmail.com',
             'password' => bcrypt('password'),
-            'status' => $this->faker->randomElement(['active', 'banned']),
-            'sex' => $this->faker->randomElement(['male', 'female', 'other']),
+            'status' => $this->faker->randomElement(AdminStatus::getValues()),
+            'sex' => $this->faker->randomElement(AdminSex::getValues()),
             'created_at' => now(),
             'updated_at' => now()
         ];

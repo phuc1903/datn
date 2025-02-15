@@ -19,7 +19,7 @@ class BlogProductSeeder extends Seeder
         |--------------------
         */
         BlogProduct::factory()
-            ->count(10)
+            ->count(20)
             ->create();
     }
 }

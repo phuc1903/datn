@@ -19,10 +19,10 @@ export const metadata: Metadata = {
   description: "Zbeauty HCMC, a beauty store in HCMc",
   icons: {
     icon: "/favicon.png", 
-    apple: "/apple-touch-icon.png", // Icon cho thiết bị Apple
+    apple: "/favicon.png", // Icon cho thiết bị Apple
     other: [
-      { rel: "icon", url: "/favicon-32x32.png", sizes: "32x32" },
-      { rel: "icon", url: "/favicon-16x16.png", sizes: "16x16" }
+      { rel: "icon", url: "/favicon.png", sizes: "32x32" },
+      { rel: "icon", url: "/favicon.png", sizes: "16x16" }
     ]
   }
 };

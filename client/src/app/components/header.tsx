@@ -71,7 +71,7 @@ const Header: React.FC = () => {
     
     setIsSearching(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/products`);
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/products`);
       const data = await response.json();
       
       const filtered = data.data.filter((product: Product) => 
@@ -132,7 +132,7 @@ const Header: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/categories');
+        const response = await fetch('http://127.0.0.1:8000/api/v1/categories');
         const result = await response.json();
         
         if (result.status === 'success') {

@@ -12,6 +12,6 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        'api/*',
+        'api/v1/auth/*', // Bỏ qua CSRF cho tất cả các route auth
     ];
 }

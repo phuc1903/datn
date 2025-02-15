@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\Voucher\VoucherStatus;
+use App\Enums\Voucher\VoucherType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Admin;
 use App\Models\ProductVoucher;
@@ -20,7 +22,7 @@ class VoucherFactory extends Factory
     public function definition(): array
     {
         // Loại giảm giá (phần trăm / tiền cố định)
-        $type = $this->faker->randomElement(['percent', 'price']);
+        $type = $this->faker->randomElement(VoucherType::getValues());
 
         // Giảm theo phân trăm (5% - 20%), ngược lại giảm cố định (10.000 - 50.000)
         $discount = ($type == 'percent') ? $this->faker->numberBetween(5, 20) : $this->faker->numberBetween(10000, 50000);
@@ -37,7 +39,7 @@ class VoucherFactory extends Factory
             'discount_value' => $discount,
             'max_discount_value' => $max_discount_value,
             'min_order_value' => $this->faker->randomElement([10000, 30000, 50000, 100000, 500000, 1000000]),
-            'status' => $this->faker->randomElement(['active', 'hidden']),
+            'status' => $this->faker->randomElement(VoucherStatus::getValues()),
             'started_date' => now(),
             'created_at' => now(),
             'updated_at' => now()

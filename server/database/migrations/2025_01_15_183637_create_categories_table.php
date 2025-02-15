@@ -15,6 +15,7 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('image');
             $table->string('short_description');
             $table->enum('status', CategoryStatus::getValues())->default(CategoryStatus::Active);
             $table->bigInteger('parent_id')->unsigned()->default(0);
