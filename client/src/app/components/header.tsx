@@ -72,6 +72,16 @@ const Header = () => {
     fetchCategories();
   }, []);
 
+  const [cartCount, setCartCount] = useState(0);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true); // Đánh dấu là client-side
+    const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const totalQuantity = storedCart.reduce((sum, item) => sum + item.quantity, 0);
+    setCartCount(totalQuantity);
+  }, []);
+
   const staticCategories = [
     {
       id: 1,
@@ -180,14 +190,16 @@ const Header = () => {
               </Link>
 
               <Link
-                href="/cart"
-                className="p-2 hover:text-pink-600 transition-colors relative"
-              >
-                <ShoppingBag className="h-6 w-6" />
-                <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  0
-                </span>
-              </Link>
+      href="/cart"
+      className="p-2 hover:text-pink-600 transition-colors relative"
+    >
+      <ShoppingBag className="h-6 w-6" />
+      {isClient && cartCount > 0 && (
+        <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+          {cartCount}
+        </span>
+      )}
+    </Link>
 
               <Link
                 href="/profile"
