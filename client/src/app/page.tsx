@@ -234,7 +234,7 @@ export default function Products() {
           Đăng ký tài khoản
         </button>
       </Link>
-      <Link href="/product">
+      <Link href="/shop">
         <button className="bg-white text-pink-600 px-6 py-3 rounded-lg font-medium hover:bg-pink-600 hover:text-white transition-colors">
           Xem tất cả sản phẩm
         </button>

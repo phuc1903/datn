@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import Cookies from "js-cookie";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -146,9 +147,9 @@ const handleGoogleLogin = () => {
             </div>
 
             <div className="text-sm">
-              <a href="/forgot-password" className="text-pink-600 hover:text-blue-700 font-medium">
+              <Link href="/forgot-password" className="text-pink-600 hover:text-blue-700 font-medium">
                 Quên mật khẩu?
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -180,9 +181,9 @@ const handleGoogleLogin = () => {
 
         <p className="mt-6 text-sm text-center text-gray-600">
           Chưa có tài khoản?{" "}
-          <a href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
             Đăng ký ngay
-          </a>
+          </Link>
         </p>
       </div>
     </div>

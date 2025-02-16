@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import { User, Mail, Phone, MapPin, ShoppingCart, LogOut } from "lucide-react";
+import Link from "next/link";
+import { User, Mail, Phone, MapPin, ShoppingCart, LogOut, Pen } from "lucide-react";
+
 
 interface UserData {
   first_name: string;
@@ -157,6 +159,13 @@ export default function ProfilePage() {
                                 <ShoppingCart className="w-4 h-4 mr-2" />
                                 Đơn hàng
                             </a>
+                            <Link
+                                href="/change-password"
+                                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                            >
+                                <Pen className="w-4 h-4 mr-2"/>
+                                Đổi mật khẩu
+                            </Link>
                             <button
                                 onClick={handleLogout}
                                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
