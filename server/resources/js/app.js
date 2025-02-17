@@ -1,18 +1,15 @@
-import './bootstrap';
-import 'laravel-datatables-vite';
+import $ from "jquery";
+import toastr from "toastr";
+import "toastr/build/toastr.min.css";
+import Swal from "sweetalert2";
 
-document.addEventListener("DOMContentLoaded", function () {
-    const themeToggle = document.getElementById("theme-toggle");
-    const currentTheme = localStorage.getItem("theme") || "light";
+import { isArray } from "jquery";
+import "./bootstrap";
+import "laravel-datatables-vite";
 
-    document.body.setAttribute("data-theme", currentTheme);
-
-    themeToggle.addEventListener("click", function () {
-        const newTheme = document.body.getAttribute("data-theme") === "light" ? "dark" : "light";
-        document.body.setAttribute("data-theme", newTheme);
-        localStorage.setItem("theme", newTheme);
-    });
-});
+window.Swal = Swal;
+window.$ = window.jQuery = $;
+window.toastr = toastr;
 
 (function ($) {
     "use strict";
@@ -21,14 +18,14 @@ document.addEventListener("DOMContentLoaded", function () {
     $("#sidebarToggle, #sidebarToggleTop").on("click", function () {
         $("body").toggleClass("sidebar-toggled");
         $(".sidebar").toggleClass("toggled");
-        $('.accordion-button-custom').addClass('active');
+        $(".accordion-button-custom").addClass("active");
 
         if ($(".sidebar").hasClass("toggled")) {
             $(".sidebar .collapse").collapse("hide");
         }
 
-        if($('.accordion-button-custom').hasClass('active')) {
-            $('.accordion-button-custom').removeClass('active');
+        if ($(".accordion-button-custom").hasClass("active")) {
+            $(".accordion-button-custom").removeClass("active");
         }
     });
 
@@ -41,20 +38,23 @@ document.addEventListener("DOMContentLoaded", function () {
         if ($(window).width() < 480 && !$(".sidebar").hasClass("toggled")) {
             $("body").addClass("sidebar-toggled");
             $(".sidebar").addClass("toggled");
-            $('.accordion-button-custom').addClass('active');
+            $(".accordion-button-custom").addClass("active");
             $(".sidebar .collapse").collapse("hide");
         }
     });
 
     // Prevent sidebar scrolling when using mouse wheel
-    $("body.fixed-nav .sidebar").on("mousewheel DOMMouseScroll wheel", function (e) {
-        if ($(window).width() > 768) {
-            var event = e.originalEvent;
-            var delta = event.wheelDelta || -event.detail;
-            this.scrollTop += 30 * (delta < 0 ? 1 : -1);
-            e.preventDefault();
+    $("body.fixed-nav .sidebar").on(
+        "mousewheel DOMMouseScroll wheel",
+        function (e) {
+            if ($(window).width() > 768) {
+                var event = e.originalEvent;
+                var delta = event.wheelDelta || -event.detail;
+                this.scrollTop += 30 * (delta < 0 ? 1 : -1);
+                e.preventDefault();
+            }
         }
-    });
+    );
 
     // Show/hide "scroll to top" button on scroll
     $(document).on("scroll", function () {
@@ -66,19 +66,17 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Smooth scroll to top
-    $(document).on("click", "a.scroll-to-top", function (e) {
-        var target = $(this);
-        $("html, body").stop().animate(
-            { scrollTop: $(target.attr("href")).offset().top },
-            1000,
-            "easeInOutExpo"
-        );
-        e.preventDefault();
-    });
-
+    // $(document).on("click", "a.scroll-to-top", function (e) {
+    //     var target = $(this);
+    //     $("html, body").stop().animate(
+    //         { scrollTop: $(target.attr("href")).offset().top },
+    //         1000,
+    //         "easeInOutExpo"
+    //     );
+    //     e.preventDefault();
+    // });
 })(jQuery);
 
-// $(document).ready(function () {
 //     $('#upload-image').on('click', function () {
 //         $('#image-upload').click();
 //     });
@@ -109,4 +107,152 @@ document.addEventListener("DOMContentLoaded", function () {
 //             // });
 //         }
 //     });
-// });
+$(document).ready(function () {
+    addAddress();
+    deleteUser();
+
+    function addAddress() {
+        const addressContainer = $("#address-books");
+        const addressesDatabase = addressContainer.data("addresses");
+    
+        const addressTemplate = () => [
+            { label: "Tỉnh/Thành phố", name: "city", value: "" },
+            { label: "Quận/Huyện", name: "district", value: "" },
+            { label: "Xã/Phường", name: "ward", value: "" },
+            { label: "Địa chỉ cụ thể", name: "address", value: "" },
+        ];
+    
+        let addresses = [];
+    
+        if (Array.isArray(addressesDatabase) && addressesDatabase.length > 0) {
+            addresses = addressesDatabase.map((address) => [
+                { label: "Tỉnh/Thành phố", name: "city", value: address.city || "" },
+                { label: "Quận/Huyện", name: "district", value: address.district || "" },
+                { label: "Xã/Phường", name: "ward", value: address.ward || "" },
+                { label: "Địa chỉ cụ thể", name: "address", value: address.address || "" },
+            ]);
+        } else {
+            addresses.push(addressTemplate());
+        }
+    
+        function saveCurrentValues() {
+            $(".address-book").each(function () {
+                const index = $(this).index();
+    
+                $(this).find("input").each(function () {
+                    const fieldName = $(this).data("name");
+    
+                    if (addresses[index]) {
+                        const addressObj = addresses[index].find((item) => item.name === fieldName);
+                        if (addressObj) {
+                            addressObj.value = $(this).val();
+                        }
+                    }
+                });
+            });
+        }
+    
+        function Html(address, index) {
+            return `<div class="address-book mb-4 border-bottom border-primary">
+                        <h5 class="title">Địa chỉ ${index + 1}</h5>
+                        ${address
+                            .map((item) => `
+                                <div class="mb-3">
+                                    <label class="form-label">${item.label}</label>
+                                    <input type="text" class="form-control" 
+                                        name="addresses[${index}][${item.name}]"
+                                        data-index="${index}" 
+                                        data-name="${item.name}" 
+                                        value="${item.value}" 
+                                        placeholder="${item.label}">
+                                </div>
+                            `)
+                            .join("")}
+                        <button type="button" class="btn btn-danger text-white mb-3 d-flex ms-auto delete_address" data-index="${index}">Xóa địa chỉ này</button>
+                    </div>`;
+        }
+    
+        function render() {
+            saveCurrentValues();
+            addressContainer.html(
+                addresses.map((address, index) => Html(address, index)).join("")
+            );
+    
+            $(".address-book").each(function (index) {
+                $(this).find("input").attr("data-index", index);
+                $(this).find(".delete_address").attr("data-index", index);
+            });
+    
+            $(".delete_address").off("click").on("click", function (e) {
+                e.preventDefault();
+                saveCurrentValues();
+                const index = $(this).data("index");
+    
+                if (index >= 0 && index < addresses.length) {
+                    addresses.splice(index, 1);
+                }
+    
+                if (addresses.length === 0) {
+                    addresses.push(addressTemplate());
+                }
+    
+                render();
+            });
+        }
+    
+        $("#add_address").off("click").on("click", function (e) {
+            e.preventDefault();
+            saveCurrentValues();
+            addresses.push(addressTemplate());
+            render();
+        });
+    
+        render();
+    }
+    
+
+    function deleteUser() {
+        $("#delete-user").on("click", function (e) {
+            e.preventDefault;
+            const routeDelete = $(this).data("route-delete");
+
+            Swal.fire({
+                title: "Xóa tài khoản!",
+                text: "Việc xóa tài khoản sẽ ảnh hưởng một số thông tin liên quan. Bạn chắc chắn muốn xóa?",
+                icon: "error",
+                showCancelButton: true,
+                confirmButtonText: "Xóa",
+                cancelButtonText: "Hủy",
+            }).then((result) => {
+                if(result.isConfirmed) {
+                    $.ajax({
+                        url: routeDelete,
+                        method: "DELETE",
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr(
+                                "content"
+                            ),
+                        },
+                        success: function (response) {
+                            console.log('success');
+                            
+                            if (response.type === "success") {
+                                Swal.fire({
+                                    title: "Xóa thành công",
+                                    icon: "success",
+                                    confirmButtonText: "Đồng ý",
+                                }).then(() => {
+                                    window.location.href = response.redirect;
+                                });
+                            }
+                        },
+                        error: function (error) {
+                            console.log(error);
+                        },
+                    });
+                }
+            });
+        });
+    }
+});

@@ -5,15 +5,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <link rel="icon" href="{{ config('settings.logo_icon') }}" type="image/x-icon">
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
-
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/sb-admin-2.min.css'])
 </head>
@@ -40,7 +39,8 @@
                             <i class="fa fa-bars"></i>
                         </button>
 
-                        <x-button type="href" href="{{ config('settings.api_url')}}" label="Documentation API" icon="bi bi-book" />
+                        <x-button type="href" href="{{ config('settings.api_url') }}" label="Documentation API"
+                            icon="bi bi-book" />
                         <!-- Topbar Navbar -->
                         <ul class="navbar-nav ms-auto">
 
@@ -133,7 +133,8 @@
                                     <h6 class="dropdown-header">Message Center</h6>
                                     <a class="dropdown-item d-flex align-items-center" href="#">
                                         <div class="dropdown-list-image me-3">
-                                            <img class="rounded-circle" src="img/undraw_profile_1.svg" alt="...">
+                                            <img class="rounded-circle" src="img/undraw_profile_1.svg"
+                                                alt="...">
                                             <div class="status-indicator bg-success"></div>
                                         </div>
                                         <div class="font-weight-bold">
@@ -276,8 +277,10 @@
 
     </div>
 
-    <script src="{{ asset('js/theme.js') }}"></script>
     @stack('scripts')
+
+    <x-toastr.index />
+
 </body>
 
 </html>

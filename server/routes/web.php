@@ -31,6 +31,8 @@ Route::prefix('/admin')->as('admin.')->group(function () {
     Route::resource('category', CategoryController::class);
     Route::resource('user', UserController::class);
     Route::resource('team', TeamController::class);
+    Route::delete('order/order-item/{orderItem}', [OrderController::class, 'destroyProductItem'])
+        ->name('product.destroy');
     Route::resource('order', OrderController::class);
     Route::resource('feedback-product', FeedbackController::class);
     Route::resource('setting', SettingController::class);

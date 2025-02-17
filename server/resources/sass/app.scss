@@ -16,6 +16,28 @@
 
 // 🎨 Custom CSS
 
+:root {
+    --white: #ffffff;
+    --black: #000000;
+    --success: "#27ae60";
+    --danger: "#f43f3f";
+    --warning: "#ffa800";
+    --background: var(--white);
+    --foreground: $neuture-950;
+    --muted: $neuture-100;
+    --muted-foreground: $neuture;
+    --card: var(--white);
+    --card-foreground: $neuture-950;
+    --popver: var(--white);
+    --popver-foreground: $neuture-950;
+    --border: $neuture-200;
+    --input: $neuture-200;
+    --primary: #ed0e69;
+    --primary-foreground: $primary-50;
+    --secondary: $secondary;
+    --secondary-foreground: $secondary-50;
+}
+
 *,
 *::after,
 *::before {
@@ -30,7 +52,6 @@
     object-fit: cover;
 }
 
-
 .image-table {
     width: 50px;
     height: 50px;
@@ -39,12 +60,55 @@
 .image {
     object-fit: cover;
 }
-.button {
+.button-custom {
     width: fit-content;
+
+    &.btn-outline-custom {
+        &:hover {
+            color: var(--white) !important;
+        }
+    }
+}
+
+// custom toastr
+
+#toast-container > .toast {
+    font-size: 1.8rem;
+    width: 400px;
+    padding-left: 60px;
+
+    .toast-title {
+        display: block;
+        font-size: 1.4rem !important;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+    .toast-message {
+        font-size: .9rem !important;
+    }
+}
+
+
+.card-custom {
+    .card {
+        .card-header {
+            background-color: var(--white) !important;
+
+            border: none;
+
+            .title {
+                font-size: 1.4rem !important;
+                margin: 0;
+                padding-top: 12px;
+                padding-bottom: 0px;
+                font-weight: 600 !important;
+                color: var(--primary) !important;
+            }
+        }
+    }
 }
 
 .setting {
-
     .avatar-setting {
         width: 200px;
         height: 200px;
@@ -53,7 +117,6 @@
 }
 
 .accordion-item {
-
     border: none !important;
 
     .accordion-button-custom {
@@ -82,11 +145,10 @@
     }
 
     .accordion-button-custom {
-
         &.active {
             display: flex;
             flex-direction: column;
-            gap: .6rem;
+            gap: 0.6rem;
 
             span {
                 text-align: center;
@@ -96,12 +158,10 @@
                 text-align: center !important;
             }
 
-            
             &::after {
                 display: none;
             }
         }
-
     }
 
     &.no-button {
@@ -113,11 +173,11 @@
     }
 
     &.active {
-
-        // background-color: var(--white) !important; 
+        // background-color: var(--white) !important;
 
         .accordion-button-custom {
-            span,i {
+            span,
+            i {
                 color: var(--white) !important;
                 font-size: 1rem;
             }
@@ -126,11 +186,8 @@
             //     filter: brightness(1) invert(0);
             // }
         }
-
     }
-
 }
-
 
 a.sidebar-children {
     display: block;
@@ -144,26 +201,6 @@ a.sidebar-children {
         color: white !important;
         border-radius: 5px; // Bo góc nhẹ
     }
-}
-
-
-:root {
-    --white: #ffffff;
-    --black: #000000;
-    --background: var(--white);
-    --foreground: $neuture-950;
-    --muted: $neuture-100;
-    --muted-foreground: $neuture;
-    --card: var(--white);
-    --card-foreground: $neuture-950;
-    --popver: var(--white);
-    --popver-foreground: $neuture-950;
-    --border: $neuture-200;
-    --input: $neuture-200;
-    --primary: #ed0e69;
-    --primary-foreground: $primary-50;
-    --secondary: $secondary;
-    --secondary-foreground: $secondary-50;
 }
 
 [data-theme="dark"] {
@@ -199,21 +236,20 @@ a.sidebar-children {
     .dt-info {
         margin-top: 24px;
     }
+
     .page-item .page-link {
         color: #000000;
     }
 
-    /* Định dạng cho các nút phân trang khi được active */
     .page-item.active .page-link {
-        background-color: var(--primary); /* Màu nền active */
-        color: white; /* Màu chữ khi active */
+        background-color: var(--primary);
+        color: white;
         border: 1px solid #59001f;
     }
 
-    /* Định dạng cho các nút phân trang khi được hover */
     .page-item:hover .page-link {
-        background-color: #59001f; /* Màu nền khi hover */
-        color: white; /* Màu chữ khi hover */
+        background-color: #59001f;
+        color: white;
         border: 1px solid var(--primary);
     }
 
@@ -230,4 +266,20 @@ a.sidebar-children {
             box-shadow: inset 0 0 0 9999px var(--primary) !important;
         }
     }
+}
+
+.card.custom {
+    .card-header.custom {
+        height: 3px;
+    }
+
+    .card-body.custom {
+    }
+}
+
+//custom toast css
+
+#toast-container > .toast {
+    font-size: 1.8rem;
+    width: 400px;
 }

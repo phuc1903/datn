@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Admin\Product;
 
+use App\Enums\Product\ProductStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\DataTables\Product\ProductDataTable;
+use App\Http\Requests\Admin\Product\ProductRequest;
 
 class ProductController extends Controller
 {
@@ -22,7 +24,19 @@ class ProductController extends Controller
      */
     public function create()
     {
-        return view('Pages.Product.Create');
+        $productStatusValues = ProductStatus::getValues();
+
+        $productStatusData = array_map(function ($value) {
+            $status = ProductStatus::fromValue($value); 
+            return [
+                'label' => $status->label(), 
+                'value' => $status->value,
+            ];
+        }, $productStatusValues);
+
+        // dd($productStatusData);
+
+        return view('Pages.Product.Create', ['productStatus' => $productStatusData]);
     }
 
     /**
@@ -30,7 +44,11 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // dd($request);
+        // $data = $request->validated();
+        // session()->flash('success', 'Sản phẩm đã được thêm thành công!');
+
+        return redirect()->route('admin.product.index')->with('success', 'Sản phẩm đã được thêm thành công!');;
     }
 
     /**

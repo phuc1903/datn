@@ -38,8 +38,8 @@ class ProductDataTable extends DataTable
                     </div>
                 ';
             })
-            ->editColumn('status', function ($product) {
-                $statusEnum = ProductStatus::fromValue($product->status);
+            ->editColumn('status', function ($model) {
+                $statusEnum = ProductStatus::fromValue($model->status);
                 return $statusEnum->badge();
             })
             // ->editColumn('created_at', function ($product) {
@@ -69,7 +69,7 @@ class ProductDataTable extends DataTable
         return $model->newQuery()
             ->leftJoin('skus', 'products.id', '=', 'skus.product_id')
             ->select('products.*', \DB::raw('MIN(skus.price) as price'))
-            ->groupBy('products.id');
+            ->groupBy('products.id', 'products.admin_id');
     }
 
     /**
