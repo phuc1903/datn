@@ -18,9 +18,11 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('products')->controller(ProductController::class)->group(function () {
-        Route::get('/', 'index');
-        Route::get('/{id}', 'getProduct');
-        Route::get('/category/{id}', 'getProductByCategory');
+        Route::get('/', 'getAllProduct');
+        Route::get('/detail/{id}', 'getProduct');
+        Route::get('/category/{{id}}', 'getProductByCategory');
+        Route::get('/most-favorites','getMostFavoritedProducts');
+        Route::get('/feedback-product/{id}','getFeedBackProduct');
     });
 
 
@@ -48,7 +50,6 @@ Route::prefix('v1')->group(function () {
         */
     Route::prefix('orders')->controller(OrderController::class)->group(function (){
         Route::middleware('auth:sanctum')->group(function (){
-            Route::get('/','getUserOrder');
             Route::post('create', 'createOrder');
             Route::get('/{id}','orderUserDetail');
         });
@@ -87,13 +88,16 @@ Route::prefix('v1')->group(function () {
         Route::middleware(['auth:sanctum', 'auth.active'])->group(function () {
             // Xem sản phẩm giỏ hàng
             Route::get('/carts', 'carts');
+            Route::get('/orders', 'orders');
+            Route::get('/favorites', 'favorites');
+            Route::post('/add-favorite', 'addToFavorites');
         });
 
         Route::get('/', 'index');
         Route::get('/{id}', 'show');
-        Route::get('/{id}/orders', 'orders');
+
         Route::get('/{id}/vouchers', 'vouchers');
-        Route::get('/{id}/favorites', 'favorites');
+
         Route::get('/{id}/product-feedbacks', 'productFeedbacks');
     });
 

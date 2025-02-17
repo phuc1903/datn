@@ -231,26 +231,9 @@ class OrderController extends Controller
             return ResponseError($e->getMessage(), null, (int)($e->getCode() ?: 500));
         }
     }
-    public function getUserOrder():JsonResponse
-    {
-        try {
-            $user = auth()->user(); // Lấy người dùng đang đăng nhập
-            $orders = $user->orders()
-                ->orderBy('created_at', 'desc') // Sắp xếp theo thời gian tạo mới nhất
-                ->get();
-            if ($orders) {
-                return ResponseSuccess('Order retrieved successfully.',$orders,200);
-            } else {
-                return ResponseError('Dont have any Order',null,404);
-            }
-        }
-        catch (\Exception $e){
-            return ResponseError($e->getMessage(),null,500);
-        }
 
-    }
 
-public function orderUserDetail($id):JsonResponse
+    public function orderUserDetail($id):JsonResponse
 {
     try {
         $order =Order::
