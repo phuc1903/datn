@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,24 +8,28 @@ export default function Products() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [sliderImages, setSliderImages] = useState([]);
 
-  // Slider images
-  const sliderImages = [
-    '/banner/1.jpg',
-    '/banner/2.jpg',
-    '/banner/3.png',
-  ];
-  
   const getRandomItems = (arr, num) => {
     const shuffled = [...arr].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, num);
   };
-  
+
   useEffect(() => {
     // Slider auto-scroll effect
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
     }, 5000);
+
+    // Fetch slider images
+    fetch("http://127.0.0.1:8000/api/v1/sliders")
+      .then((res) => res.json())
+      .then((data) => {
+        setSliderImages(data.data.map(item => item.image_url));
+      })
+      .catch((error) => {
+        console.error("Error fetching slider images:", error);
+      });
 
     // Fetch products
     fetch("http://127.0.0.1:8000/api/v1/products")
@@ -36,7 +40,7 @@ export default function Products() {
         setLoading(false);
       })
       .catch((error) => {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching products:", error);
         setLoading(false);
       });
 
@@ -53,7 +57,7 @@ export default function Products() {
       });
 
     return () => clearInterval(timer);
-  }, []);
+  }, [sliderImages.length]);
 
   if (loading) return <p className="text-center text-lg">Đang tải dữ liệu...</p>;
 
@@ -73,8 +77,8 @@ export default function Products() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      {/* Hero Slider Section */}
-      <section className="w-full px-4 py-12">
+       {/* Hero Slider Section */}
+       <section className="w-full px-4 py-12">
         <div className="max-w-7xl mx-auto">
           <div className="relative h-[400px] w-full overflow-hidden rounded-lg">
             {sliderImages.map((image, index) => (
@@ -111,7 +115,6 @@ export default function Products() {
           </div>
         </div>
       </section>
-
       {/* Categories Section */}
       <section className="w-full px-4 py-12 bg-pink-100">
         <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Danh Mục Sản Phẩm</h2>
@@ -246,7 +249,7 @@ export default function Products() {
       <div className="relative">
         <div className="w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-full bg-pink-50 relative">
           <Image
-            src="/person.jpg"
+            src="/img.png"
             alt="Person using phone"
             fill
             className="object-cover rounded-full p-4"
@@ -363,6 +366,37 @@ export default function Products() {
         </div>
       </section>
       
+      {/* Blog Section */}
+<section className="max-w-7xl mx-auto px-4 py-12">
+  <h2 className="text-3xl font-bold text-gray-800 mb-8">Góc làm đẹp</h2>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {[1, 2, 3].map((blog) => (
+      <div key={blog} className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="relative aspect-video">
+          <Image
+            src={`/banner/1.jpg`}
+            alt={`Blog ${blog}`}
+            fill
+            className="object-cover"
+          />
+        </div>
+        <div className="p-4">
+          <h3 className="text-lg text-black font-bold mb-2">Cách chăm sóc da mùa đông</h3>
+          <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+            Mùa đông là thời điểm da dễ bị khô và nứt nẻ. Hãy tham khảo các mẹo chăm sóc da đơn giản để giữ da luôn mịn màng.
+          </p>
+          <Link
+            href={`/blog/${blog}`}
+            className="text-pink-600 hover:text-pink-700 font-medium"
+          >
+            Đọc thêm
+          </Link>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
       {/* FAQ or Support Section */}
 <section className="max-w-7xl mx-auto px-4 py-12 bg-gray-50">
   <h2 className="text-3xl font-bold text-gray-800 mb-8">Hỗ trợ khách hàng</h2>

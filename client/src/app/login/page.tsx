@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import Cookies from "js-cookie";
 import Link from "next/link";
+import Swal from 'sweetalert2';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -54,27 +55,41 @@ export default function LoginPage() {
 
       const result = await response.json();
       console.log("Login response:", result);
-      alert("Đăng nhập thành công !");
-
+      
       if (result.status === "success") {
-        // Lưu token vào cookies thay vì sessionStorage
-        Cookies.set("accessToken", result.data.token, { expires: 1 }); // Lưu token (hết hạn sau 1 ngày)
+        // Hiển thị thông báo thành công
+        await Swal.fire({
+          title: 'Thành công!',
+          text: 'Đăng nhập thành công!',
+          icon: 'success',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#db2777', // pink-600 color
+        });
+
+        // Lưu token vào cookies
+        Cookies.set("accessToken", result.data.token, { expires: 1 });
         Cookies.set("userEmail", email, { expires: 1 });
 
-        router.push("/profile"); // Chuyển hướng sau khi login
+        router.push("/profile");
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.");
+      // Hiển thị thông báo lỗi
+      Swal.fire({
+        title: 'Lỗi!',
+        text: 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#db2777', // pink-600 color
+      });
     }
   };
 
-  
-const handleGoogleLogin = () => {
-  console.log("Google login clicked");
-};
+  const handleGoogleLogin = () => {
+    console.log("Google login clicked");
+  };
+
   return (
-    
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
         <div className="flex justify-center mb-8">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
+import Swal from "sweetalert2";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -12,7 +13,11 @@ export default function ChangePasswordPage() {
     new_password_confirmation: "",
   });
 
-  const [errors, setErrors] = useState({ current_password: "", new_password: "", new_password_confirmation: "" });
+  const [errors, setErrors] = useState({ 
+    current_password: "", 
+    new_password: "", 
+    new_password_confirmation: "" 
+  });
   const [email, setEmail] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,11 +46,47 @@ export default function ChangePasswordPage() {
     return null;
   }
 
-  const validatePassword = (password: string) => password.length >= 8;
+  const validatePassword = (password: string) => {
+    const errors = [];
+    if (password.length < 8) {
+      errors.push("Mật khẩu phải có ít nhất 8 ký tự");
+    }
+    return errors;
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear errors when user types
+    setErrors(prev => ({ ...prev, [name]: "" }));
+    
+    // Validate password fields on change
+    if (name === "new_password") {
+      const passwordErrors = validatePassword(value);
+      if (passwordErrors.length > 0) {
+        setErrors(prev => ({ ...prev, new_password: passwordErrors[0] }));
+      }
+      
+      // Check confirmation match if it exists
+      if (formData.new_password_confirmation) {
+        if (value !== formData.new_password_confirmation) {
+          setErrors(prev => ({ 
+            ...prev, 
+            new_password_confirmation: "Mật khẩu xác nhận không khớp" 
+          }));
+        }
+      }
+    }
+
+    if (name === "new_password_confirmation") {
+      if (value !== formData.new_password) {
+        setErrors(prev => ({ 
+          ...prev, 
+          new_password_confirmation: "Mật khẩu xác nhận không khớp" 
+        }));
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,9 +94,11 @@ export default function ChangePasswordPage() {
 
     const { current_password, new_password, new_password_confirmation } = formData;
 
+    // Validate all fields
+    const passwordErrors = validatePassword(new_password);
     const newErrors = {
       current_password: current_password ? "" : "Mật khẩu hiện tại không được để trống",
-      new_password: validatePassword(new_password) ? "" : "Mật khẩu mới phải có ít nhất 8 ký tự",
+      new_password: passwordErrors.length > 0 ? passwordErrors[0] : "",
       new_password_confirmation: new_password === new_password_confirmation ? "" : "Mật khẩu xác nhận không khớp",
     };
 
@@ -86,13 +129,24 @@ export default function ChangePasswordPage() {
         throw new Error(result.message || "Đổi mật khẩu thất bại");
       }
 
-      alert("Đổi mật khẩu thành công!");
+      await Swal.fire({
+        title: "Thành công!",
+        text: "Đổi mật khẩu thành công!",
+        icon: "success",
+        confirmButtonColor: "#db2777", // pink-600
+      });
+
       Cookies.remove("accessToken");
       Cookies.remove("userEmail");
       router.push("/login");
     } catch (error) {
       console.error("Lỗi đổi mật khẩu:", error);
-      alert(error.message);
+      await Swal.fire({
+        title: "Lỗi!",
+        text: error.message || "Đã xảy ra lỗi khi đổi mật khẩu",
+        icon: "error",
+        confirmButtonColor: "#db2777", // pink-600
+      });
     }
   };
 
