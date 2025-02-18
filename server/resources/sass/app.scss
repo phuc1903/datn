@@ -70,6 +70,27 @@
     }
 }
 
+.line-champ-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-champ-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-champ-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 // custom toastr
 
 #toast-container > .toast {
@@ -84,10 +105,9 @@
         margin-bottom: 4px;
     }
     .toast-message {
-        font-size: .9rem !important;
+        font-size: 0.9rem !important;
     }
 }
-
 
 .card-custom {
     .card {
@@ -282,4 +302,8 @@ a.sidebar-children {
 #toast-container > .toast {
     font-size: 1.8rem;
     width: 400px;
+}
+
+.sortable {
+    cursor: grab;
 }

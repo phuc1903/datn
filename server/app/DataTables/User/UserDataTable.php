@@ -52,5 +52,4 @@ class UserDataTable extends BaseDataTable
         });
     }
 
-
 }

@@ -19,6 +19,31 @@
                         <textarea id="description" name="description"></textarea>
                     </div>
                 </div>
+                <div class="card card-custom mb-3">
+                    <div class="card-header">
+                        <h5 class="title">Dữ liệu sản phẩm</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="home-tab" data-bs-toggle="tab"
+                                    data-bs-target="#product-default" type="button" role="tab"
+                                    aria-controls="product-default" aria-selected="true">Sản phẩm đơn giản</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="profile-tab" data-bs-toggle="tab"
+                                    data-bs-target="#product-variants" type="button" role="tab"
+                                    aria-controls="product-variants" aria-selected="false">Sản phẩm có biến thể</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active" id="product-default" role="tabpanel"
+                                aria-labelledby="home-tab" tabindex="0">...</div>
+                            <div class="tab-pane fade" id="product-variants" role="tabpanel" aria-labelledby="profile-tab"
+                                tabindex="0">...</div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="col-3">
                 <div class="card mb-3">
@@ -73,7 +98,7 @@
     <script>
         CKEDITOR.replace('description', {
             language: 'vi',
-            height: 400
+            height: 300
         });
     </script>
 @endpush

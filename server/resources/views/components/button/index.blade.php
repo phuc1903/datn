@@ -6,8 +6,7 @@
         @class([
             'btn d-flex gap-2 align-items-center button-custom',
             $class,
-            'btn-primary text-white' => $color === 'primary',
-            'btn-danger text-white' => $color === 'danger',
+            'btn-'.$color.' text-white' => $color !== 'outline',
             'btn-outline-primary btn-outline-custom' => $color === 'outline',
         ])
         
@@ -24,8 +23,7 @@
         @class([
             'btn d-flex gap-2 align-items-center button-custom',
             $class,
-            'btn-primary text-white' => $color === 'primary',
-            'btn-danger text-white' => $color === 'danger',
+            'btn-'.$color.' text-white' => $color !== 'outline',
             'btn-outline-primary btn-outline-custom' => $color === 'outline',
         ])>
         @if (isset($icon))

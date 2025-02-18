@@ -110,6 +110,7 @@ window.toastr = toastr;
 $(document).ready(function () {
     addAddress();
     deleteUser();
+    addVariantValue();
 
     function addAddress() {
         const addressContainer = $("#address-books");
@@ -153,7 +154,7 @@ $(document).ready(function () {
         }
     
         function Html(address, index) {
-            return `<div class="address-book mb-4 border-bottom border-primary">
+            return `<div class="address-book mb-4 border-bottom border-primary" data-index="${index}">
                         <h5 class="title">Địa chỉ ${index + 1}</h5>
                         ${address
                             .map((item) => `
@@ -173,7 +174,7 @@ $(document).ready(function () {
         }
     
         function render() {
-            saveCurrentValues();
+            // saveCurrentValues();
             addressContainer.html(
                 addresses.map((address, index) => Html(address, index)).join("")
             );
@@ -199,6 +200,8 @@ $(document).ready(function () {
                 render();
             });
         }
+
+        
     
         $("#add_address").off("click").on("click", function (e) {
             e.preventDefault();
@@ -255,4 +258,90 @@ $(document).ready(function () {
             });
         });
     }
+
+    function addVariantValue() {
+        const variantContainer = $("#VariantValue");
+        const variantsDatabase = variantContainer.data("variants") || [];
+    
+        const variantTemplate = () => ({
+            label: 'Tên biến thể',
+            value: '',
+            name: 'value',
+        });
+    
+        let variants = Array.isArray(variantsDatabase) && variantsDatabase.length > 0
+            ? variantsDatabase.map((variant) => ({
+                name: "value",
+                value: variant.value || "",
+            }))
+            : [variantTemplate()];
+    
+        function saveCurrentValues() {
+            $(".variant").each(function () {
+                const index = $(this).data("index");
+    
+                $(this).find("input").each(function () {
+                    const fieldName = $(this).data("name");
+                    if (variants[index]) {
+                        variants[index][fieldName] = $(this).val();
+                    }
+                });
+            });
+        }
+    
+        function Html(variant, index) {
+            return `<div class="variant mb-4 border-bottom border-primary" data-index="${index}">
+                        <h5 class="title">Biến thể ${index + 1}</h5>
+                        <div class="mb-3">
+                            <label class="form-label">${variant.label}</label>
+                            <input type="text" class="form-control" 
+                                name="variants[${index}][${variant.name}]" 
+                                data-index="${index}" 
+                                data-name="${variant.name}" 
+                                value="${variant.value}" 
+                                placeholder="${variant.label}">
+                        </div>
+                        <button type="button" class="btn btn-danger text-white mb-3 d-flex ms-auto delete_value" data-index="${index}">Xóa biến thể này</button>
+                    </div>`;
+        }
+    
+        function render() {
+            $("#VariantValue").html(variants.map((variant, index) => Html(variant, index)).join(""));
+    
+            $("#VariantValue .variant").each(function (newIndex) {
+                $(this).attr("data-index", newIndex);
+                $(this).find(".delete_value").attr("data-index", newIndex);
+            });
+    
+            $(".delete_value").off("click").on("click", function (e) {
+                e.preventDefault();
+    
+                saveCurrentValues();
+    
+                const index = $(this).data("index");
+    
+                if (index >= 0 && index < variants.length) {
+                    variants.splice(index, 1);
+                }
+    
+                if (variants.length === 0) {
+                    variants.push(variantTemplate());
+                }
+    
+                render();
+            });
+        }
+    
+        $("#add_variant_value").off("click").on("click", function (e) {
+            e.preventDefault();
+            saveCurrentValues();
+            variants.push(variantTemplate());
+            render();
+        });
+    
+        render(); 
+    }
+    
+    
+    
 });

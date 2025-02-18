@@ -18,6 +18,8 @@ abstract class BaseDataTable extends DataTable
     protected string $routeName = '';
     protected string $tableId = '';
 
+    protected int $orderBy = 2;
+
     /**
      * Build the DataTable class.
      *
@@ -88,7 +90,7 @@ abstract class BaseDataTable extends DataTable
             ->setTableId($this->tableId)
             ->columns($this->getColumns())
             ->minifiedAjax()
-            ->orderBy(2)
+            ->orderBy($this->orderBy)
             ->selectStyleSingle()
             ->parameters($this->getLanguageSettings())
             ->buttons($this->getButtons());

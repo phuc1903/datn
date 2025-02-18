@@ -32,11 +32,11 @@
                     'path' => route('admin.product.create'),
                 ],
                 [
-                    'label' => 'Danh sách biến thể',
+                    'label' => 'Danh sách thuộc tính',
                     'path' => route('admin.variant.index'),
                 ],
                 [
-                    'label' => 'Thêm biến thể',
+                    'label' => 'Thêm thuộc tính',
                     'path' => route('admin.variant.create'),
                 ],
             ],
