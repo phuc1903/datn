@@ -55,9 +55,15 @@ class User extends Authenticatable
         return $this->hasMany(UserCart::class, 'user_id');
     }
 
+
     public function favorites()
     {
-        return $this->hasMany(UserFavorite::class, 'user_id');
+        return $this->belongsToMany(Product::class, 'user_favorites', 'user_id', 'product_id')->withTimestamps();
+    }
+
+    public function addfavorites()
+    {
+        return $this->belongsToMany(Product::class, 'user_favorites', 'user_id', 'product_id')->withTimestamps();
     }
 
     public function vouchers()
@@ -74,6 +80,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(ProductFeedback::class, 'user_id');
     }
+
+    public function feedbacks()
+    {
+        return $this->belongsToMany(Product::class, 'product_feedbacks', 'user_id', 'product_id')
+            ->withPivot('rating', 'content')  // Đảm bảo lấy thêm rating và comment
+            ->withTimestamps();  // Lấy timestamps nếu có
+    }
+
 
     public function orders()
     {
