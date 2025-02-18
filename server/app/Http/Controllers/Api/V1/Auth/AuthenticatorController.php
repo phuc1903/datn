@@ -206,7 +206,7 @@ class AuthenticatorController extends Controller
             $token = hash('sha256', Str::random(60));
             $user->remember_token = $token;
             $user->save();
-            $urlReset = url('reset-password/' . $token); // CẤU HÌNH ĐƯỜNG DẪN RESET
+            $urlReset = config('app.frontend_url') . '/reset-password/' . $token; // CẤU HÌNH ĐƯỜNG DẪN RESET
 
             // Gữi email
             $email = $user->email;
