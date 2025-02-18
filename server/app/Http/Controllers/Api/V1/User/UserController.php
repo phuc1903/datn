@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api\V1\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -80,33 +82,21 @@ class UserController extends Controller
     | Path: /api/users/{{userId}}/orders
     |--------------------------------------------------------------------------
     */
-    public function orders($userId)
+    public function orders():JsonResponse
     {
         try {
-            // Lấy user kèm theo danh sách orders
-            $user = User::with('orders.items.product', 'orders.items.sku', 'orders.items.sku.variantValues')->find($userId);
-
-            // Không tìm thấy User
-            if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                    'data' => NULL
-                ], 404);
+            $user = auth()->user(); // Lấy người dùng đang đăng nhập
+            $orders = $user->orders()
+                ->orderBy('created_at', 'desc') // Sắp xếp theo thời gian tạo mới nhất
+                ->get();
+            if ($orders) {
+                return ResponseSuccess('Order retrieved successfully.',$orders,200);
+            } else {
+                return ResponseError('Dont have any Order',null,404);
             }
-
-            // Trả về danh sách orders
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Got user orders',
-                'data' => $user
-            ], 200);
-        } catch (\Exception $e) {
-            // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
+        }
+        catch (\Exception $e){
+            return ResponseError($e->getMessage(),null,500);
         }
     }
 
@@ -180,35 +170,64 @@ class UserController extends Controller
     | Path: /api/users/{{userId}}/favorites
     |--------------------------------------------------------------------------
     */
-    public function favorites($userId)
+    public function favorites()
     {
         try {
+            $userId = Auth::id();
             // Lấy user kèm theo danh sách orders
             $user = User::with('favorites.product')->find($userId);
 
             // Không tìm thấy User
             if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                    'data' => NULL
-                ], 404);
+                return ResponseError('User not found',null,404);
             }
 
             // Trả về danh sách orders
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Got user favorites',
-                'data' => $user
-            ], 200);
+            return ResponseSuccess('Got user favorites',$user);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
+            return ResponseError($e->getMessage(),null,500);
         }
     }
+    /*
+    |--------------------------------------------------------------------------
+    | Lấy danh sách yêu thích sản phẩm User
+    | Path: /api/users/{{userId}}/favorites
+    |--------------------------------------------------------------------------
+    */
+    public function addToFavorites(Request $request)
+    {
+        try {
+            $userId = Auth::id();
+
+            // Kiểm tra nếu user chưa đăng nhập
+            if (!$userId) {
+                return ResponseError('User not authenticated', null, 401);
+            }
+
+            $user = User::find($userId);
+            if (!$user) {
+                return ResponseError('User not found', null, 404);
+            }
+
+            // Lấy product_id từ request
+            $productId = $request->input('product_id');
+
+            // Kiểm tra nếu product_id hợp lệ
+            $product = Product::find($productId);
+            if (!$product) {
+                return ResponseError('Product not found', null, 404);
+            }
+
+            // Thêm sản phẩm vào danh sách yêu thích (dùng belongsToMany nếu là bảng pivot)
+            $user->addfavorites()->syncWithoutDetaching([$productId]);
+
+            return ResponseSuccess('Product added to favorites', $user->favorites);
+        } catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
+        }
+    }
+
 
     /*
     |--------------------------------------------------------------------------

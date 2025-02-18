@@ -5,9 +5,10 @@ use App\Http\Controllers\Api\V1\Blog\BlogController;
 use App\Http\Controllers\Api\V1\Cart\CartController;
 use App\Http\Controllers\Api\V1\Category\CategoryController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
-use App\Http\Controllers\Api\V1\User\UserController;
 use App\Http\Controllers\Api\V1\Slider\SliderController;
+use App\Http\Controllers\Api\V1\User\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\Order\OrderController;
 
 // Version 1
 Route::prefix('v1')->group(function () {
@@ -16,10 +17,12 @@ Route::prefix('v1')->group(function () {
     | ProductController
     |--------------------------------------------------------------------------
     */
-    Route::prefix('products')->controller(ProductController::class,)->group(function () {
-        Route::get('/','index');
-        Route::get('/{id}','getProduct');
-        Route::get('/category/{id}','getProductByCategory');
+    Route::prefix('products')->controller(ProductController::class)->group(function () {
+        Route::get('/', 'getAllProduct');
+        Route::get('/detail/{id}', 'getProduct');
+        Route::get('/category/{{id}}', 'getProductByCategory');
+        Route::get('/most-favorites','getMostFavoritedProducts');
+        Route::get('/feedback-product/{id}','getFeedBackProduct');
     });
 
 
@@ -29,7 +32,7 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('categories')->controller(CategoryController::class)->group(function () {
-        Route::get('/','index');
+        Route::get('/', 'index');
     });
 
     /*
@@ -40,13 +43,26 @@ Route::prefix('v1')->group(function () {
     Route::prefix('sliders')->controller(SliderController::class)->group(function () {
         Route::get('/', 'index');
     });
-
-
+    /*
+        |--------------------------------------------------------------------------
+        | OrderController
+        |--------------------------------------------------------------------------
+        */
+    Route::prefix('orders')->controller(OrderController::class)->group(function (){
+        Route::middleware('auth:sanctum')->group(function (){
+            Route::post('create', 'createOrder');
+            Route::get('/{id}','orderUserDetail');
+        });
+    });
     /*
     |--------------------------------------------------------------------------
     | AuthController
     |--------------------------------------------------------------------------
     */
+
+
+
+
     Route::prefix('auth')->controller(AuthenticatorController::class)->group(function () {
         // Unauthenticated
         Route::post('/login', 'login');
@@ -57,6 +73,7 @@ Route::prefix('v1')->group(function () {
         Route::middleware(['auth:sanctum', 'auth.active'])->group(function () {
             Route::post('/logout', 'logout');
             Route::post('/change-password', 'changePassword');
+
         });
     });
 
@@ -71,13 +88,16 @@ Route::prefix('v1')->group(function () {
         Route::middleware(['auth:sanctum', 'auth.active'])->group(function () {
             // Xem sản phẩm giỏ hàng
             Route::get('/carts', 'carts');
+            Route::get('/orders', 'orders');
+            Route::get('/favorites', 'favorites');
+            Route::post('/add-favorite', 'addToFavorites');
         });
 
         Route::get('/', 'index');
         Route::get('/{id}', 'show');
-        Route::get('/{id}/orders', 'orders');
+
         Route::get('/{id}/vouchers', 'vouchers');
-        Route::get('/{id}/favorites', 'favorites');
+
         Route::get('/{id}/product-feedbacks', 'productFeedbacks');
     });
 
