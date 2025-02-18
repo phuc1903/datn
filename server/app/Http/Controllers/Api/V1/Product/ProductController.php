@@ -191,9 +191,9 @@ class ProductController extends Controller
                 'categories',
                 'skus.variantValues.variant'
             ])
-                ->withCount('favoritedBy') // Đếm số lượt yêu thích của mỗi sản phẩm
-                ->having('favorited_by_count', '>', 0) // Chỉ lấy sản phẩm có lượt yêu thích > 0
-                ->orderByDesc('favorited_by_count') // Sắp xếp theo số lượt yêu thích giảm dần
+                ->withCount('favorites') // Đếm số lượt yêu thích của mỗi sản phẩm
+                ->having('favorites_count', '>', 0) // Chỉ lấy sản phẩm có lượt yêu thích > 0
+                ->orderByDesc('favorites_count') // Sắp xếp theo số lượt yêu thích giảm dần
                 ->limit(10) // Giới hạn 10 sản phẩm phổ biến nhất
                 ->get();
 

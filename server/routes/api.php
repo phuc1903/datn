@@ -91,6 +91,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/orders', 'orders');
             Route::get('/favorites', 'favorites');
             Route::post('/add-favorite', 'addToFavorites');
+            Route::post('/remove-favorite', 'removeFromFavorites');
         });
 
         Route::get('/', 'index');
