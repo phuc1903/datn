@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
+import Swal from "sweetalert2";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -48,12 +49,25 @@ export default function ForgotPasswordPage() {
         throw new Error(result.message || "Yêu cầu quên mật khẩu thất bại.");
       }
 
-      alert("Yêu cầu quên mật khẩu thành công! Vui lòng kiểm tra email.");
+      // Thay thế alert bằng Sweetalert2 thành công
+      await Swal.fire({
+        icon: 'success',
+        title: 'Thành công!',
+        text: 'Yêu cầu quên mật khẩu thành công! Vui lòng kiểm tra email.',
+        confirmButtonColor: '#db2777', // pink-600
+      });
+
       setMessage("Vui lòng kiểm tra email để đặt lại mật khẩu.");
-      setCooldown(45); // Set cooldown 45 giây sau khi thành công
+      setCooldown(45);
     } catch (error) {
       console.error("Lỗi quên mật khẩu:", error);
-      alert("Lỗi: " + error.message);
+      // Thay thế alert bằng Sweetalert2 lỗi
+      await Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: error.message,
+        confirmButtonColor: '#db2777', // pink-600
+      });
     } finally {
       setLoading(false);
     }

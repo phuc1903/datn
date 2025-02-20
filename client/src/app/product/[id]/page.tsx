@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { StarIcon } from 'lucide-react'
 import { useParams } from "next/navigation";
 
+
 interface ProductVariant {
   id: number;
   variant: {
