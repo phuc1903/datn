@@ -49,7 +49,16 @@ class UserController extends Controller
     {
         try {
             // Eager load các mối quan hệ liên quan
-            $users = User::with('addresses', 'carts.sku.product', 'carts.sku.variantValues', 'favorites.product', 'vouchers.productVoucher', 'wallet', 'productFeedbacks.product', 'orders.items.product', 'orders.items.sku', 'orders.items.sku.variantValues')
+            $users = User::with('addresses',
+                'carts.sku.product',
+                'carts.sku.variantValues',
+                'favorites',
+                'vouchers.productVoucher',
+                'wallet',
+                'productFeedbacks.product',
+                'orders.items.product',
+                'orders.items.sku',
+                'orders.items.sku.variantValues')
                 ->find($userId);
 
             // Không tìm thấy User
@@ -200,7 +209,6 @@ class UserController extends Controller
         try {
             $userId = Auth::id();
 
-            // Kiểm tra nếu user chưa đăng nhập
             if (!$userId) {
                 return ResponseError('User not authenticated', null, 401);
             }
@@ -210,19 +218,56 @@ class UserController extends Controller
                 return ResponseError('User not found', null, 404);
             }
 
-            // Lấy product_id từ request
             $productId = $request->input('product_id');
 
-            // Kiểm tra nếu product_id hợp lệ
             $product = Product::find($productId);
             if (!$product) {
                 return ResponseError('Product not found', null, 404);
             }
 
-            // Thêm sản phẩm vào danh sách yêu thích (dùng belongsToMany nếu là bảng pivot)
-            $user->addfavorites()->syncWithoutDetaching([$productId]);
+            // Kiểm tra sản phẩm đã có trong danh sách yêu thích hay chưa
+            $exists = $user->favorites()->where('product_id', $productId)->exists();
 
-            return ResponseSuccess('Product added to favorites', $user->favorites);
+            if ($exists) {
+                return ResponseError('Product already in favorites', null, 400);
+            }
+
+            // Nếu chưa có, thêm sản phẩm vào danh sách yêu thích
+            $user->favorites()->attach($productId);
+
+            return ResponseSuccess('Product added to favorites', $user->favorites()->get());
+        } catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
+        }
+    }
+
+    public function removeFromFavorites(Request $request)
+    {
+        try {
+            $userId = Auth::id();
+
+            if (!$userId) {
+                return ResponseError('User not authenticated', null, 401);
+            }
+
+            $user = User::find($userId);
+            if (!$user) {
+                return ResponseError('User not found', null, 404);
+            }
+
+            $productId = $request->input('product_id');
+
+            // Kiểm tra sản phẩm có trong danh sách yêu thích không
+            $exists = $user->favorites()->where('product_id', $productId)->exists();
+
+            if (!$exists) {
+                return ResponseError('Product not in favorites', null, 400);
+            }
+
+            // Xóa sản phẩm khỏi danh sách yêu thích
+            $user->favorites()->detach($productId);
+
+            return ResponseSuccess('Product removed from favorites', $user->favorites()->get());
         } catch (\Exception $e) {
             return ResponseError($e->getMessage(), null, 500);
         }
