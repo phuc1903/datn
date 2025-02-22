@@ -6,6 +6,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Frontend URL
+    |--------------------------------------------------------------------------
+    |
+    | Đường dẫn đến url frontend
+    |
+    */
+
+    'frontend_url' => env('FRONTEND_URL', env('APP_URL')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Name
     |--------------------------------------------------------------------------
     |
@@ -159,6 +170,7 @@ return [
         /*
          * Laravel Framework Service Providers...
          */
+        App\Providers\OrderServiceProvider::class,
         Illuminate\Auth\AuthServiceProvider::class,
         Illuminate\Broadcasting\BroadcastServiceProvider::class,
         Illuminate\Bus\BusServiceProvider::class,

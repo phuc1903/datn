@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { StarIcon } from 'lucide-react'
 import { useParams } from "next/navigation";
 
+
 interface ProductVariant {
   id: number;
   variant: {
@@ -45,7 +46,7 @@ export default function ProductDetail() {
 
   useEffect(() => {
     if (id) {
-      fetch(`http://127.0.0.1:8000/api/products/${id}`)
+      fetch(`http://127.0.0.1:8000/api/v1/products/${id}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.status === "success") {
@@ -94,6 +95,43 @@ export default function ProductDetail() {
     setComment('');
     setShowReviewForm(false);
   }
+
+  const [cart, setCart] = useState([]);
+
+  const handleAddToCart = () => {
+    if (!selectedSku) return;
+  
+    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+  
+    // Kiểm tra xem SKU này đã có trong giỏ hàng chưa
+    const existingItem = storedCart.find((item) => item.sku_id === selectedSku.id);
+    let updatedCart;
+  
+    if (existingItem) {
+      // Nếu sản phẩm đã có trong giỏ, cập nhật số lượng nhưng không vượt quá tồn kho
+      updatedCart = storedCart.map((item) =>
+        item.sku_id === selectedSku.id
+          ? { ...item, quantity: Math.min(item.quantity + quantity, selectedSku.quantity) }
+          : item
+      );
+    } else {
+      // Nếu chưa có, thêm mới vào giỏ hàng
+      updatedCart = [
+        ...storedCart,
+        {
+          sku_id: selectedSku.id,
+          name: product.name,
+          image_url: selectedSku.image_url,
+          price: selectedSku.promotion_price,
+          quantity: quantity,
+        }
+      ];
+    }
+  
+    setCart(updatedCart); // Cập nhật state
+    localStorage.setItem("cart", JSON.stringify(updatedCart)); // Lưu vào localStorage
+  };
+  
 
   if (loading) return <p className="text-center p-5">Đang tải...</p>;
   if (!product) return <p className="text-center p-5">Không tìm thấy sản phẩm</p>;
@@ -240,9 +278,12 @@ export default function ProductDetail() {
 
               {/* Add to Cart */}
               <div className="grid grid-cols-2 gap-4">
-                <button className="w-full bg-pink-600 text-white rounded-lg py-3 font-medium hover:bg-pink-700 transition-colors">
-                  Thêm vào giỏ
-                </button>
+    <button
+      onClick={handleAddToCart}
+      className="bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700"
+    >
+      Thêm vào giỏ hàng
+    </button>
                 <button className="w-full bg-gray-900 text-white rounded-lg py-3 font-medium hover:bg-gray-800 transition-colors">
                   Mua ngay
                 </button>
