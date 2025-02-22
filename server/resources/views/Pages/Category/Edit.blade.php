@@ -16,7 +16,7 @@
                             <label for="" class="form-label fw-bold text-dark-custom">Danh mục cha</label>
                             <select class="form-select selec-custom input-text-custom" aria-label="Default select example"
                                 name="parent_id" id="parent_id">
-                                <option value="{{ $categoryActive->id}}" selected>{{$categoryActive->name}}</option>
+                                @if(isset($categoryActive))<option value="{{ $categoryActive->id}}" selected>{{$categoryActive->name}}</option>@endif
                                 <option value="0">Không có</option>
                                 @foreach ($categories as $cate)
                                     @php

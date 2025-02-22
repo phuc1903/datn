@@ -23,8 +23,8 @@ class CategorySeeder extends Seeder
         |
         */
         Category::factory()
-            ->count(10)
-            ->createCategoryChilds(3)
+            ->count(5)
+            ->createCategoryChilds(2)
             ->create();
     }
 }

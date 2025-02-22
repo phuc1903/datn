@@ -86,18 +86,22 @@ class CategoryController extends Controller
      */
     public function edit(Category $category)
     {
+        // dd($category);
         $categories = Category::all();
-        $statusEnum = CategoryStatus::fromValue($category->status);
+        $statusEnum = CategoryStatus::fromValue(enumValue: $category->status);
         $sta = [
             'value' => $statusEnum->value,
             'label' =>  $statusEnum->label()
         ];
-
-        $categoryActive = Category::findOrFail($category->parent_id);
+        if(isset($category->parent_id)) {
+            $categoryActive = Category::find($category->parent_id);
+        }else {
+            $categoryActive = null;
+        }
 
         $status = mapEnumToArray(CategoryStatus::class, $category->status);
 
-        // dd($category);
+        // dd($categoryActive);
         return view('Pages.Category.Edit', ['category' => $category, 'categories' => $categories, 'status' => $status, 'sta' => $sta, 'categoryActive' => $categoryActive]);
     }
 
@@ -106,7 +110,7 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
-        dd($request);
+        // dd($request);
         try {
             $data = $request->all();
 
