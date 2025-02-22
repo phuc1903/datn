@@ -8,10 +8,13 @@ use App\Http\Controllers\Admin\Product\FeedbackController;
 use App\Http\Controllers\Admin\Product\ProductController;
 use App\Http\Controllers\Admin\Product\VariantController;
 use App\Http\Controllers\Admin\Setting\SettingController;
+use App\Http\Controllers\Admin\Slider\SliderController;
 use App\Http\Controllers\Admin\Team\TeamController;
 use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\Admin\Voucher\VoucherController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,6 +42,13 @@ Route::prefix('/admin')->as('admin.')->group(function () {
     Route::resource('blog', BlogController::class);
     Route::resource('voucher', VoucherController::class);
     Route::resource('variant', VariantController::class);
+    Route::resource('slider', SliderController::class);
+});
+
+Route::post('/save-theme', function (Request $request) {
+    $theme = $request->input('theme');
+    Session::put('theme', $theme);
+    return response()->json(['status' => 'success', 'theme' => $theme]);
 });
 
 // Auth::routes();

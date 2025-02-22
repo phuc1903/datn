@@ -8,6 +8,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use App\DataTables\Product\ProductDataTable;
 use App\Http\Requests\Admin\Product\ProductRequest;
+use App\Models\Variant;
 
 class ProductController extends Controller
 {
@@ -24,19 +25,15 @@ class ProductController extends Controller
      */
     public function create()
     {
-        $productStatusValues = ProductStatus::getValues();
+        $variants = Variant::all();
 
-        $productStatusData = array_map(function ($value) {
-            $status = ProductStatus::fromValue($value); 
-            return [
-                'label' => $status->label(), 
-                'value' => $status->value,
-            ];
-        }, $productStatusValues);
+        // dd($variants);
+
+        $productStatusData = mapEnumToArray(ProductStatus::class);
 
         // dd($productStatusData);
 
-        return view('Pages.Product.Create', ['productStatus' => $productStatusData]);
+        return view('Pages.Product.Create', ['productStatus' => $productStatusData, 'variants' => $variants]);
     }
 
     /**
@@ -44,7 +41,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request);
+        dd($request);
         // $data = $request->validated();
         // session()->flash('success', 'Sản phẩm đã được thêm thành công!');
 

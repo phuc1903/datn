@@ -1,8 +1,15 @@
-@props(['options' => []]);
+@props(['options' => [], 'type' => 'enum'])
 
-
-@foreach($options as $option)
-    <option value="{{ $option['value'] }}">
-        {{ $option['label'] }}
-    </option>
-@endforeach
+@if ($type === 'enum')
+    @foreach ($options as $option)
+        <option value="{{ $option['value'] }}">
+            {{ $option['label'] }}
+        </option>
+    @endforeach
+@elseif($type === 'default')
+    @foreach ($options as $option)
+        <option value="{{ $option->id }}">
+            {{ $option->name }}
+        </option>
+    @endforeach
+@endif

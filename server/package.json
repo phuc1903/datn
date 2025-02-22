@@ -18,6 +18,7 @@
         "bootstrap-icons": "^1.11.3",
         "jquery": "^3.7.1",
         "jquery.easing": "^1.4.1",
+        "select2": "^4.1.0-rc.0",
         "sweetalert2": "^11.16.1",
         "toastr": "^2.1.4"
     }

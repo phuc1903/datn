@@ -35,7 +35,7 @@ class UserController extends Controller
             ->values()
             ->toArray();
 
-        return view('Pages.User.Create', ['sexList' => $sexList]); // Truyền biến sexList vào view
+        return view('Pages.User.Create', ['sexList' => $sexList]);
     }
 
 

@@ -12,11 +12,11 @@
 
 <div class="mb-3">
     @if ($label)
-        <label for="{{ $name }}" class="form-label fw-bold text-dark">{{ $label }}</label>
+        <label for="{{ $name }}" class="form-label fw-bold text-dark-custom">{{ $label }}</label>
     @endif
 
     <input {{ $attributes}} type="{{ $type }}" name="{{ $name }}"
-        class="form-control input-text-custom @error($name) is-invalid @enderror"
+        class="form-control bg-white-custom input-text-custom @error($name) is-invalid @enderror"
         id="{{ $id ?? $name }}" value="{{ $value }}" placeholder="{{ $placeholder }}"
         >
 

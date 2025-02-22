@@ -22,6 +22,7 @@ class OrderDataTable extends BaseDataTable
 
     protected string $routeName = 'order';
     protected string $tableId = 'order-table';
+    protected int $orderBy = 7;
     /**
      * Get the query source of dataTable.
      */

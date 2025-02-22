@@ -12,13 +12,31 @@ if (!function_exists('ResponseError')) {
 }
 
 if (!function_exists('ResponseSuccess')) {
-    function ResponseSuccess($message, $data = null, $httpCode = 200)
+    function mapEnumToArray(string $enumClass, string $currentValue = null): array
     {
-        return response()->json([
-            'status' => 'success',
-            'message' => $message,
-            'data' => $data
-        ], $httpCode);
+        if (!method_exists($enumClass, 'getValues') || !method_exists($enumClass, 'fromValue')) {
+            throw new InvalidArgumentException("$enumClass không phải là một Enum hợp lệ");
+        }
+
+        if (!isset($currentValue)) {
+            return array_map(function ($value) use ($enumClass) {
+                $enumInstance = $enumClass::fromValue($value);
+                return [
+                    'label' => $enumInstance->label(),
+                    'value' => $enumInstance->value,
+                ];
+            }, $enumClass::getValues());
+        }
+        return collect($enumClass::getValues())
+            ->when($currentValue, function ($collection, $currentValue) {
+                return $collection->filter(fn($value) => $value !== $currentValue); // Loại bỏ giá trị hiện tại nếu có
+            })
+            ->map(fn($value) => [
+                'label' => $enumClass::fromValue($value)->label(),
+                'value' => $value,
+            ])
+            ->values()
+            ->toArray();
     }
 }
 

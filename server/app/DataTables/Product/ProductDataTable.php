@@ -68,8 +68,8 @@ class ProductDataTable extends DataTable
     {
         return $model->newQuery()
             ->leftJoin('skus', 'products.id', '=', 'skus.product_id')
-            ->select('products.*', \DB::raw('MIN(skus.price) as price'))
-            ->groupBy('products.id', 'products.admin_id');
+            ->select('products.name', 'products.short_description', 'products.status', 'products.id', \DB::raw('MIN(skus.price) as price'))
+            ->groupBy('products.name', 'products.short_description', 'products.status', 'products.id');
     }
 
     /**

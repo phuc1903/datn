@@ -1,10 +1,12 @@
 // 🌐 Import Google Fonts
 @import url("https://fonts.bunny.net/css?family=Nunito");
 
-@import "variables"; // Ghi đè biến Bootstrap bằng biến của bạn
-@import "bootstrap/scss/maps"; // Import maps để Bootstrap nhận diện màu mới
-@import "bootstrap/scss/mixins"; // Import mixins nếu cần
-@import "bootstrap/scss/bootstrap"; // Cuối cùng import Bootstrap
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "variables";
+@import "bootstrap/scss/maps";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/bootstrap";
 
 // 📂 Import các thư viện CSS bên ngoài nếu cần
 @import "bootstrap-icons/font/bootstrap-icons.css";
@@ -14,36 +16,93 @@
 
 @import "@fortawesome/fontawesome-free/css/all.min.css";
 
+@import 'select2/dist/css/select2.min.css';
+
+
 // 🎨 Custom CSS
 
 :root {
     --white: #ffffff;
-    --black: #000000;
-    --success: "#27ae60";
-    --danger: "#f43f3f";
-    --warning: "#ffa800";
+    --black: #{$neuture-950};
+    --success: #{$success-500};
+    --danger: #{$danger-500};
+    --warning: #{$warning-500};
     --background: var(--white);
-    --foreground: $neuture-950;
-    --muted: $neuture-100;
-    --muted-foreground: $neuture;
+    --foreground: #{$neuture-950};
+    --muted: #{$neuture-100};
+    --muted-foreground: #{$neuture};
     --card: var(--white);
-    --card-foreground: $neuture-950;
+    --card-foreground: #{$neuture-950};
     --popver: var(--white);
-    --popver-foreground: $neuture-950;
-    --border: $neuture-200;
-    --input: $neuture-200;
-    --primary: #ed0e69;
-    --primary-foreground: $primary-50;
-    --secondary: $secondary;
-    --secondary-foreground: $secondary-50;
+    --popver-foreground: #{$neuture-950};
+    --border: #{$neuture-200};
+    --input: #{$neuture-200};
+    --primary: #{$primary-500};
+    --primary-foreground: #{$primary-50};
+    --secondary: #{$secondary};
+    --secondary-foreground: #{$secondary-50};
 }
 
-*,
-*::after,
-*::before {
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
+[data-theme="dark"] {
+    --white: #{$neuture-950};
+    --black: #ffffff;
+    --background: var(--white);
+    --foreground: #{$neuture-50};
+    --muted: #{$neuture-800};
+    --muted-foreground: #{$neuture-400};
+    --card: #{$neuture-950};
+    --card-foreground: #{$neuture-50};
+    --popver: #{$neuture-950};
+    --popver-foreground: #{$neuture-50};
+    --border: #{$neuture-700};
+    --input: #{$neuture-700};
+    --primary: #{$primary-500};
+    --primary-foreground: #{$primary-50};
+    --secondary: #{$secondary};
+    --secondary-foreground: #{$secondary-50};
+}
+
+// *,
+// *::after,
+// *::before {
+//     padding: 0;
+//     margin: 0;
+//     box-sizing: border-box;
+// }
+
+.bg-white-custom {
+    background-color: var(--background);
+}
+
+.bg-dark-custom {
+    background-color: var(--foreground);
+}
+
+.text-white-custom {
+    color: var(--background);
+}
+
+.text-dark-custom {
+    color: var(--foreground);
+}
+
+.border-color {
+    border-color: var(--border);
+}
+
+// component
+
+.cke_1,
+.input-text-custom {
+    background-color: var(--background);
+    color: var(--foreground);
+
+    &:focus {
+        background-color: var(--background);
+        color: var(--foreground);
+        box-shadow: none;
+        border-color: var(--border);
+    }
 }
 
 .logo-sideBar {
@@ -109,23 +168,77 @@
     }
 }
 
+.product-item-add-order {
+    background-color: var(--white);
+    color: var(--foreground);
+    transition: all 0.1s linear;
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--muted);
+    }
+}
+
+.nav-tabs-product-custom {
+    border-right: 1px solid var(--border);
+
+    .nav-item {
+        border: 1px solid var(--border);
+
+        .nav-link {
+            border-radius: 0;
+        }
+    }
+}
+.nav-content-product-custom {
+    width: 100%;
+}
+
+.tab-content-product {
+    padding: 12px;
+}
+
 .card-custom {
     .card {
+        background-color: var(--background);
+        border-color: var(--border);
         .card-header {
-            background-color: var(--white) !important;
+            background-color: var(--background) !important;
 
-            border: none;
+            border-bottom: 1px solid var(--border);
 
             .title {
                 font-size: 1.4rem !important;
                 margin: 0;
-                padding-top: 12px;
-                padding-bottom: 0px;
+                padding: 12px 0;
                 font-weight: 600 !important;
                 color: var(--primary) !important;
             }
+
+            .select-type-data-product {
+                width: 220px;
+            }
+        }
+
+        .card-body {
+            &.padding-0 {
+                padding: 0;
+            }
+            &.card-type-product {
+                height: 400px;
+            }
+
+            th {
+                background-color: var(--background) !important;
+            }
+
+            td {
+                background-color: var(--background) !important;
+            }
         }
     }
+
+    
 }
 
 .setting {
@@ -223,25 +336,6 @@ a.sidebar-children {
     }
 }
 
-[data-theme="dark"] {
-    --white: #000000;
-    --black: #ffffff;
-    --background: var(--white);
-    --foreground: $neuture-50;
-    --muted: $neuture-800;
-    --muted-foreground: $neuture-400;
-    --card: $neuture-950;
-    --card-foreground: $neuture-50;
-    --popver: $neuture-950;
-    --popver-foreground: $neuture-50;
-    --border: $neuture-700;
-    --input: $neuture-700;
-    --primary: #ed0e69;
-    --primary-foreground: $primary-50;
-    --secondary: $secondary;
-    --secondary-foreground: $secondary-50;
-}
-
 #sidebar-main {
     background-color: var(--foreground);
     color: var(--background);
@@ -288,14 +382,18 @@ a.sidebar-children {
     }
 }
 
-.card.custom {
-    .card-header.custom {
-        height: 3px;
-    }
+// .card.custom {
+//     .card-header.custom {
+//         height: 3px;
 
-    .card-body.custom {
-    }
-}
+//         .select-type-data-product {
+//             width: 200px;
+//         }
+//     }
+
+//     .card-body.custom {
+//     }
+// }
 
 //custom toast css
 

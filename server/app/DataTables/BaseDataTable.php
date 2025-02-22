@@ -30,10 +30,8 @@ abstract class BaseDataTable extends DataTable
         $dataTable = new EloquentDataTable($query);
         $dataTable->addIndexColumn();
 
-        // Mảng chứa các cột có chỉnh sửa
         $editableColumns = [];
 
-        // Áp dụng các chỉnh sửa từ lớp con
         $dataTable = $this->customizeDataTable($dataTable);
 
         if ($this->includeAction) {
@@ -130,7 +128,7 @@ abstract class BaseDataTable extends DataTable
             'language' => [
                 'lengthMenu' => 'Hiển thị _MENU_ mục mỗi trang',
                 'zeroRecords' => 'Không tìm thấy dữ liệu',
-                'info' => 'Hiển thị _START_ đến _END_ của _TOTAL_ sản phẩm',
+                'info' => 'Hiển thị _START_ đến _END_ của _TOTAL_ mục',
                 'infoEmpty' => 'Không có mục nào để hiển thị',
                 'infoFiltered' => '(lọc từ _MAX_ tổng số mục)',
                 'search' => 'Tìm kiếm:',

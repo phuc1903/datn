@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ session('theme', 'light') }}">
 
 <head>
     <meta charset="utf-8">
@@ -13,6 +13,7 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
+
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/sb-admin-2.min.css'])
 </head>
@@ -29,10 +30,10 @@
             <div id="content-wrapper" class="d-flex flex-column w-100">
 
                 <!-- Main Content -->
-                <div id="content">
+                <div id="content" class="bg-white-custom">
 
                     <!-- Topbar -->
-                    <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <nav class="navbar navbar-expand navbar-light bg-white-custom topbar mb-4 static-top shadow">
 
                         <!-- Sidebar Toggle (Topbar) -->
                         <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
@@ -220,6 +221,7 @@
 
                         </ul>
 
+                        <button id="toggle-theme" class="btn btn-primary">Chuyển chế độ</button>
 
                     </nav>
                     <!-- End of Topbar -->
@@ -235,9 +237,9 @@
                 <!-- End of Main Content -->
 
                 <!-- Footer -->
-                <footer class="sticky-footer bg-white">
+                <footer class="sticky-footer bg-white-custom">
                     <div class="container my-auto">
-                        <div class="copyright text-center my-auto">
+                        <div class="copyright text-center my-auto text-dark-custom">
                             <span>Copyright &copy; ZBeauty</span>
                         </div>
                     </div>

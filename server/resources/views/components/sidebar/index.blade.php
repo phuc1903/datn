@@ -167,6 +167,23 @@
                 ],
             ],
         ],
+        [
+            'label' => 'Slider',
+            'active' => request()->routeIs('admin.slider.index'),
+            'type' => 'nav',
+            'icon' => 'bi-person-lines-fill',
+            'path' => route('admin.slider.index'),
+            'child' => [
+                [
+                    'label' => 'Danh sách Slider',
+                    'path' => route('admin.slider.index'),
+                ],
+                [
+                    'label' => 'Thêm Slide',
+                    'path' => route('admin.slider.create'),
+                ],
+            ],
+        ],
         // Cài đặt chung
         [
             'label' => 'Cài đặt chung',

@@ -12,35 +12,37 @@
                     <div class="card-body">
                         <x-form.input_text label="Tên sản phẩm" name="name" />
                         <div class="form-floating mb-3">
-                            <textarea class="form-control" name="short_description" placeholder="Leave a comment here" id="floatingTextarea"
-                                style="height: 100px"></textarea>
-                            <label for="floatingTextarea">Mô tả ngắn</label>
+                            <textarea class="form-control input-text-custom" name="short_description" placeholder="Leave a comment here"
+                                id="floatingTextarea" style="height: 100px"></textarea>
+                            <label for="floatingTextarea" class="text-dark-custom">Mô tả ngắn</label>
                         </div>
-                        <textarea id="description" name="description"></textarea>
+                        <textarea id="description" class="input-text-custom" name="description"></textarea>
                     </div>
                 </div>
                 <div class="card card-custom mb-3">
                     <div class="card-header">
-                        <h5 class="title">Dữ liệu sản phẩm</h5>
+                        <div class="mb-3 d-flex gap-3 align-items-center">
+                            <label for="product-type" class="form-label text-dark-custom mb-0">Dữ liệu sản phẩm</label>
+                            <select id="product-type" class="form-select input-text-custom select-type-data-product">
+                                <option value="simple">Sản phẩm đơn giản</option>
+                                <option value="variable">Sản phẩm có biến thể</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <ul class="nav nav-tabs" id="myTab" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="home-tab" data-bs-toggle="tab"
-                                    data-bs-target="#product-default" type="button" role="tab"
-                                    aria-controls="product-default" aria-selected="true">Sản phẩm đơn giản</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="profile-tab" data-bs-toggle="tab"
-                                    data-bs-target="#product-variants" type="button" role="tab"
-                                    aria-controls="product-variants" aria-selected="false">Sản phẩm có biến thể</button>
-                            </li>
-                        </ul>
-                        <div class="tab-content" id="myTabContent">
-                            <div class="tab-pane fade show active" id="product-default" role="tabpanel"
-                                aria-labelledby="home-tab" tabindex="0">...</div>
-                            <div class="tab-pane fade" id="product-variants" role="tabpanel" aria-labelledby="profile-tab"
-                                tabindex="0">...</div>
+                    @php
+                        $statusWarehouse = [
+                            ['value' => 'in_stock', 'label' => 'Còn hàng'],
+                            ['value' => 'out_of_stock', 'label' => 'Hết hàng'],
+                        ];
+                    @endphp
+
+                    <div class="card-body padding-0 card-type-product">
+                        <div id="simple-product" class="h-100">
+                            @include('Pages.Product.Components.navtab.navtab_1')
+                        </div>
+
+                        <div id="variable-product" class="h-100" style="display: none;">
+                            @include('Pages.Product.Components.navtab.navtab_2')
                         </div>
                     </div>
                 </div>
@@ -61,7 +63,8 @@
                         <h5 class="title">Trạng thái</h5>
                     </div>
                     <div class="card-body">
-                        <select class="form-select selec-custom" aria-label="Default select example" name="status">
+                        <select class="form-select selec-custom input-text-custom" aria-label="Default select example"
+                            name="status">
                             <x-form.select.option :options="$productStatus" />
                         </select>
                     </div>
@@ -71,7 +74,8 @@
                         <h5 class="title">Sản phẩm nổi bậc</h5>
                     </div>
                     <div class="card-body">
-                        <select class="form-select selec-custom" aria-label="Default select example" name="status">
+                        <select class="form-select selec-custom input-text-custom" aria-label="Default select example"
+                            name="status">
                             @php
                                 $hotArray = [['value' => 1, 'label' => 'Có'], ['value' => 1, 'label' => 'Không']];
                             @endphp
