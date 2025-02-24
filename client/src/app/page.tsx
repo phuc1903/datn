@@ -6,6 +6,7 @@ import Link from "next/link";
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [sliderImages, setSliderImages] = useState([]);
@@ -17,12 +18,10 @@ export default function Products() {
   };
 
   useEffect(() => {
-    // Slider auto-scroll effect
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
     }, 5000);
 
-    // Fetch slider images
     fetch("http://127.0.0.1:8000/api/v1/sliders")
       .then((res) => res.json())
       .then((data) => {
@@ -32,7 +31,6 @@ export default function Products() {
         console.error("Error fetching slider images:", error);
       });
 
-    // Fetch products
     fetch("http://127.0.0.1:8000/api/v1/products")
       .then((res) => res.json())
       .then((data) => {
@@ -45,7 +43,6 @@ export default function Products() {
         setLoading(false);
       });
 
-    // Fetch categories
     fetch("http://127.0.0.1:8000/api/v1/categories")
       .then((res) => res.json())
       .then((data) => {
@@ -57,7 +54,6 @@ export default function Products() {
         console.error("Error fetching categories:", error);
       });
 
-    // Fetch most favorite products
     fetch("http://127.0.0.1:8000/api/v1/products/most-favorites")
       .then((res) => res.json())
       .then((data) => {
@@ -68,10 +64,22 @@ export default function Products() {
         console.error("Error fetching favorite products:", error);
       });
 
+    fetch("http://127.0.0.1:8000/api/v1/blogs")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.status === "success") {
+          setBlogs(getRandomItems(data.data, 3));
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching blogs:", error);
+      });
+
     return () => clearInterval(timer);
   }, [sliderImages.length]);
 
   if (loading) return <p className="text-center text-lg">Đang tải dữ liệu...</p>;
+
 
   const hotProducts = getRandomItems(products.filter(p => p.is_hot), 4);
   const newProducts = getRandomItems(
@@ -414,36 +422,38 @@ export default function Products() {
           </div>
         </div>
       </section>
-      {/* Blog Section */}
-<section className="max-w-7xl mx-auto px-4 py-12">
-  <h2 className="text-3xl font-bold text-gray-800 mb-8">Góc làm đẹp</h2>
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {[1, 2, 3].map((blog) => (
-      <div key={blog} className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="relative aspect-video">
-          <Image
-            src={`/banner/1.jpg`}
-            alt={`Blog ${blog}`}
-            fill
-            className="object-cover"
-          />
+     {/* Blog Section */}
+     <section className="max-w-7xl mx-auto px-4 py-12">
+        <h2 className="text-3xl font-bold text-gray-800 mb-8">Góc làm đẹp</h2>
+        
+       
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {blogs.map((blog) => (
+            <div key={blog.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="relative aspect-video">
+                <Image
+                  src={blog.image_url || "/default-blog.jpg"}
+                  alt={blog.title}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="p-4">
+                <h3 className="text-lg text-black font-bold mb-2">{blog.title}</h3>
+                <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                  {blog.short_description}
+                </p>
+                <Link
+                  href={`/blog/${blog.id}`}
+                  className="text-pink-600 hover:text-pink-700 font-medium"
+                >
+                  Đọc thêm
+                </Link>
+              </div>
+            </div>
+          ))}
         </div>
-        <div className="p-4">
-          <h3 className="text-lg text-black font-bold mb-2">Cách chăm sóc da mùa đông</h3>
-          <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-            Mùa đông là thời điểm da dễ bị khô và nứt nẻ. Hãy tham khảo các mẹo chăm sóc da đơn giản để giữ da luôn mịn màng.
-          </p>
-          <Link
-            href={`/blog/${blog}`}
-            className="text-pink-600 hover:text-pink-700 font-medium"
-          >
-            Đọc thêm
-          </Link>
-        </div>
-      </div>
-    ))}
-  </div>
-</section>
+      </section>
 
       {/* FAQ or Support Section */}
 <section className="max-w-7xl mx-auto px-4 py-12 bg-gray-50">

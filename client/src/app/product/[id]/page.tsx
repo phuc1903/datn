@@ -46,7 +46,7 @@ export default function ProductDetail() {
 
   useEffect(() => {
     if (id) {
-      fetch(`http://127.0.0.1:8000/api/v1/products/${id}`)
+      fetch(`http://127.0.0.1:8000/api/v1/products/detail/${id}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.status === "success") {
