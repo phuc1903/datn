@@ -53,6 +53,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/create', 'createOrder');
             Route::get('/{id}', 'orderUserDetail');
         });
+        Route::post('/payment/momo/ipn', 'handleMomoIpn');  // Nhận callback từ MOMO
     });
 
     /*

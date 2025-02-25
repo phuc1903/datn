@@ -12,6 +12,7 @@ use BenSampo\Enum\Enum;
  */
 final class OrderStatus extends Enum
 {
+    const Waiting = 'waiting';
     const Pending = 'pending';
     const Shipped = 'shipped';
     const Success = 'success';
@@ -20,6 +21,7 @@ final class OrderStatus extends Enum
     public function label(): string
     {
         return match ($this->value) {
+            self::Waiting => "Chờ thanh toán",
             self::Pending => "Đang xử lý",
             self::Shipped => "Đã giao hàng",
             self::Success => "Đơn thành công",
@@ -30,6 +32,7 @@ final class OrderStatus extends Enum
     public function badge(): string
     {
         return match ($this->value) {
+            self::Waiting => "<span class='badge text-bg-warning text-white'>{$this->label()}</span>",
             self::Pending => "<span class='badge text-bg-neuture text-white'>{$this->label()}</span>",
             self::Shipped => "<span class='badge text-bg-primary text-white'>{$this->label()}</span>",
             self::Success => "<span class='badge text-bg-success text-white'>{$this->label()}</span>",
