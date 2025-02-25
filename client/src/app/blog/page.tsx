@@ -16,21 +16,38 @@ const BlogHome = () => {
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  // Image loader to handle API-sourced images
+  const imageLoader = ({ src }: { src: string }) => {
+    if (src.startsWith("http://") || src.startsWith("https://")) {
+      return src;
+    }
+    if (src.startsWith("/")) {
+      return `http://127.0.0.1:8000${src}`;
+    }
+    return `http://127.0.0.1:8000/${src}`;
+  };
+
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
         const response = await fetch("http://127.0.0.1:8000/api/v1/blogs");
         const data = await response.json();
-        
-        if (data?.status === "success") {
-          // Sort blogs by created_at in descending order
-          const sortedBlogs = data.data.sort((a: Blog, b: Blog) => 
+
+        if (data?.status === "success" && Array.isArray(data.data)) {
+          // Normalize image URLs and sort by created_at
+          const normalizedBlogs = data.data.map((blog: Blog) => ({
+            ...blog,
+            image_url: blog.image_url.startsWith("/") ? blog.image_url : `/${blog.image_url}`,
+          })).sort((a: Blog, b: Blog) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
           );
-          setBlogs(sortedBlogs);
+          setBlogs(normalizedBlogs);
+        } else {
+          setBlogs([]);
         }
       } catch (error) {
         console.error("Error fetching blogs:", error);
+        setBlogs([]);
       } finally {
         setLoading(false);
       }
@@ -42,7 +59,7 @@ const BlogHome = () => {
   useEffect(() => {
     if (blogs.length > 0) {
       const timer = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % 4);
+        setCurrentSlide((prev) => (prev + 1) % Math.min(4, blogs.length));
       }, 5000);
       return () => clearInterval(timer);
     }
@@ -64,7 +81,7 @@ const BlogHome = () => {
       {/* Hero Section with Slider */}
       <div className="relative h-[500px] overflow-hidden bg-gray-900">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 z-10"></div>
-        
+
         <div className="relative h-full w-full">
           {recentBlogs.map((blog, index) => (
             <div
@@ -75,6 +92,7 @@ const BlogHome = () => {
             >
               <div className="relative w-full h-full">
                 <Image
+                  loader={imageLoader}
                   src={blog.image_url || "/default-blog.jpg"}
                   alt={blog.title}
                   fill
@@ -125,13 +143,14 @@ const BlogHome = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {recentBlogs.map((blog) => (
-              <Link 
+              <Link
                 href={`/blog/${blog.id}`}
                 key={blog.id}
                 className="group bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow"
               >
                 <div className="relative h-48">
                   <Image
+                    loader={imageLoader}
                     src={blog.image_url || "/default-blog.jpg"}
                     alt={blog.title}
                     fill
@@ -143,7 +162,7 @@ const BlogHome = () => {
                     {blog.title}
                   </h3>
                   <p className="text-sm text-gray-500 mt-2">
-                    {new Date(blog.created_at).toLocaleDateString('vi-VN')}
+                    {new Date(blog.created_at).toLocaleDateString("vi-VN")}
                   </p>
                 </div>
               </Link>
@@ -160,13 +179,14 @@ const BlogHome = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {blogs.map((blog) => (
-              <Link 
+              <Link
                 href={`/blog/${blog.id}`}
                 key={blog.id}
                 className="group bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
               >
                 <div className="relative h-64 overflow-hidden">
                   <Image
+                    loader={imageLoader}
                     src={blog.image_url || "/default-blog.jpg"}
                     alt={blog.title}
                     fill
@@ -174,21 +194,17 @@ const BlogHome = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                 </div>
-                
+
                 <div className="p-6">
                   <h3 className="text-xl font-semibold text-gray-800 mb-3 group-hover:text-pink-500 transition-colors">
                     {blog.title}
                   </h3>
-                  <p className="text-gray-600 line-clamp-2">
-                    {blog.short_description}
-                  </p>
-                  
+                  <p className="text-gray-600 line-clamp-2">{blog.short_description}</p>
+
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="text-sm text-pink-500 font-medium">
-                      Đọc thêm →
-                    </span>
+                    <span className="text-sm text-pink-500 font-medium">Đọc thêm →</span>
                     <span className="text-sm text-gray-500">
-                      {new Date(blog.created_at).toLocaleDateString('vi-VN')}
+                      {new Date(blog.created_at).toLocaleDateString("vi-VN")}
                     </span>
                   </div>
                 </div>
