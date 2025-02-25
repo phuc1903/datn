@@ -233,20 +233,18 @@ class OrderController extends Controller
     }
 
 
-    public function orderUserDetail($id):JsonResponse
-{
-    try {
-        $order =Order::
-            with('items')
-            ->find($id); // Load các sản phẩm trong đơn hàng;
-        if ($order) {
-            return ResponseSuccess('Order retrieved successfully.',$order,200);
-        } else {
-            return ResponseError('Order not Found',null,404);
+    public function orderUserDetail($id): JsonResponse
+    {
+        try {
+            $order = Order::with('items')
+                ->find($id); // Load các sản phẩm trong đơn hàng;
+            if ($order) {
+                return ResponseSuccess('Order retrieved successfully.', $order, 200);
+            } else {
+                return ResponseError('Order not Found', null, 404);
+            }
+        } catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
         }
     }
-    catch (\Exception $e){
-        return ResponseError($e->getMessage(),null,500);
-    }
-}
 }

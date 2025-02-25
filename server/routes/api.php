@@ -21,8 +21,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/', 'getAllProduct');
         Route::get('/detail/{id}', 'getProduct');
         Route::get('/category/{{id}}', 'getProductByCategory');
-        Route::get('/most-favorites','getMostFavoritedProducts');
-        Route::get('/feedback-product/{id}','getFeedBackProduct');
+        Route::get('/most-favorites', 'getMostFavoritedProducts');
+        Route::get('/feedback-product/{id}', 'getFeedBackProduct');
     });
 
 
@@ -48,21 +48,18 @@ Route::prefix('v1')->group(function () {
         | OrderController
         |--------------------------------------------------------------------------
         */
-    Route::prefix('orders')->controller(OrderController::class)->group(function (){
-        Route::middleware('auth:sanctum')->group(function (){
-            Route::post('create', 'createOrder');
-            Route::get('/{id}','orderUserDetail');
+    Route::prefix('orders')->controller(OrderController::class)->group(function () {
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::post('/create', 'createOrder');
+            Route::get('/{id}', 'orderUserDetail');
         });
     });
+
     /*
     |--------------------------------------------------------------------------
     | AuthController
     |--------------------------------------------------------------------------
     */
-
-
-
-
     Route::prefix('auth')->controller(AuthenticatorController::class)->group(function () {
         // Unauthenticated
         Route::post('/login', 'login');
@@ -73,7 +70,6 @@ Route::prefix('v1')->group(function () {
         Route::middleware(['auth:sanctum', 'auth.active'])->group(function () {
             Route::post('/logout', 'logout');
             Route::post('/change-password', 'changePassword');
-
         });
     });
 
