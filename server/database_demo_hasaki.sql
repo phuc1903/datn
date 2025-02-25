@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th2 25, 2025 lúc 02:46 PM
+-- Thời gian đã tạo: Th2 25, 2025 lúc 03:30 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -140,26 +140,26 @@ CREATE TABLE `categories` (
 --
 
 INSERT INTO `categories` (`id`, `name`, `image`, `short_description`, `status`, `parent_id`, `slug`, `created_at`, `updated_at`) VALUES
-(1, 'Mỹ Phẩm High-End', 'http://fake-data/images/categories/MYPHAMHIGHEND.jpg', 'Bộ sưu tập sản phẩm làm đẹp cao cấp từ những thương hiệu danh tiếng, mang đến trải nghiệm chăm sóc da và tóc chuyên sâu với công thức vượt trội.', 'active', 0, 'my-pham-high-end', NULL, NULL),
-(2, 'Sức Khỏe - Làm Đẹp', 'http://fake-data/images/categories/SUCKHOAVALAMDEP.jpg', 'Những sản phẩm thiết yếu giúp duy trì vẻ đẹp tự nhiên và chăm sóc sức khỏe toàn diện từ trong ra ngoài.', 'active', 0, 'suc-khoe-lam-dep', NULL, NULL),
-(3, 'Chăm Sóc Tóc Và Da Đầu', 'http://fake-data/images/categories/chamsoctocvadadau.jpg', 'Giải pháp toàn diện giúp tóc và da đầu luôn khỏe mạnh, mềm mượt và tràn đầy sức sống.', 'active', 0, 'cham-soc-toc-va-da-dau', NULL, NULL),
-(4, 'Mỹ Phẩm Cao Cấp', 'http://fake-data/images/categories/MYPHAMCAOCAP.jpg', 'Các dòng mỹ phẩm chất lượng cao, được nghiên cứu kỹ lưỡng để mang lại hiệu quả tối ưu.', 'active', 1, 'my-pham-cao-cap', NULL, NULL),
-(5, 'Nước Hoa Cao Cấp', 'http://fake-data/images/categories/NUOCHOACAOCAP.jpg', 'Tuyển chọn những dòng nước hoa sang trọng, đẳng cấp, giúp tôn lên phong cách và cá tính riêng.', 'active', 1, 'nuoc-hoa-cao-cap', NULL, NULL),
-(6, 'Elixir', 'http://fake-data/images/categories/Elixir.jpg', 'Thương hiệu chăm sóc da cao cấp, nổi bật với các sản phẩm giúp tái tạo và trẻ hóa làn da.', 'active', 4, 'elixir', NULL, NULL),
-(7, 'L\'Oreal Professionnel ', 'http://fake-data/images/categories/LOreal.jpg', 'Dòng sản phẩm chăm sóc tóc chuyên nghiệp, được sử dụng tại các salon cao cấp.', 'active', 4, 'loreal-professionnel', NULL, NULL),
-(8, 'Narciso Rodriguez ', 'http://fake-data/images/categories/NarcisoRodriguez.jpg', 'Nước hoa tinh tế với hương thơm quyến rũ, mang lại cảm giác sang trọng và hiện đại.', 'active', 5, 'narciso-rodriguez', NULL, NULL),
-(9, 'Làm Sạch Da', 'http://fake-data/images/categories/LAMSACHDA.jpg', 'Các sản phẩm giúp loại bỏ bụi bẩn, dầu thừa, mang lại làn da sạch khỏe và tươi sáng.\r\n', 'active', 2, 'lam-sach-da', NULL, NULL),
-(10, 'Dưỡng Môi', 'http://fake-data/images/categories/duongmoi.jpg', 'Bộ sản phẩm chăm sóc môi toàn diện, giúp đôi môi mềm mượt, hồng hào và căng mọng.', 'active', 2, 'duong-moi', NULL, NULL),
-(11, 'Tẩy Trang Mặt', 'http://fake-data/images/categories/taytrangmat.jpg', 'Giúp làm sạch lớp trang điểm, dầu nhờn mà không gây khô da, giữ cho làn da luôn mềm mại.', 'active', 9, 'tay-trang-mat', NULL, NULL),
-(12, 'Tẩy Tế Bào Chết Môi', 'http://fake-data/images/categories/taytebaomoi.jpg', 'Loại bỏ lớp da chết, làm sáng màu môi và giúp môi hấp thụ dưỡng chất tốt hơn.', 'active', 10, 'tay-te-bao-chet-moi', NULL, NULL),
-(13, 'Mặt Nạ Môi', 'http://fake-data/images/categories/matnamoi.jpg', 'Cung cấp dưỡng chất sâu, phục hồi độ ẩm và làm mềm môi chỉ sau một lần sử dụng.', 'active', 10, 'mat-na-moi', NULL, NULL),
-(14, 'Dầu Gội Và Dầu Xả', 'http://fake-data/images/categories/daugoivadauxa.jpg', 'Bộ sản phẩm làm sạch và nuôi dưỡng, giúp mái tóc suôn mượt và chắc khỏe hơn mỗi ngày.', 'active', 3, 'dau-goi-va-dau-xa', NULL, NULL),
-(15, 'Dưỡng Tóc', 'http://fake-data/images/categories/duongtoc.jpg', 'Các sản phẩm chuyên sâu giúp bảo vệ và phục hồi tóc hư tổn, mang lại độ bóng và độ chắc khỏe tự nhiên.', 'active', 3, 'duong-toc', NULL, NULL),
-(16, 'Dầu Gội', 'http://fake-data/images/categories/daugoi.jpg', 'Làm sạch sâu, loại bỏ bụi bẩn và bã nhờn, mang lại mái tóc khỏe mạnh và bồng bềnh.', 'active', 14, 'dau-goi', NULL, NULL),
-(17, 'Dầu Xả', 'http://fake-data/images/categories/dauxa.jpg', 'Cung cấp độ ẩm và dưỡng chất giúp tóc mềm mại, giảm tình trạng xơ rối và gãy rụng.\r\n', 'active', 14, 'dau-xa', NULL, NULL),
-(18, 'Mặt Nạ / Kem Ủ Tóc', 'http://fake-data/images/categories/matnakemutoc.jpg', 'Cung cấp dưỡng chất phục hồi tóc từ bên trong, giúp tóc chắc khỏe và mềm mại hơn.', 'active', 15, 'mat-na-kem-u-toc', NULL, NULL),
-(19, 'Serum / Dầu Dưỡng Tóc', 'http://fake-data/images/categories/serum.jpg', 'Dưỡng chất cô đặc giúp tóc giảm khô xơ, bóng mượt và chắc khỏe hơn.\r\n', 'active', 15, 'serum-dau-duong-toc', NULL, NULL),
-(20, 'Xịt Dưỡng Tóc', 'http://fake-data/images/categories/xitduongtoc.jpg', 'Bảo vệ tóc khỏi nhiệt và tác động môi trường, giúp tóc vào nếp tự nhiên và mềm mại.\r\n\r\n', 'active', 15, 'xit-duong-toc', NULL, NULL);
+(1, 'Mỹ Phẩm High-End', 'fake-data/images/categories/MYPHAMHIGHEND.jpg', 'Bộ sưu tập sản phẩm làm đẹp cao cấp từ những thương hiệu danh tiếng, mang đến trải nghiệm chăm sóc da và tóc chuyên sâu với công thức vượt trội.', 'active', 0, 'my-pham-high-end', NULL, NULL),
+(2, 'Sức Khỏe - Làm Đẹp', 'fake-data/images/categories/SUCKHOAVALAMDEP.jpg', 'Những sản phẩm thiết yếu giúp duy trì vẻ đẹp tự nhiên và chăm sóc sức khỏe toàn diện từ trong ra ngoài.', 'active', 0, 'suc-khoe-lam-dep', NULL, NULL),
+(3, 'Chăm Sóc Tóc Và Da Đầu', 'fake-data/images/categories/chamsoctocvadadau.jpg', 'Giải pháp toàn diện giúp tóc và da đầu luôn khỏe mạnh, mềm mượt và tràn đầy sức sống.', 'active', 0, 'cham-soc-toc-va-da-dau', NULL, NULL),
+(4, 'Mỹ Phẩm Cao Cấp', 'fake-data/images/categories/MYPHAMCAOCAP.jpg', 'Các dòng mỹ phẩm chất lượng cao, được nghiên cứu kỹ lưỡng để mang lại hiệu quả tối ưu.', 'active', 1, 'my-pham-cao-cap', NULL, NULL),
+(5, 'Nước Hoa Cao Cấp', 'fake-data/images/categories/NUOCHOACAOCAP.jpg', 'Tuyển chọn những dòng nước hoa sang trọng, đẳng cấp, giúp tôn lên phong cách và cá tính riêng.', 'active', 1, 'nuoc-hoa-cao-cap', NULL, NULL),
+(6, 'Elixir', 'fake-data/images/categories/Elixir.jpg', 'Thương hiệu chăm sóc da cao cấp, nổi bật với các sản phẩm giúp tái tạo và trẻ hóa làn da.', 'active', 4, 'elixir', NULL, NULL),
+(7, 'L\'Oreal Professionnel ', 'fake-data/images/categories/LOreal.jpg', 'Dòng sản phẩm chăm sóc tóc chuyên nghiệp, được sử dụng tại các salon cao cấp.', 'active', 4, 'loreal-professionnel', NULL, NULL),
+(8, 'Narciso Rodriguez ', 'fake-data/images/categories/NarcisoRodriguez.jpg', 'Nước hoa tinh tế với hương thơm quyến rũ, mang lại cảm giác sang trọng và hiện đại.', 'active', 5, 'narciso-rodriguez', NULL, NULL),
+(9, 'Làm Sạch Da', 'fake-data/images/categories/LAMSACHDA.jpg', 'Các sản phẩm giúp loại bỏ bụi bẩn, dầu thừa, mang lại làn da sạch khỏe và tươi sáng.\r\n', 'active', 2, 'lam-sach-da', NULL, NULL),
+(10, 'Dưỡng Môi', 'fake-data/images/categories/duongmoi.jpg', 'Bộ sản phẩm chăm sóc môi toàn diện, giúp đôi môi mềm mượt, hồng hào và căng mọng.', 'active', 2, 'duong-moi', NULL, NULL),
+(11, 'Tẩy Trang Mặt', 'fake-data/images/categories/taytrangmat.jpg', 'Giúp làm sạch lớp trang điểm, dầu nhờn mà không gây khô da, giữ cho làn da luôn mềm mại.', 'active', 9, 'tay-trang-mat', NULL, NULL),
+(12, 'Tẩy Tế Bào Chết Môi', 'fake-data/images/categories/taytebaomoi.jpg', 'Loại bỏ lớp da chết, làm sáng màu môi và giúp môi hấp thụ dưỡng chất tốt hơn.', 'active', 10, 'tay-te-bao-chet-moi', NULL, NULL),
+(13, 'Mặt Nạ Môi', 'fake-data/images/categories/matnamoi.jpg', 'Cung cấp dưỡng chất sâu, phục hồi độ ẩm và làm mềm môi chỉ sau một lần sử dụng.', 'active', 10, 'mat-na-moi', NULL, NULL),
+(14, 'Dầu Gội Và Dầu Xả', 'fake-data/images/categories/daugoivadauxa.jpg', 'Bộ sản phẩm làm sạch và nuôi dưỡng, giúp mái tóc suôn mượt và chắc khỏe hơn mỗi ngày.', 'active', 3, 'dau-goi-va-dau-xa', NULL, NULL),
+(15, 'Dưỡng Tóc', 'fake-data/images/categories/duongtoc.jpg', 'Các sản phẩm chuyên sâu giúp bảo vệ và phục hồi tóc hư tổn, mang lại độ bóng và độ chắc khỏe tự nhiên.', 'active', 3, 'duong-toc', NULL, NULL),
+(16, 'Dầu Gội', 'fake-data/images/categories/daugoi.jpg', 'Làm sạch sâu, loại bỏ bụi bẩn và bã nhờn, mang lại mái tóc khỏe mạnh và bồng bềnh.', 'active', 14, 'dau-goi', NULL, NULL),
+(17, 'Dầu Xả', 'fake-data/images/categories/dauxa.jpg', 'Cung cấp độ ẩm và dưỡng chất giúp tóc mềm mại, giảm tình trạng xơ rối và gãy rụng.\r\n', 'active', 14, 'dau-xa', NULL, NULL),
+(18, 'Mặt Nạ / Kem Ủ Tóc', 'fake-data/images/categories/matnakemutoc.jpg', 'Cung cấp dưỡng chất phục hồi tóc từ bên trong, giúp tóc chắc khỏe và mềm mại hơn.', 'active', 15, 'mat-na-kem-u-toc', NULL, NULL),
+(19, 'Serum / Dầu Dưỡng Tóc', 'fake-data/images/categories/serum.jpg', 'Dưỡng chất cô đặc giúp tóc giảm khô xơ, bóng mượt và chắc khỏe hơn.\r\n', 'active', 15, 'serum-dau-duong-toc', NULL, NULL),
+(20, 'Xịt Dưỡng Tóc', 'fake-data/images/categories/xitduongtoc.jpg', 'Bảo vệ tóc khỏi nhiệt và tác động môi trường, giúp tóc vào nếp tự nhiên và mềm mại.\r\n\r\n', 'active', 15, 'xit-duong-toc', NULL, NULL);
 
 -- --------------------------------------------------------
 
