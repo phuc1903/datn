@@ -4,30 +4,12 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-interface Product {
-  id: number;
-  name: string;
-  images: Array<{ image_url: string }>;
-  skus: Array<{ price: number }>;
-}
-
 const SearchPage = () => {
   const searchParams = useSearchParams();
   const query = searchParams.get("query") || "";
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [sortOption, setSortOption] = useState("");
-
-  // Image loader to handle API-sourced images
-  const imageLoader = ({ src }: { src: string }) => {
-    if (src.startsWith("http://") || src.startsWith("https://")) {
-      return src;
-    }
-    if (src.startsWith("/")) {
-      return `http://127.0.0.1:8000${src}`;
-    }
-    return `http://127.0.0.1:8000/${src}`;
-  };
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -35,36 +17,22 @@ const SearchPage = () => {
         const response = await fetch("http://127.0.0.1:8000/api/v1/products");
         const data = await response.json();
 
-        if (data?.data && Array.isArray(data.data)) {
-          // Normalize image URLs
-          const normalizedProducts = data.data.map((product: Product) => ({
-            ...product,
-            images: product.images.map((img) => ({
-              ...img,
-              image_url: img.image_url.startsWith("/") ? img.image_url : `/${img.image_url}`,
-            })),
-          }));
-
-          const filtered = normalizedProducts.filter((product: Product) =>
+        if (data?.data) {
+          const filtered = data.data.filter((product) =>
             product.name.toLowerCase().includes(query.toLowerCase())
           );
           setProducts(filtered);
           setFilteredProducts(filtered);
-        } else {
-          setProducts([]);
-          setFilteredProducts([]);
         }
       } catch (error) {
         console.error("Error fetching products:", error);
-        setProducts([]);
-        setFilteredProducts([]);
       }
     };
 
     if (query) fetchProducts();
   }, [query]);
 
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSortChange = (e) => {
     const value = e.target.value;
     setSortOption(value);
     let sortedProducts = [...products];
@@ -92,9 +60,7 @@ const SearchPage = () => {
   return (
     <div className="bg-white min-h-screen py-10 px-4">
       <div className="container mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-          Kết quả tìm kiếm: "{query}"
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Kết quả tìm kiếm: "{query}"</h1>
 
         {/* Bộ lọc */}
         <div className="flex justify-between items-center mb-6">
@@ -120,12 +86,7 @@ const SearchPage = () => {
                 <Link href={`/product/${product.id}`}>
                   <div className="relative w-full h-48 rounded-lg overflow-hidden">
                     <Image
-                      loader={imageLoader}
-                      src={
-                        product.images?.length > 0
-                          ? product.images[0].image_url
-                          : "/default-product.jpg"
-                      }
+                      src={product.images?.length > 0 ? product.images[0].image_url : "/default-product.jpg"}
                       alt={product.name}
                       fill
                       className="object-cover"
@@ -133,17 +94,13 @@ const SearchPage = () => {
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mt-4">{product.name}</h3>
                   <p className="text-pink-600 font-bold mt-2">
-                    {product.skus?.[0]?.price
-                      ? `${product.skus[0].price.toLocaleString()}đ`
-                      : "Liên hệ"}
+                    {product.skus?.[0]?.price ? `${product.skus[0].price.toLocaleString()}đ` : "Liên hệ"}
                   </p>
                 </Link>
               </div>
             ))
           ) : (
-            <p className="text-gray-600 col-span-full text-center">
-              Không tìm thấy sản phẩm nào.
-            </p>
+            <p className="text-gray-600 col-span-full text-center">Không tìm thấy sản phẩm nào.</p>
           )}
         </div>
       </div>

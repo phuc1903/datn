@@ -1,9 +1,9 @@
-"use client";
-import React, { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { Search, ShoppingBag, User, Heart, ChevronDown, Menu, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+"use client"
+import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { Search, ShoppingBag, User, Heart, ChevronDown, Menu, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface Category {
   id: number;
@@ -33,25 +33,14 @@ interface Product {
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [categories, setCategories] = useState<ProcessedCategory[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [selectedResultIndex, setSelectedResultIndex] = useState(-1);
-
+  
   const searchRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  // Image loader to handle API-sourced images
-  const imageLoader = ({ src }: { src: string }) => {
-    if (src.startsWith("http://") || src.startsWith("https://")) {
-      return src;
-    }
-    if (src.startsWith("/")) {
-      return `http://127.0.0.1:8000${src}`;
-    }
-    return `http://127.0.0.1:8000/${src}`;
-  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -60,8 +49,8 @@ const Header: React.FC = () => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -79,34 +68,20 @@ const Header: React.FC = () => {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
-
+    
     setIsSearching(true);
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/v1/products`);
       const data = await response.json();
-
-      if (data.status === "success" && Array.isArray(data.data)) {
-        const filtered = data.data
-          .map((product: Product) => ({
-            ...product,
-            images: product.images.map((img) => ({
-              ...img,
-              image_url: img.image_url.startsWith("/") ? img.image_url : `/${img.image_url}`,
-            })),
-          }))
-          .filter((product: Product) =>
-            product.name.toLowerCase().includes(searchQuery.toLowerCase())
-          )
-          .slice(0, 5);
-
-        setSearchResults(filtered);
-        setShowResults(true);
-      } else {
-        setSearchResults([]);
-      }
+      
+      const filtered = data.data.filter((product: Product) => 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 5);
+      
+      setSearchResults(filtered);
+      setShowResults(true);
     } catch (error) {
-      console.error("Error searching products:", error);
-      setSearchResults([]);
+      console.error('Error searching products:', error);
     } finally {
       setIsSearching(false);
     }
@@ -115,7 +90,7 @@ const Header: React.FC = () => {
   const navigateToProduct = (productId: number) => {
     router.push(`/product/${productId}`);
     setShowResults(false);
-    setSearchQuery("");
+    setSearchQuery('');
     setIsMenuOpen(false);
   };
 
@@ -125,20 +100,20 @@ const Header: React.FC = () => {
       setShowResults(false);
     }
   };
-
+  
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!showResults) return;
-
+  
     switch (e.key) {
-      case "ArrowDown":
+      case 'ArrowDown':
         e.preventDefault();
         setSelectedResultIndex((prev) => (prev < searchResults.length - 1 ? prev + 1 : prev));
         break;
-      case "ArrowUp":
+      case 'ArrowUp':
         e.preventDefault();
         setSelectedResultIndex((prev) => (prev > 0 ? prev - 1 : -1));
         break;
-      case "Enter":
+      case 'Enter':
         e.preventDefault();
         if (selectedResultIndex >= 0) {
           const selectedProduct = searchResults[selectedResultIndex];
@@ -147,80 +122,79 @@ const Header: React.FC = () => {
           handleSearchRedirect();
         }
         break;
-      case "Escape":
+      case 'Escape':
         setShowResults(false);
         break;
     }
   };
+  
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/v1/categories");
+        const response = await fetch('http://127.0.0.1:8000/api/v1/categories');
         const result = await response.json();
-
-        if (result.status === "success" && Array.isArray(result.data)) {
+        
+        if (result.status === 'success') {
           const mainCategories = result.data.filter((cat: Category) => cat.parent_id === 0);
-
+          
           const processedCategories = mainCategories.map((mainCat: Category) => {
             const subCategories = result.data
               .filter((cat: Category) => cat.parent_id === mainCat.id)
               .map((subCat: Category) => ({
                 name: subCat.name,
-                path: `/shop/${subCat.slug}`,
+                path: `/shop/${subCat.slug}`
               }));
-
+            
             return {
               id: mainCat.id,
               name: mainCat.name,
               slug: mainCat.slug,
-              subcategories: subCategories,
+              subcategories: subCategories
             };
           });
-
+          
           setCategories(processedCategories);
         }
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        console.error('Error fetching categories:', error);
       }
     };
-
+    
     fetchCategories();
   }, []);
 
   const staticCategories = [
     {
       id: 1,
-      name: "Trang Chủ",
-      path: "/",
+      name: 'Trang Chủ',
+      path: '/',
     },
     {
       id: 2,
-      name: "Sản phẩm",
-      path: "/shop",
-      subcategories: categories.length > 0
-        ? categories.flatMap((cat) =>
-            cat.subcategories.map((sub) => ({
-              name: sub.name,
-              path: sub.path,
-            }))
-          )
-        : [],
+      name: 'Sản phẩm',
+      path: '/shop',
+      subcategories: categories.length > 0 ? categories.flatMap(cat => 
+        cat.subcategories.map(sub => ({
+          name: sub.name,
+          path: sub.path
+        }))
+      ) : []
     },
     {
       id: 3,
-      name: "Về chúng tôi",
-      path: "/about",
+      name: 'Về chúng tôi',
+      path: '/about',
     },
     {
       id: 4,
-      name: "Liên hệ",
-      path: "/contact",
+      name: 'Liên hệ',
+      path: '/contact',
     },
     {
       id: 5,
-      name: "Bài viết",
-      path: "/blog",
+      name: 'Bài viết',
+      path: '/blog',
     },
   ];
 
@@ -233,13 +207,12 @@ const Header: React.FC = () => {
           <div
             key={product.id}
             className={`flex items-center p-3 hover:bg-gray-50 cursor-pointer ${
-              index === selectedResultIndex ? "bg-pink-50" : ""
+              index === selectedResultIndex ? 'bg-pink-50' : ''
             }`}
             onClick={() => navigateToProduct(product.id)}
           >
             <div className="relative w-12 h-12 rounded overflow-hidden">
               <Image
-                loader={imageLoader}
                 src={product.images?.[0]?.image_url || "/oxy.jpg"}
                 alt={product.name}
                 fill
@@ -265,7 +238,7 @@ const Header: React.FC = () => {
           Miễn phí vận chuyển cho đơn hàng từ 1.000.000đ
         </div>
       </div>
-
+      
       <header className="bg-white shadow-sm z-50 sticky top-0">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-20">
@@ -277,7 +250,7 @@ const Header: React.FC = () => {
             <nav className="hidden md:flex items-center space-x-8">
               {staticCategories.map((category) => (
                 <div key={category.id} className="group relative">
-                  <Link
+                  <Link 
                     href={category.path}
                     className="flex items-center text-gray-700 hover:text-pink-600 py-4 text-sm font-medium"
                   >
@@ -306,37 +279,37 @@ const Header: React.FC = () => {
             </nav>
 
             <div className="flex items-center space-x-6">
-              <div className="hidden md:flex items-center relative" ref={searchRef}>
-                <div className="relative text-black">
-                  <input
-                    type="text"
-                    placeholder="Tìm kiếm sản phẩm..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-l-lg focus:outline-none focus:border-pink-300 focus:ring-1 focus:ring-pink-200 transition-colors text-sm"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => {
-                        setSearchQuery("");
-                        setSearchResults([]);
-                        setShowResults(false);
-                      }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-                <button
-                  onClick={handleSearchRedirect}
-                  className="px-4 py-2 bg-pink-600 text-white rounded-r-lg hover:bg-pink-500 transition-colors"
-                >
-                  <Search className="h-5 w-5" />
-                </button>
-                {renderSearchResults()}
-              </div>
+            <div className="hidden md:flex items-center relative" ref={searchRef}>
+  <div className="relative text-black">
+    <input
+      type="text"
+      placeholder="Tìm kiếm sản phẩm..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      onKeyDown={handleKeyDown}
+      className="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-l-lg focus:outline-none focus:border-pink-300 focus:ring-1 focus:ring-pink-200 transition-colors text-sm"
+    />
+    {searchQuery && (
+      <button
+        onClick={() => {
+          setSearchQuery('');
+          setSearchResults([]);
+          setShowResults(false);
+        }}
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    )}
+  </div>
+  <button
+    onClick={handleSearchRedirect}
+    className="px-4 py-2 bg-pink-600 text-white rounded-r-lg hover:bg-pink-500 transition-colors"
+  >
+    <Search className="h-5 w-5" />
+  </button>
+  {renderSearchResults()}
+</div>
 
               <Link href="/wishlist" className="p-2 hover:text-pink-600 transition-colors relative">
                 <Heart className="h-6 w-6" />
@@ -344,19 +317,22 @@ const Header: React.FC = () => {
                   0
                 </span>
               </Link>
-
+              
               <Link href="/cart" className="p-2 hover:text-pink-600 transition-colors relative">
                 <ShoppingBag className="h-6 w-6" />
                 <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                   0
                 </span>
               </Link>
-
+              
               <Link href="/profile" className="p-2 hover:text-pink-600 transition-colors">
                 <User className="h-6 w-6" />
               </Link>
-
-              <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              
+              <button 
+                className="md:hidden"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              >
                 <Menu className="h-6 w-6" />
               </button>
             </div>
@@ -365,15 +341,15 @@ const Header: React.FC = () => {
       </header>
 
       {/* Mobile Menu */}
-      <div
+      <div 
         className={`md:hidden fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300 ${
-          isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={() => setIsMenuOpen(false)}
       >
-        <div
+        <div 
           className={`fixed inset-y-0 left-0 w-72 bg-white transform transition-transform duration-300 ease-in-out ${
-            isMenuOpen ? "translate-x-0" : "-translate-x-full"
+            isMenuOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
           onClick={(e) => e.stopPropagation()}
         >
@@ -390,7 +366,7 @@ const Header: React.FC = () => {
               {searchQuery && (
                 <button
                   onClick={() => {
-                    setSearchQuery("");
+                    setSearchQuery('');
                     setSearchResults([]);
                     setShowResults(false);
                   }}

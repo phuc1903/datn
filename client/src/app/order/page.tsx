@@ -1,64 +1,40 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronRight, Package, Truck, CheckCircle, XCircle } from "lucide-react";
 
 const OrderHistoryPage = () => {
-  // Mock order data with different statuses
-  const [orders, setOrders] = useState([
-    {
-      id: 1,
-      orderNumber: "OD-2024-0001",
-      date: "15/01/2024",
-      status: "đang xác nhận",
-      totalAmount: 1158000,
-      items: [
-        {
-          name: "Intensive Moisturizing Cream",
-          brand: "SkinCare Plus",
-          quantity: 2,
-          price: 459000
-        },
-        {
-          name: "Vitamin C Serum",
-          brand: "Glow Labs", 
-          quantity: 1,
-          price: 699000
-        }
-      ]
-    },
-    {
-      id: 2,
-      orderNumber: "OD-2024-0002", 
-      date: "10/01/2024",
-      status: "đã giao",
-      totalAmount: 899000,
-      items: [
-        {
-          name: "Hyaluronic Acid Serum",
-          brand: "Hydrate Pro",
-          quantity: 1,
-          price: 899000
-        }
-      ]
-    },
-    {
-      id: 3,
-      orderNumber: "OD-2024-0003",
-      date: "05/01/2024", 
-      status: "đã hủy",
-      totalAmount: 599000,
-      items: [
-        {
-          name: "Collagen Supplement",
-          brand: "Beauty Boost",
-          quantity: 1,
-          price: 599000
-        }
-      ]
-    }
-  ]);
+  // Load danh sách đơn hàng từ localStorage
+  const [orders, setOrders] = useState([]);
 
-  // Status icon mapping
+  useEffect(() => {
+    const storedOrders = JSON.parse(localStorage.getItem("orders")) || [];
+    setOrders(storedOrders);
+  }, []);
+
+  // Hàm lưu đơn hàng vào localStorage
+  const saveOrdersToLocalStorage = (updatedOrders) => {
+    setOrders(updatedOrders);
+    localStorage.setItem("orders", JSON.stringify(updatedOrders));
+  };
+
+  // Hàm hủy đơn hàng
+  const handleCancelOrder = (orderId) => {
+    const updatedOrders = orders.map(order =>
+      order.id === orderId ? { ...order, status: "đã hủy" } : order
+    );
+    saveOrdersToLocalStorage(updatedOrders);
+  };
+
+  // Danh sách trạng thái
+  const statusList = ["tất cả", "đang xác nhận", "đang đóng gói", "đang giao hàng", "đã giao", "đã hủy"];
+  const [activeStatus, setActiveStatus] = useState("tất cả");
+
+  // Lọc đơn hàng theo trạng thái
+  const filteredOrders = activeStatus === "tất cả" 
+    ? orders 
+    : orders.filter(order => order.status === activeStatus);
+
+  // Biểu tượng trạng thái
   const statusIcons = {
     "đang xác nhận": <Package className="w-5 h-5 text-yellow-500" />,
     "đang đóng gói": <Package className="w-5 h-5 text-blue-500" />,
@@ -67,25 +43,19 @@ const OrderHistoryPage = () => {
     "đã hủy": <XCircle className="w-5 h-5 text-red-500" />
   };
 
+  // Định dạng tiền tệ
   const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(price);
 
-  const [activeStatus, setActiveStatus] = useState("tất cả");
-  const statusList = ["tất cả", "đang xác nhận", "đang đóng gói", "đang giao hàng", "đã giao", "đã hủy"];
-
-  const filteredOrders = activeStatus === "tất cả" 
-    ? orders 
-    : orders.filter(order => order.status === activeStatus);
-
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
         <h1 className="text-2xl font-semibold mb-8 text-pink-500">Lịch Sử Đơn Hàng</h1>
 
-        {/* Status Filter */}
+        {/* Bộ lọc trạng thái */}
         <div className="mb-6 flex flex-wrap gap-2">
           {statusList.map(status => (
             <button
@@ -102,12 +72,12 @@ const OrderHistoryPage = () => {
           ))}
         </div>
 
-        {/* Order List */}
+        {/* Danh sách đơn hàng */}
         <div className="space-y-4">
           {filteredOrders.map(order => (
             <div 
               key={order.id} 
-              className="bg-white  text-black rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+              className="bg-white text-black rounded-lg shadow p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
@@ -140,8 +110,12 @@ const OrderHistoryPage = () => {
               </div>
 
               <div className="mt-4 flex justify-end gap-2">
+                {/* Nút hủy đơn hàng */}
                 {order.status !== "đã hủy" && order.status !== "đã giao" && (
-                  <button className="text-pink-600 hover:text-pink-800">
+                  <button 
+                    className="text-pink-600 hover:text-pink-800"
+                    onClick={() => handleCancelOrder(order.id)}
+                  >
                     Hủy Đơn
                   </button>
                 )}

@@ -3,196 +3,102 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-// Define TypeScript interfaces for your data structures
-interface Product {
-  id: number;
-  name: string;
-  slug: string;
-  is_hot: number;
-  status: string;
-  created_at: string;
-  images?: { image_url: string }[];
-  skus?: { price: number; promotion_price: number; image_url: string }[];
-}
-
-interface Category {
-  id: number;
-  name: string;
-  slug: string;
-  parent_id: number;
-}
-
-interface Blog {
-  id: number;
-  title: string;
-  short_description: string;
-  image_url?: string;
-}
-
 export default function Products() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [currentSlide, setCurrentSlide] = useState<number>(0);
-  const [sliderImages, setSliderImages] = useState<string[]>([]);
-  const [favoriteProducts, setFavoriteProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [sliderImages, setSliderImages] = useState([]);
+  const [favoriteProducts, setFavoriteProducts] = useState([]);
 
-  // Image loader for Next.js
-  const imageLoader = ({ src }: { src: string }) => {
-    return src.startsWith("http") ? src : `http://127.0.0.1:8000${src}`;
-  };
-
-  // Helper function to get image URL with fallback
-  const getImageUrl = (item: Product | undefined) => {
-    return (
-      item?.images?.[0]?.image_url?.startsWith("/")
-        ? item.images[0].image_url
-        : `/${item?.images?.[0]?.image_url}` || "/oxy.jpg"
-    );
-  };
-
-  // Get random items with type safety and validation
-  const getRandomItems = <T>(arr: T[], num: number): T[] => {
-    if (!Array.isArray(arr) || !arr.length) return [];
+  // Add type safety and null check for arr
+  const getRandomItems = (arr: any[], num: number) => {
+    if (!arr || !Array.isArray(arr) || arr.length === 0) return [];
     const shuffled = [...arr].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, Math.min(num, arr.length)); // Ensure not to exceed array length
+    return shuffled.slice(0, Math.min(num, arr.length));
   };
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % (sliderImages.length || 1));
+      setCurrentSlide((prev) => (sliderImages.length > 0 ? (prev + 1) % sliderImages.length : 0));
     }, 5000);
 
-    Promise.all([
-      fetch("http://127.0.0.1:8000/api/v1/sliders")
-        .then((res) => res.json())
-        .then((data) => {
-          const images = Array.isArray(data.data)
-            ? data.data.map((item: { image_url: string }) => {
-                const url = item.image_url.startsWith("/")
-                  ? item.image_url
-                  : `/${item.image_url}`;
-                return url;
-              })
-            : [];
-          setSliderImages(images);
-        })
-        .catch(() => setSliderImages([])),
+    // Fetch slider images
+    fetch("http://127.0.0.1:8000/api/v1/sliders")
+      .then((res) => res.json())
+      .then((data) => {
+        setSliderImages(data.data?.map(item => item.image_url) || []);
+      })
+      .catch((error) => {
+        console.error("Error fetching slider images:", error);
+      });
 
-      fetch("http://127.0.0.1:8000/api/v1/products")
-        .then((res) => res.json())
-        .then((data) => {
-          const inStockProducts = Array.isArray(data.data)
-            ? data.data
-                .filter((product: Product) => product.status !== "out_of_stock")
-                .map((product: Product) => ({
-                  ...product,
-                  images: product.images?.map((img) => ({
-                    ...img,
-                    image_url: img.image_url.startsWith("/")
-                      ? img.image_url
-                      : `/${img.image_url}`,
-                  })),
-                }))
-            : [];
-          setProducts(inStockProducts);
-          setLoading(false);
-        })
-        .catch(() => {
-          setProducts([]);
-          setLoading(false);
-        }),
+    // Fetch products
+    fetch("http://127.0.0.1:8000/api/v1/products")
+      .then((res) => res.json())
+      .then((data) => {
+        const inStockProducts = data.data?.filter(product => product.status !== "out_of_stock") || [];
+        setProducts(inStockProducts);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching products:", error);
+        setLoading(false);
+      });
 
-      fetch("http://127.0.0.1:8000/api/v1/categories")
-        .then((res) => res.json())
-        .then((data) => {
-          const allCategories = Array.isArray(data.data) ? data.data : [];
-          // First, try to get parent categories (parent_id === 0)
-          let parentCategories = allCategories.filter(
-            (cat: Category) => cat.parent_id === 0
-          );
-          // If less than 4 parent categories, supplement with other categories
-          if (parentCategories.length < 4) {
-            const remainingCategories = allCategories.filter(
-              (cat: Category) => cat.parent_id !== 0
-            );
-            parentCategories = [
-              ...parentCategories,
-              ...getRandomItems(
-                remainingCategories,
-                4 - parentCategories.length
-              ),
-            ];
-          }
-          setCategories(getRandomItems(parentCategories, 4));
-        })
-        .catch(() => setCategories([])),
+    // Fetch categories
+    fetch("http://127.0.0.1:8000/api/v1/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        const parentCategories = data.data?.filter(cat => cat.parent_id === 0) || [];
+        const randomCategories = getRandomItems(parentCategories, 4);
+        setCategories(randomCategories);
+      })
+      .catch((error) => {
+        console.error("Error fetching categories:", error);
+      });
 
-      fetch("http://127.0.0.1:8000/api/v1/products/most-favorites")
-        .then((res) => res.json())
-        .then((data) => {
-          const favorites = Array.isArray(data.data)
-            ? getRandomItems(
-                data.data.map((product: Product) => ({
-                  ...product,
-                  images: product.images?.map((img) => ({
-                    ...img,
-                    image_url: img.image_url.startsWith("/")
-                      ? img.image_url
-                      : `/${img.image_url}`,
-                  })),
-                })),
-                5
-              )
-            : [];
-          setFavoriteProducts(favorites);
-        })
-        .catch(() => setFavoriteProducts([])),
+    // Fetch favorite products
+    fetch("http://127.0.0.1:8000/api/v1/products/most-favorites")
+      .then((res) => res.json())
+      .then((data) => {
+        const randomFavorites = getRandomItems(data.data || [], 5);
+        setFavoriteProducts(randomFavorites);
+      })
+      .catch((error) => {
+        console.error("Error fetching favorite products:", error);
+      });
 
-      fetch("http://127.0.0.1:8000/api/v1/blogs")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data?.status === "success" && Array.isArray(data.data)) {
-            setBlogs(
-              getRandomItems(
-                data.data.map((blog: Blog) => ({
-                  ...blog,
-                  image_url: blog.image_url?.startsWith("/")
-                    ? blog.image_url
-                    : `/${blog.image_url}`,
-                })),
-                3
-              )
-            );
-          } else {
-            setBlogs([]);
-          }
-        })
-        .catch(() => setBlogs([])),
-    ]);
+    // Fetch blogs
+    fetch("http://127.0.0.1:8000/api/v1/blogs")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.status === "success") {
+          setBlogs(getRandomItems(data.data || [], 3));
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching blogs:", error);
+      });
 
     return () => clearInterval(timer);
   }, [sliderImages.length]);
 
-  if (loading)
-    return <p className="text-center text-lg">Đang tải dữ liệu...</p>;
+  if (loading) return <p className="text-center text-lg">Đang tải dữ liệu...</p>;
 
-  const hotProducts = getRandomItems(products.filter((p) => p.is_hot === 1), 4);
+  const hotProducts = getRandomItems(products.filter(p => p.is_hot) || [], 4);
   const newProducts = getRandomItems(
-    products.sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    ),
+    products.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) || [],
     5
   );
-  const recommended = getRandomItems(products, 5);
+  const recommended = getRandomItems(products || [], 5);
 
   const categoryImages = {
-    0: "/oxy.jpg",
-    1: "/makup.jpg",
-    2: "/per.webp",
-    3: "/hair.avif",
+    0: '/oxy.jpg',
+    1: '/makup.jpg',
+    2: '/per.webp',
+    3: '/hair.avif'
   };
 
   return (
@@ -205,25 +111,27 @@ export default function Products() {
               <div
                 key={index}
                 className={`absolute w-full h-full transition-opacity duration-500 ${
-                  currentSlide === index ? "opacity-100" : "opacity-0"
+                  currentSlide === index ? 'opacity-100' : 'opacity-0'
                 }`}
               >
-                <Image
-                  loader={imageLoader}
-                  src={image}
-                  alt={`Slide ${index + 1}`}
-                  fill
-                  className="object-cover"
-                  priority={index === 0}
-                />
+                <div className="relative w-full h-full">
+                  <Image
+                    src={image}
+                    alt={`Slide ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    priority={index === 0}
+                  />
+                </div>
               </div>
             ))}
+            {/* Slider Controls */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
               {sliderImages.map((_, index) => (
                 <button
                   key={index}
                   className={`w-3 h-3 rounded-full ${
-                    currentSlide === index ? "bg-white" : "bg-white/50"
+                    currentSlide === index ? 'bg-white' : 'bg-white/50'
                   }`}
                   onClick={() => setCurrentSlide(index)}
                 />
@@ -235,9 +143,7 @@ export default function Products() {
 
       {/* Categories Section */}
       <section className="w-full px-4 py-12 bg-pink-100">
-        <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-          Danh Mục Sản Phẩm
-        </h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Danh Mục Sản Phẩm</h2>
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
           {categories.map((category, index) => (
             <Link
@@ -246,15 +152,13 @@ export default function Products() {
               className="group relative h-48 bg-white rounded-lg shadow-md overflow-hidden"
             >
               <img
-                src={categoryImages[index as keyof typeof categoryImages]}
+                src={categoryImages[index]}
                 alt={category.name}
                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
               />
               <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-white text-xl font-semibold">
-                  {category.name}
-                </span>
+                <span className="text-white text-xl font-semibold">{category.name}</span>
               </div>
             </Link>
           ))}
@@ -265,10 +169,7 @@ export default function Products() {
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-3xl font-bold text-gray-800">Sản Phẩm Hot</h2>
-          <Link
-            href="/bestsellers"
-            className="text-pink-600 hover:text-pink-700 font-medium"
-          >
+          <Link href="/bestsellers" className="text-pink-600 hover:text-pink-700 font-medium">
             Xem tất cả
           </Link>
         </div>
@@ -276,34 +177,31 @@ export default function Products() {
           {hotProducts.length > 0 && (
             <Link href={`/product/${hotProducts[0].id}`} className="block">
               <div className="relative bg-white rounded-lg shadow-lg overflow-hidden group md:h-[600px]">
-                <Image
-                  loader={imageLoader}
-                  src={getImageUrl(hotProducts[0])}
-                  alt={hotProducts[0].name}
-                  fill
-                  className="object-cover transform transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-                  <h3 className="text-2xl font-semibold text-white mb-3 line-clamp-2">
-                    {hotProducts[0].name}
-                  </h3>
-                  <div className="flex items-center gap-4 mb-3">
-                    <span className="text-white text-xl font-bold">
-                      {hotProducts[0].skus?.[0]?.price.toLocaleString()}đ
-                    </span>
-                    <div className="text-sm text-gray-200">Đã bán: 1k+</div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center text-yellow-400">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span key={star} className="text-lg">
-                          ★
-                        </span>
-                      ))}
+                <div className="relative h-full">
+                  <Image 
+                    src={hotProducts[0].images?.[0]?.image_url || "/oxy.jpg"} 
+                    alt={hotProducts[0].name} 
+                    fill 
+                    className="object-cover transform transition-transform duration-300 group-hover:scale-105" 
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
+                    <h3 className="text-2xl font-semibold text-white mb-3 line-clamp-2">
+                      {hotProducts[0].name}
+                    </h3>
+                    <div className="flex items-center gap-4 mb-3">
+                      <span className="text-white text-xl font-bold">{hotProducts[0].skus?.[0]?.price.toLocaleString()}đ</span>
+                      <div className="text-sm text-gray-200">Đã bán: 1k+</div>
                     </div>
-                    <button className="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700">
-                      Xem chi tiết
-                    </button>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-yellow-400">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span key={star} className="text-lg">★</span>
+                        ))}
+                      </div>
+                      <button className="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700">
+                        Xem chi tiết
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -311,37 +209,32 @@ export default function Products() {
           )}
           <div className="flex flex-col gap-4">
             {hotProducts.slice(1, 4).map((product) => (
-              <Link
-                href={`/product/${product.id}`}
-                key={product.id}
-                className="block"
-              >
+              <Link href={`/product/${product.id}`} key={product.id} className="block">
                 <div className="relative bg-white rounded-lg shadow-lg overflow-hidden group h-[192px]">
-                  <Image
-                    loader={imageLoader}
-                    src={getImageUrl(product)}
-                    alt={product.name}
-                    fill
-                    className="object-cover transform transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                    <h3 className="text-base font-semibold text-white mb-2 line-clamp-1">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-white font-bold">
-                          {product.skus?.[0]?.price.toLocaleString()}đ
-                        </span>
-                        <div className="flex items-center text-yellow-400 text-sm">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <span key={star}>★</span>
-                          ))}
+                  <div className="relative h-full">
+                    <Image 
+                      src={product.images?.[0]?.image_url || "/oxy.jpg"} 
+                      alt={product.name} 
+                      fill 
+                      className="object-cover transform transition-transform duration-300 group-hover:scale-105" 
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                      <h3 className="text-base font-semibold text-white mb-2 line-clamp-1">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-col">
+                          <span className="text-white font-bold">{product.skus?.[0]?.price.toLocaleString()}đ</span>
+                          <div className="flex items-center text-yellow-400 text-sm">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <span key={star}>★</span>
+                            ))}
+                          </div>
                         </div>
+                        <button className="bg-pink-600 text-white px-3 py-1 rounded text-sm hover:bg-pink-700">
+                          Xem chi tiết
+                        </button>
                       </div>
-                      <button className="bg-pink-600 text-white px-3 py-1 rounded text-sm hover:bg-pink-700">
-                        Xem chi tiết
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -351,7 +244,7 @@ export default function Products() {
         </div>
       </section>
 
-      {/* Login Ads */}
+      {/* login ads */}
       <section className="py-16 overflow-hidden bg-pink-100">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
@@ -360,10 +253,7 @@ export default function Products() {
                 Đăng ký tài khoản tại ZBeauty
               </h2>
               <p className="text-gray-600 mb-8 leading-relaxed">
-                Hãy đăng ký tài khoản trên website của chúng tôi để luôn nhận
-                được thông tin mới nhất về sản phẩm, khuyến mãi và các sự kiện
-                đặc biệt. Đảm bảo bạn không bỏ lỡ bất kỳ cơ hội hấp dẫn nào và
-                tận hưởng những ưu đãi dành riêng cho thành viên. Đăng ký ngay!
+                Hãy đăng ký tài khoản trên website của chúng tôi để luôn nhận được thông tin mới nhất về sản phẩm, khuyến mãi và các sự kiện đặc biệt. Đảm bảo bạn không bỏ lỡ bất kỳ cơ hội hấp dẫn nào và tận hưởng những ưu đãi dành riêng cho thành viên. Đăng ký ngay!
               </p>
               <div className="flex gap-4">
                 <Link href="/register">
@@ -404,52 +294,35 @@ export default function Products() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold text-gray-800">Sản phẩm mới</h2>
-            <Link
-              href="/new-products"
-              className="text-pink-600 hover:text-pink-700 font-medium"
-            >
+            <Link href="/new-products" className="text-pink-600 hover:text-pink-700 font-medium">
               Xem tất cả
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {newProducts.map((product) => (
-              <Link
-                href={`/product/${product.id}`}
-                key={product.id}
-                className="block"
-              >
+              <Link href={`/product/${product.id}`} key={product.id} className="block">
                 <div className="relative bg-white rounded-lg shadow-md overflow-hidden group p-4">
                   <div className="relative w-full aspect-square mb-4 overflow-hidden">
                     <Image
-                      loader={imageLoader}
-                      src={getImageUrl(product)}
+                      src={product.images?.[0]?.image_url || "/oxy.jpg"}
                       alt={product.name}
                       fill
                       className="object-cover transform transition-transform duration-300 group-hover:scale-110"
                     />
                   </div>
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {["Sữa rửa mặt", "Dưỡng da", "Kem chống nắng"].map(
-                      (tag, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full"
-                        >
-                          {tag}
-                        </span>
-                      )
-                    )}
+                    {['Sữa rửa mặt', 'Dưỡng da', 'Kem chống nắng'].map((tag, idx) => (
+                      <span key={idx} className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full">
+                        {tag}
+                      </span>
+                    ))}
                   </div>
                   <h3 className="text-sm font-medium mb-2 line-clamp-2 text-gray-800">
                     {product.name}
                   </h3>
                   <div className="mb-4">
-                    <span className="line-through text-gray-500 text-sm mr-2">
-                      {product.skus?.[0]?.price.toLocaleString()}đ
-                    </span>
-                    <span className="text-pink-600 font-bold text-lg">
-                      {product.skus?.[0]?.price.toLocaleString()}đ
-                    </span>
+                    <span className="line-through text-gray-500 text-sm mr-2">{product.skus?.[0]?.price.toLocaleString()}đ</span>
+                    <span className="text-pink-600 font-bold text-lg">{product.skus?.[0]?.price.toLocaleString()}đ</span>
                   </div>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-yellow-500 text-sm ml-2">★ 4.9</span>
@@ -469,52 +342,35 @@ export default function Products() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold text-gray-800">Dành cho bạn</h2>
-            <Link
-              href="/recommended"
-              className="text-pink-600 hover:text-pink-700 font-medium"
-            >
+            <Link href="/recommended" className="text-pink-600 hover:text-pink-700 font-medium">
               Xem tất cả
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {recommended.map((product) => (
-              <Link
-                href={`/product/${product.id}`}
-                key={product.id}
-                className="block"
-              >
+              <Link href={`/product/${product.id}`} key={product.id} className="block">
                 <div className="relative bg-white rounded-lg shadow-md overflow-hidden group p-4">
                   <div className="relative w-full aspect-square mb-4 overflow-hidden">
                     <Image
-                      loader={imageLoader}
-                      src={getImageUrl(product)}
+                      src={product.images?.[0]?.image_url || "/oxy.jpg"}
                       alt={product.name}
                       fill
                       className="object-cover transform transition-transform duration-300 group-hover:scale-110"
                     />
                   </div>
                   <div className="flex flex-wrap gap-2 mb-3">
-                    {["Sữa rửa mặt", "Dưỡng da", "Kem chống nắng"].map(
-                      (tag, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full"
-                        >
-                          {tag}
-                        </span>
-                      )
-                    )}
+                    {['Sữa rửa mặt', 'Dưỡng da', 'Kem chống nắng'].map((tag, idx) => (
+                      <span key={idx} className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full">
+                        {tag}
+                      </span>
+                    ))}
                   </div>
                   <h3 className="text-sm font-medium mb-2 line-clamp-2 text-gray-800">
                     {product.name}
                   </h3>
                   <div className="mb-4">
-                    <span className="line-through text-gray-500 text-sm mr-2">
-                      {product.skus?.[0]?.price.toLocaleString()}đ
-                    </span>
-                    <span className="text-pink-600 font-bold text-lg">
-                      {product.skus?.[0]?.price.toLocaleString()}đ
-                    </span>
+                    <span className="line-through text-gray-500 text-sm mr-2">{product.skus?.[0]?.price.toLocaleString()}đ</span>
+                    <span className="text-pink-600 font-bold text-lg">{product.skus?.[0]?.price.toLocaleString()}đ</span>
                   </div>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-yellow-500 text-sm ml-2">★ 4.9</span>
@@ -533,21 +389,14 @@ export default function Products() {
       <section className="w-full px-4 py-12 bg-gray-100">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-800">
-              Sản phẩm được yêu thích
-            </h2>
+            <h2 className="text-3xl font-bold text-gray-800">Sản phẩm được yêu thích</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {favoriteProducts.map((product) => (
-              <Link
-                href={`/product/${product.id}`}
-                key={product.id}
-                className="block"
-              >
+              <Link href={`/product/${product.id}`} key={product.id} className="block">
                 <div className="relative bg-white rounded-lg shadow-md overflow-hidden group p-4">
                   <div className="relative w-full aspect-square mb-4 overflow-hidden">
                     <Image
-                      loader={imageLoader}
                       src={product.skus?.[0]?.image_url || "/oxy.jpg"}
                       alt={product.name}
                       fill
@@ -558,15 +407,11 @@ export default function Products() {
                     {product.name}
                   </h3>
                   <div className="mb-4">
-                    <span className="line-through text-gray-500 text-sm mr-2">
-                      {product.skus?.[0]?.price.toLocaleString()}đ
-                    </span>
-                    <span className="text-pink-600 font-bold text-lg">
-                      {product.skus?.[0]?.promotion_price.toLocaleString()}đ
-                    </span>
+                    <span className="line-through text-gray-500 text-sm mr-2">{product.skus?.[0]?.price.toLocaleString()}đ</span>
+                    <span className="text-pink-600 font-bold text-lg">{product.skus?.[0]?.promotion_price.toLocaleString()}đ</span>
                   </div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-yellow-500 text-sm ml-2">★ 4.9</span>
+                    <span className="text-yellow-500 text-sm ml-2">★ {product.favorited_by_count}</span>
                     <button className="bg-pink-600 text-white py-2 px-4 rounded text-sm hover:bg-pink-700">
                       Xem chi tiết
                     </button>
@@ -583,13 +428,9 @@ export default function Products() {
         <h2 className="text-3xl font-bold text-gray-800 mb-8">Góc làm đẹp</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {blogs.map((blog) => (
-            <div
-              key={blog.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden"
-            >
+            <div key={blog.id} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="relative aspect-video">
                 <Image
-                  loader={imageLoader}
                   src={blog.image_url || "/default-blog.jpg"}
                   alt={blog.title}
                   fill
@@ -597,9 +438,7 @@ export default function Products() {
                 />
               </div>
               <div className="p-4">
-                <h3 className="text-lg text-black font-bold mb-2">
-                  {blog.title}
-                </h3>
+                <h3 className="text-lg text-black font-bold mb-2">{blog.title}</h3>
                 <p className="text-sm text-gray-600 mb-4 line-clamp-3">
                   {blog.short_description}
                 </p>
@@ -615,33 +454,16 @@ export default function Products() {
         </div>
       </section>
 
-      {/* FAQ Section */}
+      {/* FAQ or Support Section */}
       <section className="max-w-7xl mx-auto px-4 py-12 bg-gray-50">
-        <h2 className="text-3xl font-bold text-gray-800 mb-8">
-          Hỗ trợ khách hàng
-        </h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-8">Hỗ trợ khách hàng</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
-            {
-              question: "Làm sao để đặt hàng?",
-              answer:
-                "Bạn có thể đặt hàng trực tiếp trên website hoặc liên hệ qua hotline.",
-            },
-            {
-              question: "Chính sách đổi trả là gì?",
-              answer:
-                "Chúng tôi hỗ trợ đổi trả trong vòng 7 ngày kể từ khi nhận hàng.",
-            },
-            {
-              question: "Sản phẩm có chính hãng không?",
-              answer:
-                "Tất cả sản phẩm đều được nhập khẩu chính hãng và có hóa đơn.",
-            },
+            { question: 'Làm sao để đặt hàng?', answer: 'Bạn có thể đặt hàng trực tiếp trên website hoặc liên hệ qua hotline.' },
+            { question: 'Chính sách đổi trả là gì?', answer: 'Chúng tôi hỗ trợ đổi trả trong vòng 7 ngày kể từ khi nhận hàng.' },
+            { question: 'Sản phẩm có chính hãng không?', answer: 'Tất cả sản phẩm đều được nhập khẩu chính hãng và có hóa đơn.' },
           ].map((faq, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-lg shadow-md p-6"
-            >
+            <div key={index} className="bg-white rounded-lg shadow-md p-6">
               <h4 className="font-bold text-gray-800 mb-2">{faq.question}</h4>
               <p className="text-sm text-gray-600">{faq.answer}</p>
             </div>
@@ -649,12 +471,9 @@ export default function Products() {
         </div>
       </section>
 
-      {/* Newsletter Section */}
       <section className="bg-pink-100 py-16">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">
-            Đăng ký nhận tin
-          </h2>
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">Đăng ký nhận tin</h2>
           <p className="text-gray-600 mb-8">
             Nhận thông tin về sản phẩm mới và khuyến mãi hấp dẫn
           </p>
@@ -675,3 +494,4 @@ export default function Products() {
       </section>
     </main>
   );
+}
