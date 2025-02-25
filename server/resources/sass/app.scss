@@ -16,9 +16,6 @@
 
 @import "@fortawesome/fontawesome-free/css/all.min.css";
 
-@import 'select2/dist/css/select2.min.css';
-
-
 // 🎨 Custom CSS
 
 :root {
@@ -41,6 +38,7 @@
     --primary-foreground: #{$primary-50};
     --secondary: #{$secondary};
     --secondary-foreground: #{$secondary-50};
+    --cat-depth: 0;
 }
 
 [data-theme="dark"] {
@@ -69,6 +67,71 @@
 //     margin: 0;
 //     box-sizing: border-box;
 // }
+
+.variant-warning {
+    background-color: orange;
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+}
+
+
+#attributes-pane {
+    .accordion-item {
+        border-radius: 16px;
+        background-color: var(--background);
+        width: 100%;
+        border: 1px solid var(--muted) !important;
+
+        .accordion-header {
+            .accordion-button {
+                background-color: transparent !important;
+                color: var(--foreground) !important;
+                border: none !important;
+
+                // &::after {
+                //     filter: brightness(0) invert(1);
+                // }
+
+                &:focus {
+                    box-shadow: none !important;
+                    outline: none !important;
+                }
+
+                &:not(.collapsed) {
+                    background-color: transparent !important;
+                    color: var(--foreground) !important;
+                    box-shadow: none;
+                }
+            }
+        }
+
+        .accordion-collapse {
+            background-color: var(--muted) !important;
+            .form-select {
+                background-color: transparent;
+                border: none !important;
+
+                .item {
+                    font-size: 1rem;
+                    padding: 3px 6px;
+                }
+            }
+        }
+    }
+}
+
+#variants-pane {
+    #variant-list {
+        .accordion-item {
+            background-color: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+    }
+}
 
 .bg-white-custom {
     background-color: var(--background);
@@ -127,6 +190,10 @@
             color: var(--white) !important;
         }
     }
+}
+
+.mf-level {
+    margin-left: var(--cat-depth);
 }
 
 .line-champ-1 {
@@ -225,7 +292,8 @@
                 padding: 0;
             }
             &.card-type-product {
-                height: 400px;
+                height: auto;
+                min-height: 400px;
             }
 
             th {
@@ -235,10 +303,24 @@
             td {
                 background-color: var(--background) !important;
             }
+
+            &.choseCategories {
+                max-height: 300px;
+                overflow-y: auto;
+
+                .form-check-input {
+                    &:focus {
+                        border-color: var(--primary);
+                        box-shadow: none;
+                    }
+                    &:checked {
+                        background-color: var(--primary);
+                        border-color: var(--primary);
+                    }
+                }
+            }
         }
     }
-
-    
 }
 
 .setting {
@@ -319,6 +401,16 @@
             //     filter: brightness(1) invert(0);
             // }
         }
+    }
+}
+
+.slider {
+    width: 100%;
+    height: 300px;
+
+    &.small {
+        width: 250px;
+        height: 100px;
     }
 }
 

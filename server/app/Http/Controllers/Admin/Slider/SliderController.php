@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Admin\Slider;
 
 use App\DataTables\Slider\SliderDataTable;
+use App\Enums\Slide\SlideStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Slider\SliderRequest;
 use App\Models\slider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class SliderController extends Controller
 {
@@ -22,15 +26,41 @@ class SliderController extends Controller
      */
     public function create()
     {
-        //
+        $status = SlideStatus::getKeyValuePairs();
+        return view('Pages.Slider.Create', ['status' => $status]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(SliderRequest $request)
     {
-        //
+        try {
+            $data = $request->all();
+
+            $priority = $request->input('priority');
+
+            if ($priority) {
+                Slider::where('priority', '>=', $priority)->increment('priority');
+            } else {
+                $data['priority'] = Slider::max('priority') + 1;
+            }
+
+            $path = null;
+
+            if ($request->hasFile(key: 'image_url')) {
+                $path = Storage::disk('public')->put('slider_images', contents: $request->image_url);
+                $data['image_url'] = '/storage/' . $path;
+            } else {
+                $data['image_url'] = config(key: 'settings.image_default');
+            }
+
+            Slider::create($data);
+
+            return redirect()->route('admin.slider.index')->with('success', 'Thêm slide thành công');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -46,15 +76,58 @@ class SliderController extends Controller
      */
     public function edit(slider $slider)
     {
-        //
+        $statusEnum = SlideStatus::fromValue(enumValue: $slider->status);
+        $sta = [
+            'value' => $statusEnum->value,
+            'label' =>  $statusEnum->label()
+        ];
+
+        $status = mapEnumToArray(SlideStatus::class, $slider->status);
+        return view('Pages.Slider.Edit', ['slider' => $slider, 'status' => $status, 'sta' => $sta]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, slider $slider)
+    public function update(SliderRequest $request, slider $slider)
     {
-        //
+        try {
+            $check = empty(array_diff_assoc(
+                $request->only(['name', 'priority', 'image_url', 'status']),
+                $slider->only(['name', 'priority', 'image_url', 'status'])
+            ));
+
+            if ($check) {
+                return redirect()->back()->with('info', 'Có vẻ dữ liệu không thay đổi');
+            }
+            $data = $request->all();
+
+            $priority = $request->input('priority');
+
+            if ($priority) {
+                Slider::where('priority', '>=', $priority)->increment('priority');
+            } else {
+                $data['priority'] = Slider::max('priority') + 1;
+            }
+
+            $path = null;
+
+            if ($request->hasFile('image_url')) {
+                if (!empty($category->image) && Str::contains($slider->image, 'storage')) {
+                    $oldPath = str_replace('storage/', '', $slider->image);
+                    Storage::disk('public')->delete($oldPath);
+                }
+
+                $path = $request->file('image_url')->store('slider_images', 'public');
+                $data['image_url'] = '/storage/' . $path;
+            }
+
+            $slider->update($data);
+
+            return redirect()->back()->with('success', 'Cập nhật slide thành công');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -62,6 +135,12 @@ class SliderController extends Controller
      */
     public function destroy(slider $slider)
     {
-        //
+        try {
+            $slider->delete();
+
+            return redirect()->route('admin.slider.index')->with('success', 'Xóa slider thành công');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 }

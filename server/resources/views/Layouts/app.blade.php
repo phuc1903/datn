@@ -279,6 +279,7 @@
 
     </div>
 
+    @stack('libs-js')
     @stack('scripts')
 
     <x-toastr.index />

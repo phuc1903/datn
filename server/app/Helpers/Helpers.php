@@ -12,6 +12,35 @@ if (!function_exists('ResponseError')) {
 }
 
 if (!function_exists('ResponseSuccess')) {
+    function ResponseSuccess($message, $data = null, $httpCode = 200)
+    {
+        return response()->json([
+            'status' => 'success',
+            'message' => $message,
+            'data' => $data
+        ], $httpCode);
+    }
+}
+
+if (!function_exists('flattenCategories')) {
+    function flattenCategories($categories, $parentId = 0, $depth = 0)
+    {
+        $flattened = [];
+
+        foreach ($categories as $category) {
+            if ($category->parent_id == $parentId) {
+                $category->depth = $depth;
+                $flattened[] = $category;
+
+                $flattened = array_merge($flattened, flattenCategories($categories, $category->id, $depth + 1));
+            }
+        }
+
+        return $flattened;
+    }
+}
+
+if (!function_exists('mapEnumToArray')) {
     function mapEnumToArray(string $enumClass, string $currentValue = null): array
     {
         if (!method_exists($enumClass, 'getValues') || !method_exists($enumClass, 'fromValue')) {
@@ -57,5 +86,12 @@ if (!function_exists('hasCompleteMailConfig')) {
         }
 
         return true; // Cấu hình đầy đủ
+    }
+}
+
+if(!function_exists('checkDataUpdate')) {
+    function checkDataUpdate(array $newData, array $oldData) {
+        $check = empty(array_diff_assoc($newData, $oldData));
+        return $check;
     }
 }

@@ -1,4 +1,6 @@
 <script>
+    var idPreview = @json($idPreview);
+
     function chooseImage() {
         document.getElementById('typeFile').click();
     }
@@ -10,12 +12,12 @@
             var reader = new FileReader();
 
             reader.onload = function(e) {
-                document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById(idPreview).src = e.target.result;
             }
 
             reader.readAsDataURL(file);
         } else {
-            document.getElementById('imagePreview').src = "{{ config('settings.image_default') }}";
+            document.getElementById(idPreview).src = "{{ config('settings.image_default') }}";
         }
     }
 </script>

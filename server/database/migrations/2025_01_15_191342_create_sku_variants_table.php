@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('sku_id');
             $table->unsignedBigInteger('variant_value_id');
-            $table->foreign('sku_id')->references('id')->on('skus');
-            $table->foreign('variant_value_id')->references('id')->on('variant_values');
+            $table->foreign('sku_id')->references('id')->on('skus')->onDelete('cascade');
+            $table->foreign('variant_value_id')->references('id')->on('variant_values')->onDelete('cascade');
             $table->timestamps();
         });
     }

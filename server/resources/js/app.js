@@ -1,4 +1,6 @@
-import $ from "jquery";
+import $ from "jquery"; // Import jQuery trước
+window.$ = window.jQuery = $; // Gán jQuery vào global window
+
 import toastr from "toastr";
 import "toastr/build/toastr.min.css";
 
@@ -7,9 +9,298 @@ import Swal from "sweetalert2";
 import "./bootstrap";
 import "laravel-datatables-vite";
 
+import TomSelect from "tom-select";
+import "tom-select/dist/css/tom-select.css";
+
 window.Swal = Swal;
-window.$ = window.jQuery = $;
 window.toastr = toastr;
+
+document.addEventListener("DOMContentLoaded", function () {
+    new TomSelect("#attribute", {
+        persist: false,
+        createOnBlur: true,
+        create: true,
+    });
+});
+
+// variants
+
+$(document).ready(function () {
+    let existingSkus = window.skusData || null;
+    let attributes = {};
+
+    function parseExistingSkus() {
+        attributes = {};
+
+        existingSkus.forEach((sku) => {
+            sku.variant_values.forEach((variant) => {
+                if (!attributes[variant.variant_id]) {
+                    attributes[variant.variant_id] = {
+                        value: {
+                            price: sku.price || 0,
+                            promotion_price: sku.promotion_price || 0,
+                            quantity: sku.quantity || 1,
+                            image_url: sku.image_url || ""
+                        },
+                        variant_values: []
+                    };
+                }
+
+                let variantValueStr = variant.id.toString();
+                if (!attributes[variant.variant_id].variant_values.includes(variantValueStr)) {
+                    attributes[variant.variant_id].variant_values.push(variantValueStr);
+                }
+            });
+        });
+
+        // console.log("hoàn thành:", attributes);
+    }
+
+    function loadExistingAttributes() {
+        $("#attribute-list").empty();
+
+        Object.keys(attributes).forEach((attributeId) => {
+            let selectedAttribute = $(`#product-attributes option[value='${attributeId}']`);
+            let attributeName = selectedAttribute.text();
+            let attributeData = selectedAttribute.data("vari");
+
+            if (attributeData) {
+                renderAttributeHtml(attributeId, attributeName, attributeData);
+            }
+        });
+    }
+
+    if (existingSkus) {
+        parseExistingSkus();
+        loadExistingAttributes();
+        generateVariants();
+    }
+
+    function addAttribute() {
+        let selectedAttribute = $("#product-attributes option:selected");
+        let attributeId = selectedAttribute.val();
+        let attributeName = selectedAttribute.text();
+        let attributeData = selectedAttribute.data("vari");
+
+        if (!attributeId) {
+            toastr.info("Vui lòng chọn thuộc tính", "Thông báo");
+            return;
+        }
+
+        if (attributes[attributeId]) {
+            toastr.warning("Thuộc tính này đã được thêm", "Cảnh báo");
+            return;
+        }
+
+        attributes[attributeId] = {
+            value: {
+                price: 0,
+                promotion_price: 0,
+                quantity: 1,
+                image_url: ""
+            },
+            variant_values: []
+        };
+
+        renderAttributeHtml(attributeId, attributeName, attributeData);
+    }
+
+    function renderAttributeHtml(attributeId, attributeName, attributeData) {
+        let selectId = `attribute-values-${attributeId}`;
+        let selectedVariantValues = attributes[attributeId]?.variant_values || [];
+
+        let variantOptions = attributeData.values
+            .map(value => 
+                `<option value="${value.id}" ${selectedVariantValues.includes(value.id.toString()) ? "selected" : ""}>${value.value}</option>`
+            ).join("");
+
+        let newAttribute = `
+            <div class="accordion-item" id="attribute-${attributeId}">
+                <h2 class="accordion-header" id="heading-${attributeId}">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapse-${attributeId}" aria-expanded="true"
+                        aria-controls="collapse-${attributeId}">
+                        ${attributeName}
+                    </button>
+                </h2>
+                <div id="collapse-${attributeId}" class="accordion-collapse collapse"
+                    aria-labelledby="heading-${attributeId}" data-bs-parent="#attribute-list">
+                    <div class="accordion-body">
+                        <span class="text-dark-custom px-3 py-1">Chọn biến thể</span>
+                        <select class="form-select attribute-values" id="${selectId}" multiple>
+                            ${variantOptions}
+                        </select>
+                        <button type="button" class="btn btn-danger remove-attribute mt-2" data-attribute-id="${attributeId}">Xóa</button>
+                    </div>
+                </div>
+            </div>`;
+
+        $("#attribute-list").append(newAttribute);
+
+        let $select = $(`#${selectId}`);
+        if ($select.length > 0) {
+            let tomSelectInstance = new TomSelect(`#${selectId}`, {
+                plugins: ["remove_button"],
+                persist: false,
+                createOnBlur: true,
+                create: false,
+                sortField: { field: "text" },
+            });
+
+            $select.data("tomselectInstance", tomSelectInstance);
+        }
+    }
+
+    function saveAttributes() {
+        $(".attribute-values").each(function () {
+            let attributeId = $(this).attr("id")?.replace("attribute-values-", "");
+            let tomSelectInstance = $(this).data("tomselectInstance");
+
+            if (tomSelectInstance) {
+                let selectedValues = tomSelectInstance.getValue();
+                attributes[attributeId].variant_values = selectedValues;
+            }
+        });
+
+        toastr.success("Lưu thuộc tính thành công!", "Thành công");
+    }
+
+    function generateVariants() {
+        $("#variant-list").empty(); // Xóa danh sách biến thể cũ
+    
+        let attributeValues = Object.values(attributes).map(attr => attr.variant_values);
+    
+        if (attributeValues.length === 0 || attributeValues.every(val => val.length === 0)) {
+            toastr.error("Bạn cần chọn ít nhất 1 biến thể!", "Lỗi");
+            return;
+        }
+    
+        let combinations = generateCombinations(attributeValues);
+        let variantHtml = "";
+    
+        combinations.forEach((variant, index) => {
+            let variantLabels = variant.map(valueId => {
+                let attributeId = Object.keys(attributes).find(id => attributes[id].variant_values.includes(valueId));
+                return $(`#attribute-values-${attributeId} option[value='${valueId}']`).text();
+            });
+    
+            // 🟢 Tìm dữ liệu biến thể từ existingSkus nếu có
+            let existingData = existingSkus?.find(sku => {
+                let skuVariantIds = sku.variant_values.map(v => v.id.toString());
+                return JSON.stringify(skuVariantIds.sort()) === JSON.stringify(variant.sort());
+            });
+    
+            let price = existingData ? existingData.price : 0;
+            let promotion_price = existingData ? existingData.promotion_price : 0;
+            let quantity = existingData ? existingData.quantity : 1;
+            let image_url = existingData ? existingData.image_url : "";
+    
+            // 🛑 Input ẩn để submit đúng dữ liệu
+            let hiddenInputs = `
+                <input type="hidden" class="hidden-price" name="variants[${index}][price]" value="${price}">
+                <input type="hidden" class="hidden-promotion-price" name="variants[${index}][promotion_price]" value="${promotion_price}">
+                <input type="hidden" class="hidden-quantity" name="variants[${index}][quantity]" value="${quantity}">
+                <input type="hidden" class="hidden-image-url" name="variants[${index}][image_url]" value="${image_url}">
+            `;
+    
+            variant.forEach((value, idx) => {
+                hiddenInputs += `<input type="hidden" name="variants[${index}][variant_values][${idx}]" value="${value}">`;
+            });
+    
+            let variantInputs = `
+                <div class="accordion-item" id="variant-${index}">
+                    <h2 class="accordion-header" id="heading-${index}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapse-${index}" aria-expanded="false" aria-controls="collapse-${index}">
+                            ${variantLabels.join(" - ")}
+                        </button>
+                    </h2>
+                    <div id="collapse-${index}" class="accordion-collapse collapse" aria-labelledby="heading-${index}" data-bs-parent="#variant-list">
+                        <div class="accordion-body">
+                            <div class="mb-3">
+                                <label class="form-label">Giá bán (đ)</label>
+                                <input type="number" class="form-control variant-price" data-index="${index}" value="${price}" min="0" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Giá khuyến mãi (đ)</label>
+                                <input type="number" class="form-control variant-promotion-price" data-index="${index}" value="${promotion_price}" min="0">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Số lượng</label>
+                                <input type="number" class="form-control variant-quantity" data-index="${index}" value="${quantity}" min="1" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Hình ảnh biến thể</label>
+                                <input type="file" class="form-control variant-image" name="variants[${index}][image]" id="variant-image-${index}">
+                                <img id="preview-image-${index}" src="${image_url ? image_url : '#'}" alt="Ảnh biến thể" style="max-width: 100px; ${image_url ? 'display: block;' : 'display: none;'}"/>
+                            </div>
+                            <button type="button" class="btn btn-danger remove-variant" data-variant-index="${index}">Xóa biến thể</button>
+                        </div>
+                    </div>
+                    ${hiddenInputs}
+                </div>`;
+    
+            variantHtml += variantInputs;
+        });
+    
+        $("#variant-list").html(variantHtml);
+    
+        // 🟢 Gắn sự kiện onchange cho từng input để cập nhật giá trị vào hidden input trước khi submit
+        $(".variant-price, .variant-promotion-price, .variant-quantity").on("input", function () {
+            let index = $(this).data("index");
+            let price = $(`.variant-price[data-index="${index}"]`).val();
+            let promotion_price = $(`.variant-promotion-price[data-index="${index}"]`).val();
+            let quantity = $(`.variant-quantity[data-index="${index}"]`).val();
+    
+            $(`.hidden-price[name="variants[${index}][price]"]`).val(price);
+            $(`.hidden-promotion-price[name="variants[${index}][promotion_price]"]`).val(promotion_price);
+            $(`.hidden-quantity[name="variants[${index}][quantity]"]`).val(quantity);
+        });
+    
+        // 🟢 Xử lý preview ảnh biến thể + Lưu đường dẫn vào input file
+        $(".variant-image").change(function (event) {
+            let index = $(this).attr("id").split("-").pop();
+            let file = event.target.files[0];
+    
+            if (file) {
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    $(`#preview-image-${index}`).attr("src", e.target.result).show();
+                    $(`#variant-image-${index}`).attr("data-image-url", e.target.result);
+                    $(`.hidden-image-url[name="variants[${index}][image_url]"]`).val(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    
+    
+    function generateCombinations(arrays) {
+        return arrays.reduce((acc, curr) => acc.flatMap(a => curr.map(b => [].concat(a, b))), [[]]);
+    }
+
+    $("#generate-variants").click(generateVariants);
+    $("#add-attribute").click(addAttribute);
+    $("#save-attributes").click(saveAttributes);
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const productTypeSelect = document.getElementById("product-type");
+    const simpleProductDiv = document.getElementById("simple-product");
+    const variableProductDiv = document.getElementById("variable-product");
+
+    productTypeSelect.addEventListener("change", function () {
+        if (this.value === "simple") {
+            simpleProductDiv.style.display = "flex";
+            variableProductDiv.style.display = "none";
+        } else {
+            simpleProductDiv.style.display = "none";
+            variableProductDiv.style.display = "block";
+        }
+    });
+});
 
 // Change theme mode
 document.addEventListener("DOMContentLoaded", function () {
@@ -40,57 +331,6 @@ document.addEventListener("DOMContentLoaded", function () {
         })
             .then((response) => response.json())
             .catch((error) => console.error("Error saving theme:", error));
-    });
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    const productTypeSelect = document.getElementById("product-type");
-    const simpleProductDiv = document.getElementById("simple-product");
-    const variableProductDiv = document.getElementById("variable-product");
-
-    // Xử lý khi chọn loại sản phẩm
-    productTypeSelect.addEventListener("change", function () {
-        if (this.value === "simple") {
-            simpleProductDiv.style.display = "flex";
-            variableProductDiv.style.display = "none";
-        } else {
-            simpleProductDiv.style.display = "none";
-            variableProductDiv.style.display = "block";
-        }
-    });
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    const currency = "VND";
-    const priceInputs = document.querySelectorAll('input[data-format="price"]');
-    priceInputs.forEach(function (priceInput) {
-        const hiddenInputId = priceInput.id + "-hidden";
-        const hiddenInput = document.getElementById(hiddenInputId);
-        if (!hiddenInput) {
-            console.error("Hidden input not found for ID:", hiddenInputId);
-            return;
-        }
-
-        let initialValue = priceInput.value.replace(/\D/g, "");
-        hiddenInput.value = initialValue;
-        priceInput.value = numeral(initialValue).format("0,0") + " " + currency;
-
-        priceInput.addEventListener("input", function () {
-            const rawValue = this.value.replace(/\D/g, "");
-            this.value = numeral(rawValue).format("0,0");
-            hiddenInput.value = rawValue;
-        });
-
-        priceInput.addEventListener("focus", function () {
-            this.value = this.value.replace(/ VND$/, "");
-        });
-
-        priceInput.addEventListener("blur", function () {
-            const currentRawValue = this.value.replace(/\D/g, "");
-            this.value =
-                numeral(currentRawValue).format("0,0") + " " + currency;
-            hiddenInput.value = currentRawValue;
-        });
     });
 });
 
@@ -160,9 +400,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // });
 })(jQuery);
 
-
 $(document).ready(function () {
-    
     addAddress();
     deleteUser();
     addVariantValue();
@@ -170,13 +408,10 @@ $(document).ready(function () {
     choseAttribute();
 
     function choseAttribute() {
-        let selectedAttributes = [1,2,3,4,5];
+        let selectedAttributes = [1, 2, 3, 4, 5];
         const getAttribute = document.getElementById("getAttributes");
         const buttonGetAttribute = document.getElementById("addAttribute");
         const attributeList = document.getElementById("attributeList");
-
-
-        
     }
 
     function addAddress() {
@@ -440,8 +675,4 @@ $(document).ready(function () {
     function addProductOrder() {
         const buttonAdd = $("#add-product-order");
     }
-
-
-    
-    
 });

@@ -44,47 +44,6 @@
                         </div>
                     </div>
                 </div>
-                {{-- <div class="card">
-                    <div class="card-header">
-                        <h3>Sản phẩm trong đơn hàng</h3>
-                    </div>
-                    <div class="card-body">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th scope="col" class="text-center">STT</th>
-                                    <th scope="col" class="text-center">Tên sản phẩm</th>
-                                    <th scope="col" class="text-center">Giá</th>
-                                    <th scope="col" class="text-center">Số lượng</th>
-                                    <th scope="col" class="text-center">Tổng tiền</th>
-                                    <th scope="col" class="text-center">Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($order->items as $index => $item)
-                                    <tr>
-                                        <th scope="row" class="text-center">{{ $index + 1 }}</th>
-                                        <td class="text-center">{{ $item->product->name }}</td>
-                                        <td class="text-center">{{ number_format($item->price, 2, '.', '.') }} VNĐ</td>
-                                        <td class="text-center">{{ $item->quantity }}</td>
-                                        <td class="text-center">
-                                            {{ number_format($item->quantity * $item->price, 2, '.', '.') }} VNĐ</td>
-                                        <td class="text-center">
-                                            <form
-                                                action="{{ route('admin.product.destroy', $item) }}"
-                                                class="d-block">
-                                                @csrf
-                                                @method('DELETE')
-                                                <x-button.index type="submit" label="Xóa sản phẩm" class="btn-danger" />
-                                            </form>
-
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div> --}}
             </div>
             <div class="col-3">
                 <div class="card mb-3">

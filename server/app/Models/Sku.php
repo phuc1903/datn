@@ -17,6 +17,11 @@ class Sku extends Model
     // Quan hệ với Variant Values (các giá trị biến thể)
     public function variantValues()
     {
-        return $this->belongsToMany(VariantValue::class, 'sku_variants')->select('variant_values.id', 'variant_values.value','variant_values.variant_id');
+        return $this->belongsToMany(VariantValue::class, 'sku_variants')->select('variant_values.id', 'variant_values.value', 'variant_values.variant_id');
+    }
+
+    public function skuVariants()
+    {
+        return $this->hasMany(SkuVariant::class, 'sku_id', 'id');
     }
 }

@@ -15,8 +15,10 @@
                         <div class="mb-3">
                             <label for="" class="form-label fw-bold text-dark-custom">Danh mục cha</label>
                             <select class="form-select selec-custom input-text-custom" aria-label="Default select example"
-                                name="parent_id" id="parent_id">
-                                @if(isset($categoryActive))<option value="{{ $categoryActive->id}}" selected>{{$categoryActive->name}}</option>@endif
+                                name="parent_id">
+                                @if (isset($categoryActive))
+                                    <option value="{{ $categoryActive->id }}" selected>{{ $categoryActive->name }}</option>
+                                @endif
                                 <option value="0">Không có</option>
                                 @foreach ($categories as $cate)
                                     @php
@@ -28,8 +30,7 @@
                             </select>
                         </div>
 
-                        <x-form.input_text label="Slug" name="slug" value="{{ $category->slug }}" />
-
+                        <x-form.input_text label="Slug" name="slug" value="{{ $category->slug ?? '' }}" />
 
                         <div class="form-floating mb-3">
                             <textarea class="form-control input-text-custom" name="short_description" placeholder="Leave a comment here"
@@ -57,7 +58,9 @@
                     <div class="card-body">
                         <select class="form-select selec-custom input-text-custom" aria-label="Default select example"
                             name="status">
-                            <option value="{{ $sta['value'] }}" selected>{{ $sta['label'] }}</option>
+                            @if (isset($sta['value']) && isset($sta['label']))
+                                <option value="{{ $sta['value'] }}" selected>{{ $sta['label'] }}</option>
+                            @endif
                             <x-form.select.option :options="$status" />
                         </select>
                     </div>
@@ -67,7 +70,8 @@
                         <h5 class="title">Hình ảnh danh mục</h5>
                     </div>
                     <div class="card-body">
-                        <x-image.index id="imagePreview" class="mb-3 img-fluid" src="/{{ $category->image }}" alt="{{ $category->name }}" />
+                        <x-image.index id="imagePreview" class="mb-3 img-fluid" src="{{ $category->image }}"
+                            alt="{{ $category->name }}" />
 
                         <x-button.index label="Tải ảnh" onclick="chooseImage()" />
 
@@ -81,5 +85,5 @@
 @endsection
 
 @push('scripts')
-    <x-script.upload_image />    
+    <x-script.upload_image idPreview="imagePreview" />
 @endpush

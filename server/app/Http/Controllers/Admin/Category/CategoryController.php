@@ -7,8 +7,6 @@ use App\Enums\Category\CategoryStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Category\CategoryRequest;
 use App\Models\Category;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -28,8 +26,9 @@ class CategoryController extends Controller
     public function create()
     {
         $categories = Category::all();
+        $cateFlat = flattenCategories($categories);
         $status = CategoryStatus::getKeyValuePairs();
-        return view('Pages.Category.Create', ['categories' => $categories, 'status' => $status]);
+        return view('Pages.Category.Create', ['categories' => $cateFlat, 'status' => $status]);
     }
 
     /**
@@ -57,12 +56,13 @@ class CategoryController extends Controller
 
             if ($request->hasFile('image')) {
                 $path = Storage::disk('public')->put('category_images', $request->image);
-                $data['image'] = 'storage/' . $path;
+                $data['image'] = '/storage/' . $path;
             } else {
                 $data['image'] = config(key: 'settings.image_default');
             }
 
             Category::create($data);
+            
 
             return redirect()->route('admin.category.index')->with('success', 'Thêm danh mục thành công');
         } catch (\Exception $e) {
@@ -88,27 +88,24 @@ class CategoryController extends Controller
     {
         // dd($category);
         $categories = Category::all();
+
+        $cateFlat = flattenCategories($categories);
         $statusEnum = CategoryStatus::fromValue(enumValue: $category->status);
         $sta = [
             'value' => $statusEnum->value,
             'label' =>  $statusEnum->label()
         ];
-        if(isset($category->parent_id)) {
-            $categoryActive = Category::find($category->parent_id);
-        }else {
-            $categoryActive = null;
-        }
-
+        $categoryActive = $category->parent_id ? Category::find($category->parent_id) : null;
         $status = mapEnumToArray(CategoryStatus::class, $category->status);
 
-        // dd($categoryActive);
-        return view('Pages.Category.Edit', ['category' => $category, 'categories' => $categories, 'status' => $status, 'sta' => $sta, 'categoryActive' => $categoryActive]);
+        // dd($status);
+        return view('Pages.Category.Edit', ['category' => $category, 'categories' => $cateFlat, 'status' => $status, 'sta' => $sta, 'categoryActive' => $categoryActive]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Category $category)
+    public function update(CategoryRequest $request, Category $category)
     {
         // dd($request);
         try {
@@ -120,8 +117,8 @@ class CategoryController extends Controller
                     Storage::disk('public')->delete($oldPath);
                 }
 
-                $path = $request->file('image')->store('post_images', 'public');
-                $data['image'] = 'storage/' . $path;
+                $path = $request->file('image')->store('category_images', 'public');
+                $data['image'] = '/storage/' . $path;
             }
 
             $category->update($data);

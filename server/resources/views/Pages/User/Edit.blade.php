@@ -14,7 +14,7 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <x-form.input_text label="Họ" value="{{$user->last_name}}" name="last_name" @error('last_name') error="{{ $message }}" @enderror/>
+                                    <x-form.input_text label="Họ" name="last_name" value="{{$user->last_name}}" @error('last_name') error="{{ $message }}" @enderror/>
                                     <x-form.input_text label="Tên" value="{{$user->first_name}}" name="first_name"  @error('first_name') error="{{ $message }}" @enderror />
                                     <x-form.input_text label="Email" value="{{$user->email}}" name="email" type="email"  @error('email') error="{{ $message }}" @enderror />
                                     <x-form.input_text label="Số điện thoại" value="{{$user->phone_number}}" name="phone_number"  @error('phone_number') error="{{ $message }}" @enderror />

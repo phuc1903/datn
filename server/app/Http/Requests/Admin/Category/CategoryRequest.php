@@ -27,7 +27,7 @@ class CategoryRequest extends BaseRequest
         'slug.max' => 'Slug không được vượt quá 255 ký tự.',
         'slug.string' => 'Slug phải là chuỗi.',
         
-        'status.required' => 'Vui lòng chọn giới tính',
+        'status.required' => 'Vui lòng chọn trạng thái',
     ];
     /**
      * Get the validation rules that apply to the request.
@@ -37,7 +37,7 @@ class CategoryRequest extends BaseRequest
     protected function methodPost(): array
     {
         return [
-            'name' => ['required', 'string', 'min:10', 'max:255'],
+            'name' => ['required', 'string', 'min:2', 'max:255'],
             'short_description' => ['required', 'string', 'min:10', 'max:255'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'slug' => ['nullable','string','max:255', 'unique:categories,slug'.$this->category],
@@ -48,10 +48,10 @@ class CategoryRequest extends BaseRequest
     protected function methodPut(): array
     {
         return [
-            'name' => ['required', 'string', 'min:10', 'max:255'],
+            'name' => ['required', 'string', 'min:2', 'max:255'],
             'short_description' => ['required', 'string', 'min:10', 'max:255'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-            'slug' => ['nullable','string','max:255', 'unique:categories,slug,'.$this->category],
+            'slug' => ['nullable','string','max:255', 'unique:categories,slug,'.$this->route('category')->id.',id'],
             'status' => ['required', new EnumValue(CategoryStatus::class)],
         ];
     }

@@ -1,22 +1,25 @@
 @extends('layouts.app')
 
 @section('content')
-    <form action="{{ route('admin.product.store') }}" method="post" enctype="multipart/form-data">
+    <form action="{{ route('admin.product.update', $product) }}" method="post" enctype="multipart/form-data">
         @csrf
+        @method('PUT')
         <div class="row card-custom">
             <div class="col-9">
                 <div class="card card-custom mb-3">
                     <div class="card-header card-header-custom">
-                        <h3 class="title">Thêm sản phẩm</h3>
+                        <h3 class="title">Sửa sản phẩm</h3>
                     </div>
                     <div class="card-body">
-                        <x-form.input_text label="Tên sản phẩm" name="name" />
+                        <x-form.input_text label="Tên sản phẩm" name="name" value="{{ $product->name }}" />
                         <div class="form-floating mb-3">
                             <textarea class="form-control input-text-custom" name="short_description" placeholder="Leave a comment here"
-                                id="floatingTextarea" style="height: 100px"></textarea>
+                                id="floatingTextarea" style="height: 100px">{{ $product->short_description }}</textarea>
                             <label for="floatingTextarea" class="text-dark-custom">Mô tả ngắn</label>
                         </div>
-                        <textarea id="description" class="input-text-custom" name="description"></textarea>
+                        <textarea id="description" class="input-text-custom" name="description">
+                            {{ $product->description }}
+                        </textarea>
                     </div>
                 </div>
                 <div class="card card-custom mb-3">
@@ -42,7 +45,7 @@
                         </div>
 
                         <div id="variable-product" class="h-100" style="display: none;">
-                            @include('Pages.Product.Components.navtab.navtab_2')
+                            @include('Pages.Product.Components.navtab.edit_navtab_2')
                         </div>
                     </div>
                 </div>
@@ -54,7 +57,7 @@
                     </div>
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
-                            <x-button.index type="submit" label="Thêm" />
+                            <x-button.index type="submit" label="Cập nhật" />
                         </div>
                     </div>
                 </div>
@@ -65,7 +68,8 @@
                     <div class="card-body">
                         <select class="form-select selec-custom input-text-custom" aria-label="Default select example"
                             name="status">
-                            <x-form.select.option :options="$productStatus" />
+                            <option value="{{ $sta['value'] }}">{{ $sta['label'] }}</option>
+                            <x-form.select.option :options="$status" />
                         </select>
                     </div>
                 </div>
@@ -92,28 +96,26 @@
                             @php
                                 $parentCount = $cate->getParentCount();
                                 $pxMargin = 15 * $parentCount;
+                                $isChecked = $product->categories->contains($cate->id);
                             @endphp
                             <div class="form-check mf-level" style="--cat-depth: {{ $pxMargin }}px;">
-                                <input class="form-check-input" type="checkbox" name="categories[]"
-                                    value="{{ $cate->id }}" id="{{ $cate->name . '-' . $cate->id }}">
+                                <input class="form-check-input" type="checkbox" value="{{ $cate->id }}"
+                                    id="{{ $cate->name . '-' . $cate->id }}" {{ $isChecked ? 'checked' : '' }}>
                                 <label class="form-check-label text-dark-custom" for="{{ $cate->name . '-' . $cate->id }}">
                                     {{ $cate->name }}
                                 </label>
                             </div>
                         @endforeach
                     </div>
+
                 </div>
                 <div class="card mb-3">
                     <div class="card-header">
                         <h5 class="title">Hình ảnh sản phẩm</h5>
                     </div>
                     <div class="card-body">
-                        <x-image.index id="image-product" class="mb-3 img-fluid" :src="config('settings.image_default')" alt="Hình ảnh danh mục" />
-
-                        <x-button.index label="Tải ảnh" onclick="chooseImage()" />
-
-                        <x-form.input_text hidden id="typeFile" onchange="previewImage(this);" type="file"
-                            accept="image/png, image/jpeg, image/jpg" name="image_url" />
+                        <x-image.index class="mb-3" />
+                        <x-button.index label="Tải ảnh" />
                     </div>
                 </div>
             </div>
@@ -126,8 +128,8 @@
 @endpush
 
 @push('scripts')
-    <x-script.upload_image idPreview="image-product" />
     <script>
+        window.skusData = @json($skus);
         CKEDITOR.replace('description', {
             language: 'vi',
             height: 300

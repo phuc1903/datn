@@ -79,6 +79,12 @@ class VariantController extends Controller
      */
     public function destroy(Variant $variant)
     {
-        //
+        try {
+            $variant->delete();
+
+            return redirect()->route('admin.variant.index')->with('success', 'Xóa biến thể thành công');
+        }catch(\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 }

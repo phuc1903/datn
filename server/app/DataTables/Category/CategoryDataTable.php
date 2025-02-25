@@ -22,7 +22,7 @@ class CategoryDataTable extends BaseDataTable
     protected bool $includeUpdatedAt = true;
 
     protected int $orderBy = 5;
-   
+
     /**
      * Get the query source of dataTable.
      */
@@ -30,7 +30,7 @@ class CategoryDataTable extends BaseDataTable
     {
         return Category::query();
     }
- 
+
     public function extraColumns(): array
     {
         return [
@@ -53,9 +53,8 @@ class CategoryDataTable extends BaseDataTable
                 return $statusEnum->badge();
             })
             ->editColumn('image', function ($category) {
-                return '<img class="rounded mx-auto d-block image-cover image-table" src="' . asset($category->image) . '"/>';
+                $imageUrl = optional($category->first())->image ?? asset('default-image.jpg');
+                return '<img class="rounded mx-auto d-block image-cover image-table" src="' . asset($imageUrl) . '"/>';
             });
-        
     }
-
 }

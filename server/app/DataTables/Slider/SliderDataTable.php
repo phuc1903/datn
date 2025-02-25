@@ -20,7 +20,7 @@ class SliderDataTable extends BaseDataTable
     protected bool $includeCreatedAt = true;
     protected bool $includeUpdatedAt = true;
 
-    protected int $orderBy = 3;
+    protected int $orderBy = 6;
 
     /**
      * Get the query source of dataTable.
@@ -42,7 +42,7 @@ class SliderDataTable extends BaseDataTable
 
     protected function getEditableColumns(): array
     {
-        return ['status', 'image'];
+        return ['status', 'image_url'];
     }
 
     protected function customizeDataTable(EloquentDataTable $dataTable): EloquentDataTable
@@ -52,8 +52,8 @@ class SliderDataTable extends BaseDataTable
                 $statusEnum = SlideStatus::fromValue($slider->status);
                 return $statusEnum->badge();
             })
-            ->editColumn('image', function ($slider) {
-                return '<img class="rounded mx-auto d-block image-cover image-table" src="' . asset($slider->image) . '"/>';
+            ->editColumn('image_url', function ($slider) {
+                return '<img class="rounded mx-auto d-block image-cover image-table slider small" src="' . asset($slider->image_url) . '"/>';
             });
     }
 }
