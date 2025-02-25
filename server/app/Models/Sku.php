@@ -19,4 +19,10 @@ class Sku extends Model
     {
         return $this->belongsToMany(VariantValue::class, 'sku_variants')->select('variant_values.id', 'variant_values.value','variant_values.variant_id');
     }
+
+    // Thêm miền vào link image_url cho FE get
+    public function getImageUrlAttribute($value)
+    {
+        return $value ? asset($value) : null;
+    }
 }
