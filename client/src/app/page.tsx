@@ -6,38 +6,46 @@ import Link from "next/link";
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [sliderImages, setSliderImages] = useState([]);
   const [favoriteProducts, setFavoriteProducts] = useState([]);
+  const [hotProducts, setHotProducts] = useState([]);
+  const [newProducts, setNewProducts] = useState([]);
+  const [recommended, setRecommended] = useState([]);
 
-  const getRandomItems = (arr, num) => {
+  const getRandomItems = (arr: any[], num: number) => {
+    if (!arr || !Array.isArray(arr) || arr.length === 0) return [];
     const shuffled = [...arr].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, num);
+    return shuffled.slice(0, Math.min(num, arr.length));
   };
 
   useEffect(() => {
-    // Slider auto-scroll effect
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
+      setCurrentSlide((prev) => (sliderImages.length > 0 ? (prev + 1) % sliderImages.length : 0));
     }, 5000);
 
     // Fetch slider images
     fetch("http://127.0.0.1:8000/api/v1/sliders")
       .then((res) => res.json())
       .then((data) => {
-        setSliderImages(data.data.map(item => item.image_url));
+        setSliderImages(data.data?.map(item => item.image_url) || []);
       })
-      .catch((error) => {
-        console.error("Error fetching slider images:", error);
-      });
+      .catch((error) => console.error("Error fetching slider images:", error));
 
-    // Fetch products
+    // Fetch products and set derived lists
     fetch("http://127.0.0.1:8000/api/v1/products")
       .then((res) => res.json())
       .then((data) => {
-        const inStockProducts = data.data.filter(product => product.status !== "out_of_stock");
+        const inStockProducts = data.data?.filter(product => product.status !== "out_of_stock") || [];
         setProducts(inStockProducts);
+        setHotProducts(getRandomItems(inStockProducts.filter(p => p.is_hot), 4));
+        setNewProducts(getRandomItems(
+          [...inStockProducts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
+          5
+        ));
+        setRecommended(getRandomItems(inStockProducts, 5));
         setLoading(false);
       })
       .catch((error) => {
@@ -49,36 +57,36 @@ export default function Products() {
     fetch("http://127.0.0.1:8000/api/v1/categories")
       .then((res) => res.json())
       .then((data) => {
-        const parentCategories = data.data.filter(cat => cat.parent_id === 0);
+        const parentCategories = data.data?.filter(cat => cat.parent_id === 0) || [];
+        console.log("Parent Categories:", parentCategories); // Debug để kiểm tra
         const randomCategories = getRandomItems(parentCategories, 4);
         setCategories(randomCategories);
       })
-      .catch((error) => {
-        console.error("Error fetching categories:", error);
-      });
+      .catch((error) => console.error("Error fetching categories:", error));
 
-    // Fetch most favorite products
+    // Fetch favorite products
     fetch("http://127.0.0.1:8000/api/v1/products/most-favorites")
       .then((res) => res.json())
       .then((data) => {
-        const randomFavorites = getRandomItems(data.data, 5);
+        const randomFavorites = getRandomItems(data.data || [], 5);
         setFavoriteProducts(randomFavorites);
       })
-      .catch((error) => {
-        console.error("Error fetching favorite products:", error);
-      });
+      .catch((error) => console.error("Error fetching favorite products:", error));
+
+    // Fetch blogs
+    fetch("http://127.0.0.1:8000/api/v1/blogs")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.status === "success") {
+          setBlogs(getRandomItems(data.data || [], 3));
+        }
+      })
+      .catch((error) => console.error("Error fetching blogs:", error));
 
     return () => clearInterval(timer);
-  }, [sliderImages.length]);
+  }, [sliderImages.length]); // Chỉ re-run khi sliderImages.length thay đổi
 
   if (loading) return <p className="text-center text-lg">Đang tải dữ liệu...</p>;
-
-  const hotProducts = getRandomItems(products.filter(p => p.is_hot), 4);
-  const newProducts = getRandomItems(
-    products.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
-    5
-  );
-  const recommended = getRandomItems(products, 5);
 
   const categoryImages = {
     0: '/oxy.jpg',
@@ -89,8 +97,8 @@ export default function Products() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-       {/* Hero Slider Section */}
-       <section className="w-full px-4 py-12">
+      {/* Hero Slider Section */}
+      <section className="w-full px-4 py-12">
         <div className="max-w-7xl mx-auto">
           <div className="relative h-[400px] w-full overflow-hidden rounded-lg">
             {sliderImages.map((image, index) => (
@@ -111,8 +119,6 @@ export default function Products() {
                 </div>
               </div>
             ))}
-            
-            {/* Slider Controls */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
               {sliderImages.map((_, index) => (
                 <button
@@ -127,6 +133,7 @@ export default function Products() {
           </div>
         </div>
       </section>
+
       {/* Categories Section */}
       <section className="w-full px-4 py-12 bg-pink-100">
         <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Danh Mục Sản Phẩm</h2>
@@ -170,7 +177,6 @@ export default function Products() {
                     fill 
                     className="object-cover transform transition-transform duration-300 group-hover:scale-105" 
                   />
-                 
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
                     <h3 className="text-2xl font-semibold text-white mb-3 line-clamp-2">
                       {hotProducts[0].name}
@@ -205,7 +211,6 @@ export default function Products() {
                       fill 
                       className="object-cover transform transition-transform duration-300 group-hover:scale-105" 
                     />
-                   
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                       <h3 className="text-base font-semibold text-white mb-2 line-clamp-1">
                         {product.name}
@@ -231,57 +236,52 @@ export default function Products() {
           </div>
         </div>
       </section>
-{/* login ads */}
-<section className=" py-16 overflow-hidden bg-pink-100">
-  <div className="max-w-7xl mx-auto px-4">
-    <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-      {/* Text Content */}
-      <div className="max-w-xl">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          Đăng ký tài khoản tại ZBeauty
-        </h2>
-        <p className="text-gray-600 mb-8 leading-relaxed">
-          Hãy đăng ký tài khoản trên website của chúng tôi để luôn nhận được thông tin mới nhất về sản phẩm, khuyến mãi và các sự kiện đặc biệt. Đảm bảo bạn không bỏ lỡ bất kỳ cơ hội hấp dẫn nào và tận hưởng những ưu đãi dành riêng cho thành viên. Đăng ký ngay!
-        </p>
-        <div className="flex gap-4">
-        <Link href="/register">
-        <button className="bg-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-700 transition-colors">
-          Đăng ký tài khoản
-        </button>
-      </Link>
-      <Link href="/shop">
-        <button className="bg-white text-pink-600 px-6 py-3 rounded-lg font-medium hover:bg-pink-600 hover:text-white transition-colors">
-          Xem tất cả sản phẩm
-        </button>
-      </Link>
-        </div>
-      </div>
 
-      {/* Image Circle with Dots */}
-      <div className="relative">
-        <div className="w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-full bg-pink-50 relative">
-          <Image
-            src="/img.png"
-            alt="Person using phone"
-            fill
-            className="object-cover rounded-full p-4"
-          />
-          
-          {/* Decorative Dots */}
-          <div className="absolute -top-4 -right-4 w-8 h-8 bg-white rounded-full border-4 border-pink-200" />
-          <div className="absolute -bottom-4 -left-4 w-8 h-8 bg-white rounded-full border-4 border-pink-200" />
-          <div className="absolute top-1/2 -right-4 w-8 h-8 bg-white rounded-full border-4 border-pink-200" />
-          
-          {/* Stats Badge */}
-          <div className="absolute -right-4 top-8 bg-white px-4 py-2 rounded-lg shadow-lg">
-            <div className="text-xl font-bold text-gray-900">1850+</div>
-            <div className="text-sm text-gray-600">Người dùng</div>
+      {/* Login Ads */}
+      <section className="py-16 overflow-hidden bg-pink-100">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="max-w-xl">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Đăng ký tài khoản tại ZBeauty
+              </h2>
+              <p className="text-gray-600 mb-8 leading-relaxed">
+                Hãy đăng ký tài khoản trên website của chúng tôi để luôn nhận được thông tin mới nhất về sản phẩm, khuyến mãi và các sự kiện đặc biệt. Đảm bảo bạn không bỏ lỡ bất kỳ cơ hội hấp dẫn nào và tận hưởng những ưu đãi dành riêng cho thành viên. Đăng ký ngay!
+              </p>
+              <div className="flex gap-4">
+                <Link href="/register">
+                  <button className="bg-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-700 transition-colors">
+                    Đăng ký tài khoản
+                  </button>
+                </Link>
+                <Link href="/shop">
+                  <button className="bg-white text-pink-600 px-6 py-3 rounded-lg font-medium hover:bg-pink-600 hover:text-white transition-colors">
+                    Xem tất cả sản phẩm
+                  </button>
+                </Link>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="w-[300px] h-[300px] md:w-[400px] md:h-[400px] rounded-full bg-pink-50 relative">
+                <Image
+                  src="/img.png"
+                  alt="Person using phone"
+                  fill
+                  className="object-cover rounded-full p-4"
+                />
+                <div className="absolute -top-4 -right-4 w-8 h-8 bg-white rounded-full border-4 border-pink-200" />
+                <div className="absolute -bottom-4 -left-4 w-8 h-8 bg-white rounded-full border-4 border-pink-200" />
+                <div className="absolute top-1/2 -right-4 w-8 h-8 bg-white rounded-full border-4 border-pink-200" />
+                <div className="absolute -right-4 top-8 bg-white px-4 py-2 rounded-lg shadow-lg">
+                  <div className="text-xl font-bold text-gray-900">1850+</div>
+                  <div className="text-sm text-gray-600">Người dùng</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
+      </section>
+
       {/* New Products Section */}
       <section className="w-full px-4 py-12 bg-white">
         <div className="max-w-7xl mx-auto">
@@ -377,6 +377,7 @@ export default function Products() {
           </div>
         </div>
       </section>
+
       {/* Favorite Products Section */}
       <section className="w-full px-4 py-12 bg-gray-100">
         <div className="max-w-7xl mx-auto">
@@ -414,53 +415,55 @@ export default function Products() {
           </div>
         </div>
       </section>
+
       {/* Blog Section */}
-<section className="max-w-7xl mx-auto px-4 py-12">
-  <h2 className="text-3xl font-bold text-gray-800 mb-8">Góc làm đẹp</h2>
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {[1, 2, 3].map((blog) => (
-      <div key={blog} className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="relative aspect-video">
-          <Image
-            src={`/banner/1.jpg`}
-            alt={`Blog ${blog}`}
-            fill
-            className="object-cover"
-          />
+      <section className="max-w-7xl mx-auto px-4 py-12">
+        <h2 className="text-3xl font-bold text-gray-800 mb-8">Góc làm đẹp</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {blogs.map((blog) => (
+            <div key={blog.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="relative aspect-video">
+                <Image
+                  src={blog.image_url || "/default-blog.jpg"}
+                  alt={blog.title}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="p-4">
+                <h3 className="text-lg text-black font-bold mb-2">{blog.title}</h3>
+                <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                  {blog.short_description}
+                </p>
+                <Link
+                  href={`/blog/${blog.id}`}
+                  className="text-pink-600 hover:text-pink-700 font-medium"
+                >
+                  Đọc thêm
+                </Link>
+              </div>
+            </div>
+          ))}
         </div>
-        <div className="p-4">
-          <h3 className="text-lg text-black font-bold mb-2">Cách chăm sóc da mùa đông</h3>
-          <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-            Mùa đông là thời điểm da dễ bị khô và nứt nẻ. Hãy tham khảo các mẹo chăm sóc da đơn giản để giữ da luôn mịn màng.
-          </p>
-          <Link
-            href={`/blog/${blog}`}
-            className="text-pink-600 hover:text-pink-700 font-medium"
-          >
-            Đọc thêm
-          </Link>
-        </div>
-      </div>
-    ))}
-  </div>
-</section>
+      </section>
 
       {/* FAQ or Support Section */}
-<section className="max-w-7xl mx-auto px-4 py-12 bg-gray-50">
-  <h2 className="text-3xl font-bold text-gray-800 mb-8">Hỗ trợ khách hàng</h2>
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {[
-      { question: 'Làm sao để đặt hàng?', answer: 'Bạn có thể đặt hàng trực tiếp trên website hoặc liên hệ qua hotline.' },
-      { question: 'Chính sách đổi trả là gì?', answer: 'Chúng tôi hỗ trợ đổi trả trong vòng 7 ngày kể từ khi nhận hàng.' },
-      { question: 'Sản phẩm có chính hãng không?', answer: 'Tất cả sản phẩm đều được nhập khẩu chính hãng và có hóa đơn.' },
-    ].map((faq, index) => (
-      <div key={index} className="bg-white rounded-lg shadow-md p-6">
-        <h4 className="font-bold text-gray-800 mb-2">{faq.question}</h4>
-        <p className="text-sm text-gray-600">{faq.answer}</p>
-      </div>
-    ))}
-  </div>
-</section>
+      <section className="max-w-7xl mx-auto px-4 py-12 bg-gray-50">
+        <h2 className="text-3xl font-bold text-gray-800 mb-8">Hỗ trợ khách hàng</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[
+            { question: 'Làm sao để đặt hàng?', answer: 'Bạn có thể đặt hàng trực tiếp trên website hoặc liên hệ qua hotline.' },
+            { question: 'Chính sách đổi trả là gì?', answer: 'Chúng tôi hỗ trợ đổi trả trong vòng 7 ngày kể từ khi nhận hàng.' },
+            { question: 'Sản phẩm có chính hãng không?', answer: 'Tất cả sản phẩm đều được nhập khẩu chính hãng và có hóa đơn.' },
+          ].map((faq, index) => (
+            <div key={index} className="bg-white rounded-lg shadow-md p-6">
+              <h4 className="font-bold text-gray-800 mb-2">{faq.question}</h4>
+              <p className="text-sm text-gray-600">{faq.answer}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="bg-pink-100 py-16">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-gray-800 mb-4">Đăng ký nhận tin</h2>

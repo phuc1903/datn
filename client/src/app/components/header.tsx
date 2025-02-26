@@ -204,6 +204,11 @@ const Header: React.FC = () => {
       name: "Liên hệ",
       path: "/contact",
     },
+    {
+      id: 5,
+      name: 'Bài viết',
+      path: '/blog',
+    },
   ];
 
   const renderSearchResults = () => {
