@@ -125,10 +125,16 @@
 
 #variants-pane {
     #variant-list {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
         .accordion-item {
             background-color: var(--background);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border) !important;
             border-radius: 16px;
+            .accordion-button {
+                border-radius: 16px;
+            }
         }
     }
 }
