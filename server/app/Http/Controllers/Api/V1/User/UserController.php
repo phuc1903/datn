@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\User;
 
+use App\Enums\Voucher\VoucherStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
@@ -112,36 +113,26 @@ class UserController extends Controller
     /*
     |--------------------------------------------------------------------------
     | Lấy danh sách mã giảm giá User
-    | Path: /api/users/{{userId}}/vouchers
+    | Path: /api/users/vouchers
     |--------------------------------------------------------------------------
     */
-    public function vouchers($userId)
+    public function vouchers()
     {
         try {
-            // Lấy user kèm theo danh sách vouchers
-            $user = User::with('vouchers.productVoucher')->find($userId);
+            // Lấy người dùng đang đăng nhập
+            $user = Auth::user();
 
-            // Không tìm thấy User
-            if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                    'data' => null
-                ], 404);
-            }
+            // Lấy user kèm theo danh sách vouchers
+            $vouchers = User::with(['vouchers' => function ($query) {
+                $query->where('status', VoucherStatus::Active);
+            }, 'vouchers.productVoucher'])
+                ->find($user->id);
 
             // Trả về danh sách vouchers của user
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Got user vouchers',
-                'data' => $user
-            ], 200);
+            return ResponseSuccess('Got user vouchers', $vouchers);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
+            return ResponseError($e->getMessage(), null, 500);
         }
     }
 

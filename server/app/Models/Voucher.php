@@ -13,6 +13,8 @@ class Voucher extends Model
     protected $guarded = [];
 
     protected $casts = [
+        'started_at' => 'datetime',
+        'ended_at' => 'datetime',
         'random_flag' => 'boolean',
         'voucher_status' => VoucherStatus::class,
         'voucher_type' => VoucherType::class,
