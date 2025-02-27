@@ -148,11 +148,9 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        dd($request);
         try {
             \DB::beginTransaction();
 
-            // 🟢 Cập nhật thông tin sản phẩm chính
             $product->update([
                 'name' => $request->name,
                 'short_description' => $request->short_description,
@@ -163,9 +161,8 @@ class ProductController extends Controller
                 'slug' => $request->slug ? Str::slug($request->slug) : Str::slug($request->name),
             ]);
 
-            // 🟢 Cập nhật danh mục sản phẩm
-            ProductCategory::where('product_id', $product->id)->delete();
             if ($request->has('categories')) {
+                ProductCategory::where('product_id', $product->id)->delete();
                 foreach ($request->categories as $cate) {
                     ProductCategory::create([
                         'product_id' => $product->id,
@@ -174,21 +171,17 @@ class ProductController extends Controller
                 }
             }
 
-            // 🟢 Lấy danh sách các SKU cũ
             $existingSkus = $product->skus->pluck('id')->toArray();
             $newSkus = [];
 
-            // 🟢 Cập nhật hoặc thêm mới biến thể (SKUs)
             if (!empty($request->variants)) {
                 foreach ($request->variants as $key => $variantData) {
-                    // 🟡 Tìm SKU hiện tại theo product_id và variant_values
                     $sku = Sku::where('product_id', $product->id)
                         ->whereHas('skuVariants', function ($query) use ($variantData) {
                             $query->whereIn('variant_value_id', $variantData['variant_values'] ?? []);
                         })
                         ->first();
 
-                    // 🟡 Nếu không có SKU → tạo mới SKU
                     if (!$sku) {
                         $sku = Sku::create([
                             'product_id' => $product->id,
@@ -196,26 +189,23 @@ class ProductController extends Controller
                             'price' => $variantData['price'] ?? 0,
                             'promotion_price' => $variantData['promotion_price'] ?? 0,
                             'quantity' => $variantData['quantity'] ?? 0,
-                            'image_url' => $this->uploadImage($request, "variants.$key.image"), // ✅ Upload ảnh mới nếu có
+                            'image_url' => $this->uploadImage($request, "variants.$key.image"),
                         ]);
                     } else {
-                        // 🟡 Nếu SKU đã tồn tại, cập nhật thông tin
                         $sku->update([
                             'price' => $variantData['price'] ?? 0,
                             'promotion_price' => $variantData['promotion_price'] ?? 0,
                             'quantity' => $variantData['quantity'] ?? 0,
                             'image_url' => $request->hasFile("variants.$key.image")
-                                ? $this->uploadImage($request, "variants.$key.image", $sku->image_url) // ✅ Nếu có ảnh mới, cập nhật
-                                : $sku->image_url, // ✅ Nếu không có ảnh mới, giữ nguyên ảnh cũ
+                                ? $this->uploadImage($request, "variants.$key.image", $sku->image_url)
+                                : $sku->image_url, 
                         ]);
                     }
 
                     $newSkus[] = $sku->id;
 
-                    // 🟡 Xóa các giá trị biến thể cũ của SKU
                     SkuVariant::where('sku_id', $sku->id)->delete();
 
-                    // 🟡 Thêm mới giá trị biến thể
                     if (!empty($variantData['variant_values'])) {
                         foreach ($variantData['variant_values'] as $variantValueId) {
                             SkuVariant::create([
@@ -227,7 +217,6 @@ class ProductController extends Controller
                 }
             }
 
-            // 🟢 Xóa các SKU không còn trong danh sách
             $skusToDelete = array_diff($existingSkus, $newSkus);
             Sku::whereIn('id', $skusToDelete)->delete();
 

@@ -5,7 +5,7 @@
         @csrf
         @method('PUT')
         <div class="row card-custom">
-            <div class="col-9">
+            <div class="col-12 col-md-9">
                 <div class="card card-custom mb-3">
                     <div class="card-header card-header-custom">
                         <h3 class="title">Sửa Slider</h3>
@@ -26,7 +26,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-12 col-md-3">
                 <div class="card mb-3">
                     <div class="card-header">
                         <h5 class="title">Đăng</h5>

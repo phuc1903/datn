@@ -5,7 +5,7 @@
         @csrf
         @method('PUT')
         <div class="row card-custom">
-            <div class="col-9">
+            <div class="col-12 col-md-9">
                 <div class="card card-custom mb-3">
                     <div class="card-header card-header-custom">
                         <h3 class="title">Sửa sản phẩm</h3>
@@ -50,7 +50,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-12 col-md-3">
                 <div class="card mb-3">
                     <div class="card-header">
                         <h5 class="title">Đăng</h5>
@@ -99,8 +99,9 @@
                                 $isChecked = $product->categories->contains($cate->id);
                             @endphp
                             <div class="form-check mf-level" style="--cat-depth: {{ $pxMargin }}px;">
-                                <input class="form-check-input" type="checkbox" value="{{ $cate->id }}"
-                                    id="{{ $cate->name . '-' . $cate->id }}" {{ $isChecked ? 'checked' : '' }}>
+                                <input class="form-check-input" type="checkbox" name="categories[]"
+                                    value="{{ $cate->id }}" id="{{ $cate->name . '-' . $cate->id }}"
+                                    {{ $isChecked ? 'checked' : '' }}>
                                 <label class="form-check-label text-dark-custom" for="{{ $cate->name . '-' . $cate->id }}">
                                     {{ $cate->name }}
                                 </label>
@@ -129,7 +130,6 @@
 
 @push('scripts')
     <script>
-        window.skusData = @json($skus);
         CKEDITOR.replace('description', {
             language: 'vi',
             height: 300

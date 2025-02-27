@@ -1,5 +1,5 @@
 <div class="row h-100 w-100">
-    <div class="col-3">
+    <div class="col-12 col-md-3">
         <ul class="nav nav-tabs flex-column nav-tabs-product-custom h-100" id="variable-product-tab" role="tablist">
             {{-- Tab Kiểm kê kho hàng --}}
             <li class="nav-item" role="presentation">
@@ -24,7 +24,7 @@
         </ul>
 
     </div>
-    <div class="col-9">
+    <div class="col-12 col-md-9">
         <div class="tab-content tab-content-product" id="variable-productContent">
             {{-- Nội dung Kiểm kê kho hàng --}}
             <div class="tab-pane fade show active" id="warehouse-pane-variable" role="tabpanel"
@@ -45,7 +45,7 @@
                 <div class="mb-3">
                     <label for="product-attributes" class="form-label text-dark-custom">Chọn thuộc tính</label>
                     <div class="d-flex gap-3">
-                        <select class="form-select" id="product-attributes">
+                        <select class="form-select" id="product-attributes" data-route-api="{{ route('api.get.skus.product', $product->id)}}">
                             @foreach ($variants as $vari)
                                 <option value="{{ $vari->id }}" data-vari='@json($vari)'>
                                     {{ $vari->name }}</option>

@@ -5,9 +5,9 @@
         @csrf
         @method("PUT")
         <div class="row card-custom">
-            <div class="col-9">
+            <div class="col-12 col-md-9">
                 <div class="row">
-                    <div class="col-5 mb-3">
+                    <div class="col-12 col-md-5 mb-3">
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="title">Thông tin chính</h4>
@@ -31,7 +31,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-7 mb-3">
+                    <div class="col-12 col-md-7 mb-3">
                         <div class="card mb-3">
                             <div class="card-header">
                                 <h4 class="title">Sổ địa chỉ</h4>
@@ -46,7 +46,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-12 col-md-3">
                 <div class="card mb-3">
                     <div class="card-header">
                         <h4 class="title">Đăng</h4>

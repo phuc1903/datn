@@ -179,7 +179,7 @@
             'label' => 'Slider',
             'active' => request()->routeIs('admin.slider.index'),
             'type' => 'nav',
-            'icon' => 'bi-person-lines-fill',
+            'icon' => 'bi-images',
             'path' => route('admin.slider.index'),
             'child' => [
                 [

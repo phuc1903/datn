@@ -4,7 +4,7 @@
     <form action="{{ route('admin.variant.store') }}" method="post">
         @csrf
         <div class="row card-custom">
-            <div class="col-9">
+            <div class="col-12 col-md-9">
                 <div class="row">
                     <div class="col-5 mb-3">
                         <div class="card">
@@ -33,7 +33,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-12 col-md-3">
                 <div class="card mb-3">
                     <div class="card-header">
                         <h4 class="title">Đăng</h4>

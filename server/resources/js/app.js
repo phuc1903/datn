@@ -29,16 +29,49 @@ $('.accordion-header').on('click', function(e) {
     }
 })
 
+
 // variants
 
 $(document).ready(function () {
-    let existingSkus = window.skusData || null;
+    const routeApi = $('#product-attributes').data('route-api'); 
+    let existingSkus = null;
     let attributes = {};
 
-    function parseExistingSkus() {
+    function fetchSkus() {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: routeApi,
+                method: "GET",
+                dataType: "json",
+                cache: false,
+                success: function (data) {
+                    resolve(data);
+                },
+                error: function (error) {
+                    reject(error);
+                }
+            });
+        });
+    }
+
+    async function loadSkusData() {
+        try {
+            existingSkus = await fetchSkus();
+
+            if (existingSkus) {
+                parseExistingSkus(existingSkus);
+                loadExistingAttributes();
+                generateVariants();
+            }
+        } catch (error) {
+            // alert(error);
+        }
+    }
+
+    function parseExistingSkus(skus) {
         attributes = {};
 
-        existingSkus.forEach((sku) => {
+        skus.forEach((sku) => {
             sku.variant_values.forEach((variant) => {
                 if (!attributes[variant.variant_id]) {
                     attributes[variant.variant_id] = {
@@ -59,8 +92,9 @@ $(document).ready(function () {
             });
         });
 
-        // console.log("hoàn thành:", attributes);
     }
+
+    loadSkusData();
 
     function loadExistingAttributes() {
         $("#attribute-list").empty();
@@ -74,12 +108,6 @@ $(document).ready(function () {
                 renderAttributeHtml(attributeId, attributeName, attributeData);
             }
         });
-    }
-
-    if (existingSkus) {
-        parseExistingSkus();
-        loadExistingAttributes();
-        generateVariants();
     }
 
     function addAttribute() {
@@ -172,7 +200,7 @@ $(document).ready(function () {
     }
 
     function generateVariants() {
-        $("#variant-list").empty(); // Xóa danh sách biến thể cũ
+        $("#variant-list").empty();
     
         let attributeValues = Object.values(attributes).map(attr => attr.variant_values);
     
@@ -190,7 +218,6 @@ $(document).ready(function () {
                 return $(`#attribute-values-${attributeId} option[value='${valueId}']`).text();
             });
     
-            // 🟢 Tìm dữ liệu biến thể từ existingSkus nếu có
             let existingData = existingSkus?.find(sku => {
                 let skuVariantIds = sku.variant_values.map(v => v.id.toString());
                 return JSON.stringify(skuVariantIds.sort()) === JSON.stringify(variant.sort());
@@ -201,7 +228,6 @@ $(document).ready(function () {
             let quantity = existingData ? existingData.quantity : 1;
             let image_url = existingData ? existingData.image_url : "";
     
-            // 🛑 Input ẩn để submit đúng dữ liệu
             let hiddenInputs = `
                 <input type="hidden" class="hidden-price" name="variants[${index}][price]" value="${price}">
                 <input type="hidden" class="hidden-promotion-price" name="variants[${index}][promotion_price]" value="${promotion_price}">
@@ -222,25 +248,27 @@ $(document).ready(function () {
                         </button>
                     </h2>
                     <div id="collapse-${index}" class="accordion-collapse collapse" aria-labelledby="heading-${index}" data-bs-parent="#variant-list">
-                        <div class="accordion-body">
-                            <div class="mb-3">
-                                <label class="form-label">Giá bán (đ)</label>
-                                <input type="number" class="form-control variant-price" data-index="${index}" value="${price}" min="0" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Giá khuyến mãi (đ)</label>
-                                <input type="number" class="form-control variant-promotion-price" data-index="${index}" value="${promotion_price}" min="0">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Số lượng</label>
-                                <input type="number" class="form-control variant-quantity" data-index="${index}" value="${quantity}" min="1" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Hình ảnh biến thể</label>
-                                <input type="file" class="form-control variant-image" name="variants[${index}][image]" id="variant-image-${index}">
+                        <div class="accordion-body d-flex gap-3">
+                          <div class="mb-3">
                                 <img id="preview-image-${index}" src="${image_url ? image_url : '#'}" alt="Ảnh biến thể" style="max-width: 100px; ${image_url ? 'display: block;' : 'display: none;'}"/>
+                                <label class="form-label text-dark-custom">Hình ảnh biến thể</label>
+                                <input type="file" class="form-control variant-image" name="variants[${index}][image]" id="variant-image-${index}"  style="max-width: 100px;">
                             </div>
-                            <button type="button" class="btn btn-danger remove-variant" data-variant-index="${index}">Xóa biến thể</button>
+                            <div class="w-100"> 
+                                <div class="mb-3">
+                                    <label class="form-label text-dark-custom">Giá bán (đ)</label>
+                                    <input type="number" class="form-control variant-price" data-index="${index}" value="${price}" min="0" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-dark-custom">Giá khuyến mãi (đ)</label>
+                                    <input type="number" class="form-control variant-promotion-price" data-index="${index}" value="${promotion_price}" min="0">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-dark-custom">Số lượng</label>
+                                    <input type="number" class="form-control variant-quantity" data-index="${index}" value="${quantity}" min="1" required>
+                                </div>   
+                                <button type="button" class="btn btn-danger remove-variant" data-variant-index="${index}">Xóa biến thể</button>
+                            </div>
                         </div>
                     </div>
                     ${hiddenInputs}
@@ -251,7 +279,6 @@ $(document).ready(function () {
     
         $("#variant-list").html(variantHtml);
     
-        // 🟢 Gắn sự kiện onchange cho từng input để cập nhật giá trị vào hidden input trước khi submit
         $(".variant-price, .variant-promotion-price, .variant-quantity").on("input", function () {
             let index = $(this).data("index");
             let price = $(`.variant-price[data-index="${index}"]`).val();
@@ -263,7 +290,6 @@ $(document).ready(function () {
             $(`.hidden-quantity[name="variants[${index}][quantity]"]`).val(quantity);
         });
     
-        // 🟢 Xử lý preview ảnh biến thể + Lưu đường dẫn vào input file
         $(".variant-image").change(function (event) {
             let index = $(this).attr("id").split("-").pop();
             let file = event.target.files[0];

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\Auth\AuthController;
 use App\Http\Controllers\Admin\Blog\BlogController;
 use App\Http\Controllers\Admin\Blog\TagController;
 use App\Http\Controllers\Admin\Category\CategoryController;
@@ -28,15 +29,21 @@ use Illuminate\Support\Facades\Session;
 |
 */
 
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware('guest:admin')->group(function() {
+    Route::get('/login', [AuthController::class, 'login'])->name('login');
+    Route::post('/login', [AuthController::class, 'loginStore'])->name('login.store');
+});
 
-Route::prefix('/admin')->as('admin.')->group(function () {
+Route::middleware('auth:admin')->group(function() {
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+
+Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function () {
     Route::resource('product', ProductController::class);
     Route::resource('category', CategoryController::class);
     Route::resource('user', UserController::class);
     Route::resource('team', TeamController::class);
-    // Route::delete('order/order-item/{orderItem}', [OrderController::class, 'destroyProductItem'])
-    //     ->name('product.destroy');
     Route::resource('order', OrderController::class);
     Route::resource('feedback-product', FeedbackController::class);
     Route::resource('setting', SettingController::class);
@@ -53,4 +60,6 @@ Route::post('/save-theme', function (Request $request) {
     return response()->json(['status' => 'success', 'theme' => $theme]);
 });
 
-// Auth::routes();
+Route::fallback(function() {
+    return redirect()->route('dashboard');
+});

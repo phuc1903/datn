@@ -4,7 +4,7 @@
     <form action="{{ route('admin.tag.store') }}" method="post" enctype="multipart/form-data">
         @csrf
         <div class="row card-custom">
-            <div class="col-9">
+            <div class="col-12 col-md-9">
                 <div class="card card-custom mb-3">
                     <div class="card-header card-header-custom">
                         <h3 class="title">Thêm bài danh mục viết</h3>
@@ -14,7 +14,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-12 col-md-3">
                 <div class="card mb-3">
                     <div class="card-header">
                         <h5 class="title">Đăng</h5>
