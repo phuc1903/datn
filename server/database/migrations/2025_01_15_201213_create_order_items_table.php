@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-
+use App\Enums\Order\OrderItemStatus;
 return new class extends Migration
 {
     /**
@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('sku_id');
             $table->integer('quantity');
             $table->integer('price');
+            $table->enum('status',OrderItemStatus::getValues())->default(OrderItemStatus::Pending);
             $table->foreign('order_id')->references('id')->on('orders');
             $table->foreign('product_id')->references('id')->on('products');
             $table->foreign('sku_id')->references('id')->on('skus');

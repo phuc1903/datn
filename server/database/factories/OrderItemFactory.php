@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Order\OrderItemStatus;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Sku;
@@ -31,6 +32,7 @@ class OrderItemFactory extends Factory
             'sku_id' => $skuId,
             'quantity' => $this->faker->randomNumber(1, true),
             'price' => $sku->price,
+            'status' => $this->faker->randomElement(OrderItemStatus::getValues()),
             'created_at' => now(),
             'updated_at' => now()
         ];
