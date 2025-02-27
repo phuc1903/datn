@@ -15,7 +15,6 @@ use App\Models\Variant;
 use App\Models\Product;
 use App\Models\Sku;
 use App\Models\SkuVariant;
-use App\Models\VariantValue;
 
 class ProductController extends Controller
 {
@@ -245,7 +244,7 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy(Request $request, Product $product)
     {
         try {
 
@@ -259,6 +258,10 @@ class ProductController extends Controller
             $product->skus()->delete();
 
             $product->delete();
+
+            if ($request->ajax()) {
+                return response()->json(['type' => 'success', 'redirect' => route('admin.product.index')]);
+            }
 
             return redirect()->route('admin.product.index')->with('success', 'Xóa sản phẩm thành công');
         } catch (\Exception $e) {

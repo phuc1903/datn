@@ -117,20 +117,20 @@ class OrderController extends Controller
      */
     public function update(Request $request, order $order)
     {
-        $paymentMethod = OrderPaymentMethod::fromValue($request->payment_method) ?? OrderPaymentMethod::fromLabel($request->payment_method);;
+        // $paymentMethod = OrderPaymentMethod::fromValue($request->payment_method) ?? OrderPaymentMethod::fromLabel($request->payment_method);;
         $status = OrderStatus::fromValue($request->status) ?? OrderStatus::fromLabel($request->status);
 
         $order->update([
-            "reason" => $request->reason,
-            "full_name" => $request->full_name,
-            "email" => $request->email,
-            "phone_number" => $request->phone_number,
-            "address" => $request->address,
+            // "reason" => $request->reason,
+            // "full_name" => $request->full_name,
+            // "email" => $request->email,
+            // "phone_number" => $request->phone_number,
+            // "address" => $request->address,
             "status" => $status,
-            "payment_method" => $paymentMethod,
+            // "payment_method" => $paymentMethod,
         ]);
 
-        return redirect()->back()->with('success', 'Cập nhật đơn hàng thành công');
+        return redirect()->back()->with('success', 'Cập nhật trạng thái thành công');
     }
 
     public function destroyProductItem(OrderItem $orderItem)
@@ -146,7 +146,6 @@ class OrderController extends Controller
      */
     public function destroy(order $order)
     {
-
         return redirect()->route('admin.order.index')->with('info', 'Không thể xóa đơn hàng');
     }
 }

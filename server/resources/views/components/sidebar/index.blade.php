@@ -111,6 +111,14 @@
                     'label' => 'Thêm bài viết',
                     'path' => route('admin.blog.create')
                 ],
+                [
+                    'label' => 'DS danh mục bài viết',
+                    'path' => route('admin.tag.index')
+                ],
+                [
+                    'label' => 'Thêm danh mục',
+                    'path' => route('admin.tag.create')
+                ],
             ],
         ],
         // Quản lý Mã giảm giá

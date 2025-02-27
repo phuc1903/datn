@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\Blog\BlogController;
+use App\Http\Controllers\Admin\Blog\TagController;
 use App\Http\Controllers\Admin\Category\CategoryController;
 use App\Http\Controllers\Admin\Dashboard\DashboardController;
 use App\Http\Controllers\Admin\Order\OrderController;
@@ -40,6 +41,7 @@ Route::prefix('/admin')->as('admin.')->group(function () {
     Route::resource('feedback-product', FeedbackController::class);
     Route::resource('setting', SettingController::class);
     Route::resource('blog', BlogController::class);
+    Route::resource('tag', TagController::class);
     Route::resource('voucher', VoucherController::class);
     Route::resource('variant', VariantController::class);
     Route::resource('slider', SliderController::class);

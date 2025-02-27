@@ -13,6 +13,7 @@ class CategoryRequest extends BaseRequest
         'name.string' => 'Tên phải là một chuỗi.',
         'name.max' => 'Tên không được vượt quá 255 ký tự.',
         'name.min' => 'Tên ít nhất 2 ký tự',
+        'name.unique' => 'Tên đã bị trùng',
 
         'short_description.required' => 'Vui lòng nhập mô tả.',
         'short_description.string' => 'Mô tả phải là một chuỗi.',
@@ -37,7 +38,7 @@ class CategoryRequest extends BaseRequest
     protected function methodPost(): array
     {
         return [
-            'name' => ['required', 'string', 'min:2', 'max:255'],
+            'name' => ['required', 'string', 'min:2', 'max:255', 'unique:categories,name'.$this->category],
             'short_description' => ['required', 'string', 'min:10', 'max:255'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'slug' => ['nullable','string','max:255', 'unique:categories,slug'.$this->category],
@@ -48,7 +49,7 @@ class CategoryRequest extends BaseRequest
     protected function methodPut(): array
     {
         return [
-            'name' => ['required', 'string', 'min:2', 'max:255'],
+            'name' => ['required', 'string', 'min:2', 'max:255', 'unique:categories,name,'.$this->route('category')->id.',id'],
             'short_description' => ['required', 'string', 'min:10', 'max:255'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'slug' => ['nullable','string','max:255', 'unique:categories,slug,'.$this->route('category')->id.',id'],

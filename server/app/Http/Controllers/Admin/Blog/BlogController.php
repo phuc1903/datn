@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Admin\Blog;
 use App\DataTables\Blog\BlogDataTable;
 use App\Enums\Blog\BlogStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Blog\BlogRequest;
 use App\Models\Blog;
+use App\Models\BlogTag;
+use App\Models\Tag;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -26,14 +29,16 @@ class BlogController extends Controller
     public function create()
     {
         $status = BlogStatus::getKeyValuePairs();
-        return view('Pages.Blog.Create', ['status' => $status]);
+        $tags = Tag::all();
+        return view('Pages.Blog.Create', ['status' => $status, 'tags' => $tags]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(BlogRequest $request)
     {
+        // dd($request);
         try {
             $data = [
                 'title' => $request->title,
@@ -42,11 +47,11 @@ class BlogController extends Controller
                 'status' => $request->status,
                 'admin_id' => auth()->id() ?? 1,
             ];
-
+  
             if (isset($request->slug) && !empty($request->slug)) {
                 $data['slug'] = $request->slug;
             } else {
-                $data['slug'] = Str::slug($request->name);
+                $data['slug'] = Str::slug($request->title);
             }
 
             $path = null;
@@ -58,7 +63,13 @@ class BlogController extends Controller
                 $data['image_url'] = config(key: 'settings.image_default');
             }
 
-            Blog::create($data);
+            $blog = Blog::create($data);
+
+            if(isset($request->tags) && !empty($request->tags)) {
+                foreach($request->tags as $tag) {
+                    BlogTag::create(['blog_id' => $blog->id, 'tag_id' => $tag]);
+                }
+            }
             
 
             return redirect()->route('admin.blog.index')->with('success', 'Thêm bài viết thành công');
@@ -93,7 +104,7 @@ class BlogController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Blog $blog)
+    public function update(BlogRequest $request, Blog $blog)
     {
         try {
 
@@ -138,7 +149,7 @@ class BlogController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Blog $blog)
+    public function destroy(Request $request,Blog $blog)
     {
         try {
 
@@ -148,6 +159,9 @@ class BlogController extends Controller
             }
 
             $blog->delete();
+            if ($request->ajax()) {
+                return response()->json(['type' => 'success', 'redirect' => route('admin.blog.index')]);
+            }
 
             return redirect()->route('admin.slider.index')->with('success', 'Xóa slider thành công');
         } catch (\Exception $e) {

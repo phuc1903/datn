@@ -77,10 +77,14 @@ class VariantController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Variant $variant)
+    public function destroy(Request $request, Variant $variant)
     {
         try {
             $variant->delete();
+
+            if ($request->ajax()) {
+                return response()->json(['type' => 'success', 'redirect' => route('admin.variant.index')]);
+            }
 
             return redirect()->route('admin.variant.index')->with('success', 'Xóa biến thể thành công');
         }catch(\Exception $e) {

@@ -17,6 +17,7 @@ use Yajra\DataTables\Services\DataTable;
 
 class ProductDataTable extends DataTable
 {
+    protected bool $deleteItem = true;
     /**
      * Build the DataTable class.
      *
@@ -29,15 +30,32 @@ class ProductDataTable extends DataTable
             ->addColumn('action', function ($product) {
                 $editUrl = route('admin.product.edit', $product->id);
                 $deleteUrl = route('admin.product.destroy', $product->id);
-                return '
-                    <div class="d-flex gap-2">
-                        <a class="btn btn-warning text-white" href="' . $editUrl . '">Sửa</a>
-                        <form action="' . $deleteUrl . '" method="POST" class="btn btn-danger ml-2">
-                            ' . csrf_field() . method_field('DELETE') . '
-                            <button type="submit" class="bg-transparent border-0 text-white">Xóa</button>
-                        </form>
-                    </div>
-                ';
+                // return '
+                //     <div class="d-flex gap-2">
+                //         <a class="btn btn-warning text-white" href="' . $editUrl . '">Sửa</a>
+                //         <form action="' . $deleteUrl . '" method="POST" class="btn btn-danger ml-2">
+                //             ' . csrf_field() . method_field('DELETE') . '
+                //             <button type="submit" class="bg-transparent border-0 text-white">Xóa</button>
+                //         </form>
+                //     </div>
+                // ';
+
+                $buttons = '<div class="d-flex gap-2">
+                                <a class="btn btn-warning text-white" href="' . $editUrl . '">Sửa</a>';
+
+                if (!$this->deleteItem) {
+                    $buttons .= '<form action="' . $deleteUrl . '" method="POST" class="d-inline">
+                    ' . csrf_field() . method_field('DELETE') . '
+                    <button type="submit" class="btn btn-danger text-white">Xóa</button>
+                </form>';
+                } else {
+                    $buttons .= '<button type="button" class="btn btn-danger text-white deleteItem" 
+                    data-route-delete="' . $deleteUrl . '" data-id-table="products-table">Xóa</button>';
+                }
+
+                $buttons .= '</div>';
+
+                return $buttons;
             })
             ->editColumn('status', function ($model) {
                 $statusEnum = ProductStatus::fromValue($model->status);

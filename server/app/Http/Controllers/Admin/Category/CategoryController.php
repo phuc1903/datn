@@ -7,6 +7,7 @@ use App\Enums\Category\CategoryStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Category\CategoryRequest;
 use App\Models\Category;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -134,7 +135,7 @@ class CategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category)
+    public function destroy(Request $request, Category $category)
     {
         try {
             if (Str::contains($category->image, 'storage')) {
@@ -143,6 +144,10 @@ class CategoryController extends Controller
             }
 
             $category->delete();
+
+            if ($request->ajax()) {
+                return response()->json(['type' => 'success', 'redirect' => route('admin.category.index')]);
+            }
 
             return redirect()->route('admin.category.index')->with('success', 'Xóa danh mục thành công');
         } catch (\Exception $e) {

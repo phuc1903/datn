@@ -152,12 +152,13 @@
 }
 
 .text-dark-custom {
-    color: var(--foreground);
+    color: var(--foreground) !important;
 }
 
 .border-color {
     border-color: var(--border);
 }
+
 
 // component
 
@@ -171,6 +172,10 @@
         color: var(--foreground);
         box-shadow: none;
         border-color: var(--border);
+    }
+
+    &:disabled {
+        color: var(--muted-foreground);
     }
 }
 

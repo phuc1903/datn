@@ -15,17 +15,17 @@
                             <div class="col-6">
                                 <h5>Thông tin chung</h5>
                                 <div class="form-floating gap-3">
-                                    <textarea class="form-control" name="reason" placeholder="Leave a comment here" id="floatingTextarea">{{ $order->reason }}</textarea>
+                                    <textarea class="form-control" name="reason" disabled placeholder="Leave a comment here" id="floatingTextarea">{{ $order->reason }}</textarea>
                                     <label for="floatingTextarea">Lý do</label>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <h5>Thông tin giao hàng</h5>
-                                <x-form.input_text label="Họ và tên" value="{{ $order->full_name }}" name="full_name" />
-                                <x-form.input_text label="Email" value="{{ $order->email }}" name="email" />
+                                <x-form.input_text label="Họ và tên" value="{{ $order->full_name }}" name="full_name" disabled />
+                                <x-form.input_text label="Email" value="{{ $order->email }}" name="email" disabled />
                                 <x-form.input_text label="Số điện thoại" value="{{ $order->phone_number }}"
-                                    name="phone_number" />
-                                <x-form.input_text label="Địa chỉ" value="{{ $order->address }}" name="address" />
+                                    name="phone_number" disabled />
+                                <x-form.input_text label="Địa chỉ" disabled value="{{ $order->address }}" name="address" />
                             </div>
                         </div>
                     </div>
@@ -38,21 +38,21 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th scope="col" class="text-center">STT</th>
-                                    <th scope="col" class="text-center">Tên sản phẩm</th>
-                                    <th scope="col" class="text-center">Giá</th>
-                                    <th scope="col" class="text-center">Số lượng</th>
-                                    <th scope="col" class="text-center">Tổng tiền</th>
+                                    <th scope="col" class="text-center text-dark-custom">STT</th>
+                                    <th scope="col" class="text-center text-dark-custom">Tên sản phẩm</th>
+                                    <th scope="col" class="text-center text-dark-custom">Giá</th>
+                                    <th scope="col" class="text-center text-dark-custom">Số lượng</th>
+                                    <th scope="col" class="text-center text-dark-custom">Tổng tiền</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($order->items as $index => $item)
                                     <tr>
-                                        <th scope="row" class="text-center">{{ $index + 1 }}</th>
-                                        <td class="text-center">{{ $item->product->name }}</td>
-                                        <td class="text-center">{{ number_format($item->price, 2, '.', '.') }} VNĐ</td>
-                                        <td class="text-center">{{ $item->quantity }}</td>
-                                        <td class="text-center">
+                                        <th scope="row" class="text-center text-dark-custom">{{ $index + 1 }}</th>
+                                        <td class="text-center text-dark-custom">{{ $item->product->name }}</td>
+                                        <td class="text-center text-dark-custom" style="width: 200px;">{{ number_format($item->price, 2, '.', '.') }} VNĐ</td>
+                                        <td class="text-center text-dark-custom" style="width: 100px;">{{ $item->quantity }}</td>
+                                        <td class="text-center text-dark-custom" style="width: 200px;">
                                             {{ number_format($item->quantity * $item->price, 2, '.', '.') }} VNĐ</td>
                                     </tr>
                                 @endforeach

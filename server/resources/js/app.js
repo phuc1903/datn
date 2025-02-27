@@ -23,6 +23,12 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+$('.accordion-header').on('click', function(e) {
+    if(this.getAttribute('href') === '#') {
+        e.preventDefault();
+    }
+})
+
 // variants
 
 $(document).ready(function () {
@@ -285,7 +291,6 @@ $(document).ready(function () {
     $("#save-attributes").click(saveAttributes);
 });
 
-
 document.addEventListener("DOMContentLoaded", function () {
     const productTypeSelect = document.getElementById("product-type");
     const simpleProductDiv = document.getElementById("simple-product");
@@ -403,9 +408,12 @@ document.addEventListener("DOMContentLoaded", function () {
 $(document).ready(function () {
     addAddress();
     deleteUser();
+    deleteItem();
     addVariantValue();
     addProductOrder();
     choseAttribute();
+
+    
 
     function choseAttribute() {
         let selectedAttributes = [1, 2, 3, 4, 5];
@@ -569,6 +577,53 @@ $(document).ready(function () {
                                 }).then(() => {
                                     window.location.href = response.redirect;
                                 });
+                            }
+                        },
+                        error: function (error) {
+                            console.log(error);
+                        },
+                    });
+                }
+            });
+        });
+    }
+
+    function deleteItem() {
+        $(document).on("click",".deleteItem" ,function (e) {
+            e.preventDefault();
+
+            const button = $(this);
+            const routeDelete = $(this).data("route-delete");
+            const idTable = $(this).data("id-table");
+
+            Swal.fire({
+                title: "Xóa dữ liệu",
+                text: "Hành động này sẽ xóa các dữ liệu liên quan. Bạn chắc chắn muốn xóa?",
+                icon: "error",
+                showCancelButton: true,
+                confirmButtonText: "Xóa",
+                cancelButtonText: "Hủy",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: routeDelete,
+                        method: "DELETE",
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest",
+                            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr(
+                                "content"
+                            ),
+                        },
+                        success: function (response) {
+                            if (response.type === "success") {
+                                let table = $("#"+idTable).DataTable(); 
+                                let row = button.closest("tr"); 
+                                table.row(row).remove().draw(false);
+                                Swal.fire({
+                                    title: "Xóa thành công",
+                                    icon: "success",
+                                    confirmButtonText: "Đồng ý",
+                                })
                             }
                         },
                         error: function (error) {

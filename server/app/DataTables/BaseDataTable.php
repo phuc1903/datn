@@ -20,6 +20,8 @@ abstract class BaseDataTable extends DataTable
 
     protected int $orderBy = 2;
 
+    protected bool $deleteItem = true;
+
     /**
      * Build the DataTable class.
      *
@@ -113,14 +115,25 @@ abstract class BaseDataTable extends DataTable
     {
         $editUrl = route('admin.' . $this->routeName . '.edit', $row->id);
         $deleteUrl = route('admin.' . $this->routeName . '.destroy', $row->id);
-        return '<div class="d-flex gap-2">
-                    <a class="btn btn-warning text-white" href="' . $editUrl . '">Sửa</a>
-                    <form action="' . $deleteUrl . '" method="POST" class="btn btn-danger ml-2">
-                        ' . csrf_field() . method_field('DELETE') . '
-                        <button type="submit" class="bg-transparent border-0 text-white">Xóa</button>
-                    </form>
-                </div>';
+
+        $buttons = '<div class="d-flex gap-2">
+        <a class="btn btn-warning text-white" href="' . $editUrl . '">Sửa</a>';
+
+        if (!$this->deleteItem) {
+            $buttons .= '<form action="' . $deleteUrl . '" method="POST" class="d-inline">
+            ' . csrf_field() . method_field('DELETE') . '
+            <button type="submit" class="btn btn-danger text-white">Xóa</button>
+        </form>';
+        } else {
+            $buttons .= '<button type="button" class="btn btn-danger text-white deleteItem" 
+            data-route-delete="' . $deleteUrl . '" data-id-table="'.$this->tableId.'">Xóa</button>';
+        }
+
+        $buttons .= '</div>';
+
+        return $buttons;
     }
+
 
     protected function getLanguageSettings(): array
     {
@@ -138,7 +151,8 @@ abstract class BaseDataTable extends DataTable
                     'next' => 'Tiếp theo',
                     'previous' => 'Về sau'
                 ]
-            ]
+            ],
+            'theme' => 'bootstrap5'
         ];
     }
 

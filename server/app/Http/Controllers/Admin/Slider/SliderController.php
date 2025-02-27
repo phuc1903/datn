@@ -133,10 +133,14 @@ class SliderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(slider $slider)
+    public function destroy(Request $request, slider $slider)
     {
         try {
             $slider->delete();
+
+            if ($request->ajax()) {
+                return response()->json(['type' => 'success', 'redirect' => route('admin.slider.index')]);
+            }
 
             return redirect()->route('admin.slider.index')->with('success', 'Xóa slider thành công');
         } catch (\Exception $e) {

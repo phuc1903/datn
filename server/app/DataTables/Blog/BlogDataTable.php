@@ -53,7 +53,7 @@ class BlogDataTable extends BaseDataTable
                 return '<img class="rounded mx-auto d-block image-cover image-table blog small" src="' . asset($blog->image_url) . '"/>';
             })
             ->editColumn('short_description', function ($blog) {
-                return Str::limit($blog->short_description, 50, '...');
+                return Str::limit($blog->short_description, 30, '...');
             });
     }
 }
