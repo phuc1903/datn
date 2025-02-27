@@ -14,12 +14,12 @@ return new class extends Migration
     {
         Schema::create('product_feedbacks', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('sku_id');
             $table->unsignedBigInteger('user_id');
             $table->enum('rating',['1','2','3','4','5']);
             $table->string('content');
             $table->enum('status',ProductFeedbackStatus::getValues());
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->foreign('sku_id')->references('id')->on('skus')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
