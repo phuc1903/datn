@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { ChevronRight, Package, Truck, CheckCircle, XCircle } from "lucide-react";
+import Swal from "sweetalert2";
 
 const OrderHistoryPage = () => {
   // Load danh sách đơn hàng từ localStorage
@@ -19,10 +20,24 @@ const OrderHistoryPage = () => {
 
   // Hàm hủy đơn hàng
   const handleCancelOrder = (orderId) => {
-    const updatedOrders = orders.map(order =>
-      order.id === orderId ? { ...order, status: "đã hủy" } : order
-    );
-    saveOrdersToLocalStorage(updatedOrders);
+    Swal.fire({
+      title: "Bạn có chắc chắn muốn hủy đơn hàng?",
+      text: "Hành động này không thể hoàn tác!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Hủy đơn",
+      cancelButtonText: "Giữ lại",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const updatedOrders = orders.map(order =>
+          order.id === orderId ? { ...order, status: "đã hủy" } : order
+        );
+        saveOrdersToLocalStorage(updatedOrders);
+        Swal.fire("Đã hủy!", "Đơn hàng của bạn đã bị hủy.", "success");
+      }
+    });
   };
 
   // Danh sách trạng thái
@@ -30,8 +45,8 @@ const OrderHistoryPage = () => {
   const [activeStatus, setActiveStatus] = useState("tất cả");
 
   // Lọc đơn hàng theo trạng thái
-  const filteredOrders = activeStatus === "tất cả" 
-    ? orders 
+  const filteredOrders = activeStatus === "tất cả"
+    ? orders
     : orders.filter(order => order.status === activeStatus);
 
   // Biểu tượng trạng thái
@@ -61,11 +76,10 @@ const OrderHistoryPage = () => {
             <button
               key={status}
               onClick={() => setActiveStatus(status)}
-              className={`px-3 py-2 rounded-lg text-sm ${
-                activeStatus === status 
-                  ? "bg-pink-600 text-white" 
-                  : "bg-white text-gray-600 hover:bg-gray-100"
-              }`}
+              className={`px-3 py-2 rounded-lg text-sm ${activeStatus === status
+                ? "bg-pink-600 text-white"
+                : "bg-white text-gray-600 hover:bg-gray-100"
+                }`}
             >
               {status}
             </button>
@@ -75,8 +89,8 @@ const OrderHistoryPage = () => {
         {/* Danh sách đơn hàng */}
         <div className="space-y-4">
           {filteredOrders.map(order => (
-            <div 
-              key={order.id} 
+            <div
+              key={order.id}
               className="bg-white text-black rounded-lg shadow p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-center mb-4">
@@ -94,6 +108,11 @@ const OrderHistoryPage = () => {
                   <div key={index} className="flex justify-between">
                     <div>
                       <span className="font-medium">{item.name}</span>
+                      <div className="text-sm text-gray-600">
+                        {item.variants && item.variants.length > 0
+                          ? item.variants.map((v) => `${v.name}: ${v.value}`).join(", ")
+                          : "Không có biến thể"}
+                      </div>
                       <span className="text-sm text-gray-500 ml-2">x{item.quantity}</span>
                     </div>
                     <span>{formatPrice(item.price * item.quantity)}</span>
@@ -101,18 +120,25 @@ const OrderHistoryPage = () => {
                 ))}
               </div>
 
-              <div className="flex justify-between items-center border-t pt-4">
+              <div className="flex justify-between items-center border-t pt-4 text-gray-700">
                 <span className="text-sm text-gray-500">{order.date}</span>
-                <div className="flex gap-2">
-                  <span className="font-medium">Tổng Cộng:</span>
-                  <span className="text-pink-600">{formatPrice(order.totalAmount)}</span>
+                <div className="flex flex-col items-end">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-gray-600">Phí Vận Chuyển:</span>
+                    <span className="font-medium">{formatPrice(order.shipping || 30000)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-base font-semibold">
+                    <span className="text-gray-700">Tổng Cộng:</span>
+                    <span className="text-pink-600">{formatPrice(order.totalAmount)}</span>
+                  </div>
                 </div>
               </div>
+
 
               <div className="mt-4 flex justify-end gap-2">
                 {/* Nút hủy đơn hàng */}
                 {order.status !== "đã hủy" && order.status !== "đã giao" && (
-                  <button 
+                  <button
                     className="text-pink-600 hover:text-pink-800"
                     onClick={() => handleCancelOrder(order.id)}
                   >
