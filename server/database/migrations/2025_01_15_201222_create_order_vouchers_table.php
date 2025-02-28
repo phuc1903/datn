@@ -16,8 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('order_id');
             $table->unsignedBigInteger('voucher_id');
             $table->integer('discount');
-            $table->foreign('order_id')->references('id')->on('orders');
-            $table->foreign('voucher_id')->references('id')->on('vouchers');
+            $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
+            $table->foreign('voucher_id')->references('id')->on('vouchers')->onDelete('cascade');
             $table->timestamps();
         });
     }

@@ -1,25 +1,28 @@
-@props(['type' => 'text', 'id' => '#', 'label' => '', 'require' => false, 'error' => '', 'value' => '', 'placeholder' => '', 'success' => ''])
+@props([
+    'type' => 'text',
+    'id' => '',
+    'label' => '',
+    'require' => false,
+    'error' => '',
+    'value' => old($name),
+    'placeholder' => '',
+    'success' => '',
+    'name' => '',
+])
 
 <div class="mb-3">
-    <div @class(["", 'input-group has-validation' => isset($error)])>
-        <label for="{{ $id }}" class="form-label">{{ isset($label) && $label ? $label : '' }} </label>
-        <input 
-            type="{{ $type }}" 
-            class="form-control input-text-custom" 
-            id="{{ $id }}" 
-            @if($require) required @endif
-            value="{{ $value }}"
-            placeholder="{{ $placeholder }}"
+    @if ($label)
+        <label for="{{ $name }}" class="form-label fw-bold text-dark-custom">{{ $label }}</label>
+    @endif
+
+    <input {{ $attributes}} type="{{ $type }}" name="{{ $name }}"
+        class="form-control bg-white-custom input-text-custom @error($name) is-invalid @enderror"
+        id="{{ $id ?? $name }}" value="{{ $value }}" placeholder="{{ $placeholder }}"
         >
-        @if(isset($error)) 
-            <div class="invalid-feedback">
-                {{ $error }}
-            </div>
-        @endif
-        @if(isset($success)) 
-            <div class="valid-feedback">
-                {{ $success }}
-            </div>
-        @endif
-    </div>
+
+    @error($name)
+        <div class="invalid-feedback">
+            {{ $message }}
+        </div>
+    @enderror
 </div>
