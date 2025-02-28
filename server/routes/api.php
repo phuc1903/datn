@@ -9,7 +9,7 @@ use App\Http\Controllers\Api\V1\Slider\SliderController;
 use App\Http\Controllers\Api\V1\User\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\Order\OrderController;
-
+use App\Http\Controllers\Api\V1\ProductFeedback\ProductFeedbackController;
 // Version 1
 Route::prefix('v1')->group(function () {
     /*
@@ -20,7 +20,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('products')->controller(ProductController::class)->group(function () {
         Route::get('/', 'getAllProduct');
         Route::get('/detail/{id}', 'getProduct');
-        Route::get('/category/{{id}}', 'getProductByCategory');
+        Route::get('/category/{id}', 'getProductByCategory');
         Route::get('/most-favorites','getMostFavoritedProducts');
         Route::get('/feedback-product/{id}','getFeedBackProduct');
     });
@@ -54,6 +54,19 @@ Route::prefix('v1')->group(function () {
             Route::get('/{id}','orderUserDetail');
         });
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | ProductFeedbackController
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('product_feedbacks')->controller(ProductFeedbackController::class)->group(function (){
+        Route::middleware(['auth:sanctum','auth.active'])->group(function (){
+            Route::get('getAllOrderItem', 'getAllOrderItem');
+            Route::post('create','create');
+        });
+    });
+
     /*
     |--------------------------------------------------------------------------
     | AuthController
