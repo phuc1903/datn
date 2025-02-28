@@ -253,7 +253,7 @@ const Header: React.FC = () => {
       </div>
       
       <header className="bg-white shadow-sm z-50 sticky top-0">
-        <div className="container mx-auto px-4">
+        <div className="max-w-7xl container mx-auto px-4">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="flex items-center">
               <span className="text-pink-600 font-serif font-bold text-2xl">
@@ -379,7 +379,7 @@ const Header: React.FC = () => {
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="p-6">
+          <div className="px-6 pb-6 pt-[150px]">
             <div className="mb-6 relative">
               <input
                 type="text"
