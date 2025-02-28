@@ -11,9 +11,6 @@ export default function Products() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [sliderImages, setSliderImages] = useState([]);
   const [favoriteProducts, setFavoriteProducts] = useState([]);
-  const [hotProducts, setHotProducts] = useState([]);
-  const [newProducts, setNewProducts] = useState([]);
-  const [recommended, setRecommended] = useState([]);
 
   const getRandomItems = (arr: any[], num: number) => {
     if (!arr || !Array.isArray(arr) || arr.length === 0) return [];
@@ -26,54 +23,47 @@ export default function Products() {
       setCurrentSlide((prev) => (sliderImages.length > 0 ? (prev + 1) % sliderImages.length : 0));
     }, 5000);
 
-    // Fetch slider images
     fetch("http://127.0.0.1:8000/api/v1/sliders")
       .then((res) => res.json())
       .then((data) => {
         setSliderImages(data.data?.map(item => item.image_url) || []);
       })
-      .catch((error) => console.error("Error fetching slider images:", error));
+      .catch((error) => {
+        console.error("Error fetching slider images:", error);
+      });
 
-    // Fetch products and set derived lists
     fetch("http://127.0.0.1:8000/api/v1/products")
       .then((res) => res.json())
       .then((data) => {
         const inStockProducts = data.data?.filter(product => product.status !== "out_of_stock") || [];
         setProducts(inStockProducts);
-        setHotProducts(getRandomItems(inStockProducts.filter(p => p.is_hot), 4));
-        setNewProducts(getRandomItems(
-          [...inStockProducts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
-          5
-        ));
-        setRecommended(getRandomItems(inStockProducts, 5));
         setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching products:", error);
         setLoading(false);
       });
+   // Fetch categories (Sửa đổi: Không lọc parent_id, lấy ngẫu nhiên 4 danh mục từ tất cả)
+   fetch("http://127.0.0.1:8000/api/v1/categories")
+   .then((res) => res.json())
+   .then((data) => {
+     const allCategories = data.data || [];
+     console.log("All Categories:", allCategories); // Debug để kiểm tra
+     const randomCategories = getRandomItems(allCategories, 4);
+     setCategories(randomCategories);
+   })
+   .catch((error) => console.error("Error fetching categories:", error));
 
-    // Fetch categories
-    fetch("http://127.0.0.1:8000/api/v1/categories")
-      .then((res) => res.json())
-      .then((data) => {
-        const parentCategories = data.data?.filter(cat => cat.parent_id === 0) || [];
-        console.log("Parent Categories:", parentCategories); // Debug để kiểm tra
-        const randomCategories = getRandomItems(parentCategories, 4);
-        setCategories(randomCategories);
-      })
-      .catch((error) => console.error("Error fetching categories:", error));
-
-    // Fetch favorite products
     fetch("http://127.0.0.1:8000/api/v1/products/most-favorites")
       .then((res) => res.json())
       .then((data) => {
         const randomFavorites = getRandomItems(data.data || [], 5);
         setFavoriteProducts(randomFavorites);
       })
-      .catch((error) => console.error("Error fetching favorite products:", error));
+      .catch((error) => {
+        console.error("Error fetching favorite products:", error);
+      });
 
-    // Fetch blogs
     fetch("http://127.0.0.1:8000/api/v1/blogs")
       .then((res) => res.json())
       .then((data) => {
@@ -81,12 +71,21 @@ export default function Products() {
           setBlogs(getRandomItems(data.data || [], 3));
         }
       })
-      .catch((error) => console.error("Error fetching blogs:", error));
+      .catch((error) => {
+        console.error("Error fetching blogs:", error);
+      });
 
     return () => clearInterval(timer);
-  }, [sliderImages.length]); // Chỉ re-run khi sliderImages.length thay đổi
+  }, [sliderImages.length]);
 
   if (loading) return <p className="text-center text-lg">Đang tải dữ liệu...</p>;
+
+  const hotProducts = getRandomItems(products.filter(p => p.is_hot) || [], 4);
+  const newProducts = getRandomItems(
+    products.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) || [],
+    5
+  );
+  const recommended = getRandomItems(products || [], 5);
 
   const categoryImages = {
     0: '/oxy.jpg',
@@ -182,7 +181,20 @@ export default function Products() {
                       {hotProducts[0].name}
                     </h3>
                     <div className="flex items-center gap-4 mb-3">
-                      <span className="text-white text-xl font-bold">{hotProducts[0].skus?.[0]?.price.toLocaleString()}đ</span>
+                      {hotProducts[0].skus?.[0]?.promotion_price > 0 ? (
+                        <>
+                          <span className="line-through text-gray-300 text-sm">
+                            {hotProducts[0].skus?.[0]?.price.toLocaleString()}đ
+                          </span>
+                          <span className="text-white text-xl font-bold">
+                            {hotProducts[0].skus?.[0]?.promotion_price.toLocaleString()}đ
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-white text-xl font-bold">
+                          {hotProducts[0].skus?.[0]?.price.toLocaleString()}đ
+                        </span>
+                      )}
                       <div className="text-sm text-gray-200">Đã bán: 1k+</div>
                     </div>
                     <div className="flex items-center justify-between">
@@ -217,7 +229,20 @@ export default function Products() {
                       </h3>
                       <div className="flex items-center justify-between">
                         <div className="flex flex-col">
-                          <span className="text-white font-bold">{product.skus?.[0]?.price.toLocaleString()}đ</span>
+                          {product.skus?.[0]?.promotion_price > 0 ? (
+                            <>
+                              <span className="line-through text-gray-300 text-sm">
+                                {product.skus?.[0]?.price.toLocaleString()}đ
+                              </span>
+                              <span className="text-white font-bold">
+                                {product.skus?.[0]?.promotion_price.toLocaleString()}đ
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-white font-bold">
+                              {product.skus?.[0]?.price.toLocaleString()}đ
+                            </span>
+                          )}
                           <div className="flex items-center text-yellow-400 text-sm">
                             {[1, 2, 3, 4, 5].map((star) => (
                               <span key={star}>★</span>
@@ -237,7 +262,7 @@ export default function Products() {
         </div>
       </section>
 
-      {/* Login Ads */}
+      {/* login ads */}
       <section className="py-16 overflow-hidden bg-pink-100">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
@@ -314,8 +339,20 @@ export default function Products() {
                     {product.name}
                   </h3>
                   <div className="mb-4">
-                    <span className="line-through text-gray-500 text-sm mr-2">{product.skus?.[0]?.price.toLocaleString()}đ</span>
-                    <span className="text-pink-600 font-bold text-lg">{product.skus?.[0]?.price.toLocaleString()}đ</span>
+                    {product.skus?.[0]?.promotion_price > 0 ? (
+                      <>
+                        <span className="line-through text-gray-500 text-sm mr-2">
+                          {product.skus?.[0]?.price.toLocaleString()}đ
+                        </span>
+                        <span className="text-pink-600 font-bold text-lg">
+                          {product.skus?.[0]?.promotion_price.toLocaleString()}đ
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-pink-600 font-bold text-lg">
+                        {product.skus?.[0]?.price.toLocaleString()}đ
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-yellow-500 text-sm ml-2">★ 4.9</span>
@@ -362,8 +399,20 @@ export default function Products() {
                     {product.name}
                   </h3>
                   <div className="mb-4">
-                    <span className="line-through text-gray-500 text-sm mr-2">{product.skus?.[0]?.price.toLocaleString()}đ</span>
-                    <span className="text-pink-600 font-bold text-lg">{product.skus?.[0]?.price.toLocaleString()}đ</span>
+                    {product.skus?.[0]?.promotion_price > 0 ? (
+                      <>
+                        <span className="line-through text-gray-500 text-sm mr-2">
+                          {product.skus?.[0]?.price.toLocaleString()}đ
+                        </span>
+                        <span className="text-pink-600 font-bold text-lg">
+                          {product.skus?.[0]?.promotion_price.toLocaleString()}đ
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-pink-600 font-bold text-lg">
+                        {product.skus?.[0]?.price.toLocaleString()}đ
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-yellow-500 text-sm ml-2">★ 4.9</span>
@@ -400,8 +449,20 @@ export default function Products() {
                     {product.name}
                   </h3>
                   <div className="mb-4">
-                    <span className="line-through text-gray-500 text-sm mr-2">{product.skus?.[0]?.price.toLocaleString()}đ</span>
-                    <span className="text-pink-600 font-bold text-lg">{product.skus?.[0]?.promotion_price.toLocaleString()}đ</span>
+                    {product.skus?.[0]?.promotion_price > 0 ? (
+                      <>
+                        <span className="line-through text-gray-500 text-sm mr-2">
+                          {product.skus?.[0]?.price.toLocaleString()}đ
+                        </span>
+                        <span className="text-pink-600 font-bold text-lg">
+                          {product.skus?.[0]?.promotion_price.toLocaleString()}đ
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-pink-600 font-bold text-lg">
+                        {product.skus?.[0]?.price.toLocaleString()}đ
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-yellow-500 text-sm ml-2">★ {product.favorited_by_count}</span>

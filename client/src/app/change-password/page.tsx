@@ -143,7 +143,8 @@ export default function ChangePasswordPage() {
       console.error("Lỗi đổi mật khẩu:", error);
       await Swal.fire({
         title: "Lỗi!",
-        text: error.message || "Đã xảy ra lỗi khi đổi mật khẩu",
+        // text: error.message || "Đã xảy ra lỗi khi đổi mật khẩu",
+        text: (error as any).message || "Đã xảy ra lỗi khi đổi mật khẩu",
         icon: "error",
         confirmButtonColor: "#db2777", // pink-600
       });
