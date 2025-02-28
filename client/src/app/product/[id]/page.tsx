@@ -43,6 +43,7 @@ export default function ProductDetail() {
   const [comment, setComment] = useState("");
   const [showReviewForm, setShowReviewForm] = useState(false);
 
+
   useEffect(() => {
     if (id) {
       fetch(`http://127.0.0.1:8000/api/v1/products/detail/${id}`)
@@ -109,11 +110,23 @@ export default function ProductDetail() {
   const [cart, setCart] = useState([]);
 
   const handleAddToCart = () => {
-    if (!selectedSku) return;
+    if (!selectedSku || !product) return;
 
     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
     const existingItem = storedCart.find((item) => item.sku_id === selectedSku.id);
     let updatedCart;
+
+    const cartItem = {
+      sku_id: selectedSku.id,
+      name: product.name,
+      image_url: selectedSku.image_url,
+      price: selectedSku.promotion_price > 0 ? selectedSku.promotion_price : selectedSku.price,
+      quantity: quantity,
+      variants: selectedSku.variant_values.map((variant) => ({
+        name: variant.variant.name,
+        value: variant.value,
+      })),
+    };
 
     if (existingItem) {
       updatedCart = storedCart.map((item) =>
@@ -122,16 +135,7 @@ export default function ProductDetail() {
           : item
       );
     } else {
-      updatedCart = [
-        ...storedCart,
-        {
-          sku_id: selectedSku.id,
-          name: product.name,
-          image_url: selectedSku.image_url,
-          price: selectedSku.promotion_price > 0 ? selectedSku.promotion_price : selectedSku.price,
-          quantity: quantity,
-        },
-      ];
+      updatedCart = [...storedCart, cartItem];
     }
 
     setCart(updatedCart);
