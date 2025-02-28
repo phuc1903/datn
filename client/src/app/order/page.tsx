@@ -41,7 +41,7 @@ const OrderHistoryPage = () => {
   };
 
   // Danh sách trạng thái
-  const statusList = ["tất cả", "đang xác nhận", "đang đóng gói", "đang giao hàng", "đã giao", "đã hủy"];
+  const statusList = ["Tất cả", "Đang xác nhận", "Đang đóng gói", "Đang giao hàng", "Đã giao", "Đã hủy"];
   const [activeStatus, setActiveStatus] = useState("tất cả");
 
   // Lọc đơn hàng theo trạng thái
@@ -51,11 +51,11 @@ const OrderHistoryPage = () => {
 
   // Biểu tượng trạng thái
   const statusIcons = {
-    "đang xác nhận": <Package className="w-5 h-5 text-yellow-500" />,
-    "đang đóng gói": <Package className="w-5 h-5 text-blue-500" />,
-    "đang giao hàng": <Truck className="w-5 h-5 text-orange-500" />,
-    "đã giao": <CheckCircle className="w-5 h-5 text-green-500" />,
-    "đã hủy": <XCircle className="w-5 h-5 text-red-500" />
+    "Đang xác nhận": <Package className="w-5 h-5 text-yellow-500" />,
+    "Đang đóng gói": <Package className="w-5 h-5 text-blue-500" />,
+    "Đang giao hàng": <Truck className="w-5 h-5 text-orange-500" />,
+    "Đã giao": <CheckCircle className="w-5 h-5 text-green-500" />,
+    "Đã hủy": <XCircle className="w-5 h-5 text-red-500" />
   };
 
   // Định dạng tiền tệ

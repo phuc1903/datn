@@ -546,7 +546,7 @@ const ProductListingPage = () => {
                       disabled={currentPage === 1}
                       onClick={() => handlePageChange(currentPage - 1)}
                     >
-                      Previous
+                      Trước
                     </button>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                       <button
@@ -565,7 +565,7 @@ const ProductListingPage = () => {
                       disabled={currentPage === totalPages}
                       onClick={() => handlePageChange(currentPage + 1)}
                     >
-                      Next
+                      Sau 
                     </button>
                   </nav>
                 </div>
