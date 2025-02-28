@@ -306,176 +306,188 @@ export default function Products() {
           </div>
         </div>
       </section>
-
-      {/* New Products Section */}
-      <section className="w-full px-4 py-12 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-800">Sản phẩm mới</h2>
-            <Link href="/new-products" className="text-pink-600 hover:text-pink-700 font-medium">
-              Xem tất cả
-            </Link>
+{/* new products */}
+<section className="w-full px-4 py-12 bg-white">
+  <div className="max-w-7xl mx-auto">
+    <div className="flex items-center justify-between mb-8">
+      <h2 className="text-3xl font-bold text-gray-800">Sản phẩm mới</h2>
+      <Link href="/new-products" className="text-pink-600 hover:text-pink-700 font-medium">
+        Xem tất cả
+      </Link>
+    </div>
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      {newProducts.map((product) => (
+        <Link href={`/product/${product.id}`} key={product.id} className="block">
+          <div className="relative bg-white rounded-lg shadow-md overflow-hidden group p-4">
+            <div className="relative w-full aspect-square mb-4 overflow-hidden">
+              <Image
+                src={product.images?.[0]?.image_url || "/oxy.jpg"}
+                alt={product.name}
+                fill
+                className="object-cover transform transition-transform duration-300 group-hover:scale-110"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {product.categories.map((category) => (
+                <span
+                  key={category.id}
+                  className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full"
+                >
+                  {category.name}
+                </span>
+              ))}
+            </div>
+            <h3 className="text-sm font-medium mb-2 line-clamp-2 text-gray-800">
+              {product.name}
+            </h3>
+            <div className="mb-4">
+              <span className="line-through text-gray-500 text-sm mr-2">
+                {product.skus?.[0]?.price.toLocaleString()}đ
+              </span>
+              <span className="text-pink-600 font-bold text-lg">
+                {product.skus?.[0]?.price.toLocaleString()}đ
+              </span>
+            </div>
+            <div className="flex items-center justify-between mb-4">
+              {/* Sửa phần đánh giá sao */}
+              <span className="text-yellow-500 text-sm ml-2">
+                {product.rating_avg !== null ? (
+                  <>★ {product.rating_avg}</>
+                ) : (
+                  "Chưa có đánh giá"
+                )}
+              </span>
+              <button className="bg-pink-600 text-white py-2 px-4 rounded text-sm hover:bg-pink-700">
+                Xem chi tiết
+              </button>
+            </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {newProducts.map((product) => (
-              <Link href={`/product/${product.id}`} key={product.id} className="block">
-                <div className="relative bg-white rounded-lg shadow-md overflow-hidden group p-4">
-                  <div className="relative w-full aspect-square mb-4 overflow-hidden">
-                    <Image
-                      src={product.images?.[0]?.image_url || "/oxy.jpg"}
-                      alt={product.name}
-                      fill
-                      className="object-cover transform transition-transform duration-300 group-hover:scale-110"
-                    />
-                  </div>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {['Sữa rửa mặt', 'Dưỡng da', 'Kem chống nắng'].map((tag, idx) => (
-                      <span key={idx} className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <h3 className="text-sm font-medium mb-2 line-clamp-2 text-gray-800">
-                    {product.name}
-                  </h3>
-                  <div className="mb-4">
-                    {product.skus?.[0]?.promotion_price > 0 ? (
-                      <>
-                        <span className="line-through text-gray-500 text-sm mr-2">
-                          {product.skus?.[0]?.price.toLocaleString()}đ
-                        </span>
-                        <span className="text-pink-600 font-bold text-lg">
-                          {product.skus?.[0]?.promotion_price.toLocaleString()}đ
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-pink-600 font-bold text-lg">
-                        {product.skus?.[0]?.price.toLocaleString()}đ
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-yellow-500 text-sm ml-2">★ 4.9</span>
-                    <button className="bg-pink-600 text-white py-2 px-4 rounded text-sm hover:bg-pink-700">
-                      Xem chi tiết
-                    </button>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+        </Link>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* Recommended Section */}
       <section className="w-full px-4 py-12 bg-pink-100">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-800">Dành cho bạn</h2>
-            <Link href="/recommended" className="text-pink-600 hover:text-pink-700 font-medium">
-              Xem tất cả
-            </Link>
+  <div className="max-w-7xl mx-auto">
+    <div className="flex items-center justify-between mb-8">
+      <h2 className="text-3xl font-bold text-gray-800">Dành cho bạn</h2>
+      <Link href="/recommended" className="text-pink-600 hover:text-pink-700 font-medium">
+        Xem tất cả
+      </Link>
+    </div>
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      {recommended.map((product) => (
+        <Link href={`/product/${product.id}`} key={product.id} className="block">
+          <div className="relative bg-white rounded-lg shadow-md overflow-hidden group p-4">
+            <div className="relative w-full aspect-square mb-4 overflow-hidden">
+              <Image
+                src={product.images?.[0]?.image_url || "/oxy.jpg"}
+                alt={product.name}
+                fill
+                className="object-cover transform transition-transform duration-300 group-hover:scale-110"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {product.categories.map((category) => (
+                <span
+                  key={category.id}
+                  className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full"
+                >
+                  {category.name}
+                </span>
+              ))}
+            </div>
+            <h3 className="text-sm font-medium mb-2 line-clamp-2 text-gray-800">
+              {product.name}
+            </h3>
+            <div className="mb-4">
+              <span className="line-through text-gray-500 text-sm mr-2">
+                {product.skus?.[0]?.price.toLocaleString()}đ
+              </span>
+              <span className="text-pink-600 font-bold text-lg">
+                {product.skus?.[0]?.price.toLocaleString()}đ
+              </span>
+            </div>
+            <div className="flex items-center justify-between mb-4">
+              {/* Sửa phần đánh giá sao */}
+              <span className="text-yellow-500 text-sm ml-2">
+                {product.rating_avg !== null ? (
+                  <>★ {product.rating_avg}</>
+                ) : (
+                  "Chưa có đánh giá"
+                )}
+              </span>
+              <button className="bg-pink-600 text-white py-2 px-4 rounded text-sm hover:bg-pink-700">
+                Xem chi tiết
+              </button>
+            </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {recommended.map((product) => (
-              <Link href={`/product/${product.id}`} key={product.id} className="block">
-                <div className="relative bg-white rounded-lg shadow-md overflow-hidden group p-4">
-                  <div className="relative w-full aspect-square mb-4 overflow-hidden">
-                    <Image
-                      src={product.images?.[0]?.image_url || "/oxy.jpg"}
-                      alt={product.name}
-                      fill
-                      className="object-cover transform transition-transform duration-300 group-hover:scale-110"
-                    />
-                  </div>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {['Sữa rửa mặt', 'Dưỡng da', 'Kem chống nắng'].map((tag, idx) => (
-                      <span key={idx} className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <h3 className="text-sm font-medium mb-2 line-clamp-2 text-gray-800">
-                    {product.name}
-                  </h3>
-                  <div className="mb-4">
-                    {product.skus?.[0]?.promotion_price > 0 ? (
-                      <>
-                        <span className="line-through text-gray-500 text-sm mr-2">
-                          {product.skus?.[0]?.price.toLocaleString()}đ
-                        </span>
-                        <span className="text-pink-600 font-bold text-lg">
-                          {product.skus?.[0]?.promotion_price.toLocaleString()}đ
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-pink-600 font-bold text-lg">
-                        {product.skus?.[0]?.price.toLocaleString()}đ
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-yellow-500 text-sm ml-2">★ 4.9</span>
-                    <button className="bg-pink-600 text-white py-2 px-4 rounded text-sm hover:bg-pink-700">
-                      Xem chi tiết
-                    </button>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+        </Link>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* Favorite Products Section */}
       <section className="w-full px-4 py-12 bg-gray-100">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-800">Sản phẩm được yêu thích</h2>
+  <div className="max-w-7xl mx-auto">
+    <div className="flex items-center justify-between mb-8">
+      <h2 className="text-3xl font-bold text-gray-800">Sản phẩm được yêu thích</h2>
+    </div>
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      {favoriteProducts.map((product) => (
+        <Link href={`/product/${product.id}`} key={product.id} className="block">
+          <div className="relative bg-white rounded-lg shadow-md overflow-hidden group p-4">
+            <div className="relative w-full aspect-square mb-4 overflow-hidden">
+              <Image
+                src={product.skus?.[0]?.image_url || "/oxy.jpg"}
+                alt={product.name}
+                fill
+                className="object-cover transform transition-transform duration-300 group-hover:scale-110"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {product.categories.map((category) => (
+                <span
+                  key={category.id}
+                  className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full"
+                >
+                  {category.name}
+                </span>
+              ))}
+            </div>
+            <h3 className="text-sm font-medium mb-2 line-clamp-2 text-gray-800">
+              {product.name}
+            </h3>
+            <div className="mb-4">
+              <span className="line-through text-gray-500 text-sm mr-2">
+                {product.skus?.[0]?.price.toLocaleString()}đ
+              </span>
+              <span className="text-pink-600 font-bold text-lg">
+                {product.skus?.[0]?.promotion_price.toLocaleString()}đ
+              </span>
+            </div>
+            <div className="flex items-center justify-between mb-4">
+              {/* Sửa phần đánh giá sao */}
+              <span className="text-yellow-500 text-sm ml-2">
+                {product.rating_avg !== null ? (
+                  <>★ {product.rating_avg}</>
+                ) : (
+                  "Chưa có đánh giá"
+                )}
+              </span>
+              <button className="bg-pink-600 text-white py-2 px-4 rounded text-sm hover:bg-pink-700">
+                Xem chi tiết
+              </button>
+            </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {favoriteProducts.map((product) => (
-              <Link href={`/product/${product.id}`} key={product.id} className="block">
-                <div className="relative bg-white rounded-lg shadow-md overflow-hidden group p-4">
-                  <div className="relative w-full aspect-square mb-4 overflow-hidden">
-                    <Image
-                      src={product.skus?.[0]?.image_url || "/oxy.jpg"}
-                      alt={product.name}
-                      fill
-                      className="object-cover transform transition-transform duration-300 group-hover:scale-110"
-                    />
-                  </div>
-                  <h3 className="text-sm font-medium mb-2 line-clamp-2 text-gray-800">
-                    {product.name}
-                  </h3>
-                  <div className="mb-4">
-                    {product.skus?.[0]?.promotion_price > 0 ? (
-                      <>
-                        <span className="line-through text-gray-500 text-sm mr-2">
-                          {product.skus?.[0]?.price.toLocaleString()}đ
-                        </span>
-                        <span className="text-pink-600 font-bold text-lg">
-                          {product.skus?.[0]?.promotion_price.toLocaleString()}đ
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-pink-600 font-bold text-lg">
-                        {product.skus?.[0]?.price.toLocaleString()}đ
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-yellow-500 text-sm ml-2">★ {product.favorited_by_count}</span>
-                    <button className="bg-pink-600 text-white py-2 px-4 rounded text-sm hover:bg-pink-700">
-                      Xem chi tiết
-                    </button>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+        </Link>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* Blog Section */}
       <section className="max-w-7xl mx-auto px-4 py-12">
