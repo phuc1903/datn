@@ -651,41 +651,39 @@ const ProductListingPage = () => {
                     </p>
                   )}
                 </div>
-                {displayedProducts.length < 0 && (
-                  <div className="mt-8 flex justify-center">
-                    <nav className="flex items-center gap-2">
-                      <button
-                        className="px-3 py-1 border rounded-lg text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                        disabled={currentPage === 1}
-                        onClick={() => handlePageChange(currentPage - 1)}
-                      >
-                        Trước
-                      </button>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                        (page) => (
-                          <button
-                            key={page}
-                            className={`px-3 py-1 rounded-lg ${
-                              page === currentPage
-                                ? "bg-pink-600 text-white"
-                                : "text-gray-500 hover:bg-gray-50"
-                            }`}
-                            onClick={() => handlePageChange(page)}
-                          >
-                            {page}
-                          </button>
-                        )
-                      )}
-                      <button
-                        className="px-3 py-1 border rounded-lg text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                        disabled={currentPage === totalPages}
-                        onClick={() => handlePageChange(currentPage + 1)}
-                      >
-                        Sau
-                      </button>
-                    </nav>
-                  </div>
-                )}
+                <div className="mt-8 flex justify-center">
+                  <nav className="flex items-center gap-2">
+                    <button
+                      className="px-3 py-1 border rounded-lg text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                      disabled={currentPage === 1}
+                      onClick={() => handlePageChange(currentPage - 1)}
+                    >
+                      Trước
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (page) => (
+                        <button
+                          key={page}
+                          className={`px-3 py-1 rounded-lg ${
+                            page === currentPage
+                              ? "bg-pink-600 text-white"
+                              : "text-gray-500 hover:bg-gray-50"
+                          }`}
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </button>
+                      )
+                    )}
+                    <button
+                      className="px-3 py-1 border rounded-lg text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                      disabled={currentPage === totalPages}
+                      onClick={() => handlePageChange(currentPage + 1)}
+                    >
+                      Sau
+                    </button>
+                  </nav>
+                </div>
               </div>
             </div>
           </div>

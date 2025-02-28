@@ -144,7 +144,7 @@ export default function Products() {
               className="group relative h-48 bg-white rounded-lg shadow-md overflow-hidden"
             >
               <img
-                src={categoryImages[index]}
+                src={`http://127.0.0.1:8000/${category.image}`}
                 alt={category.name}
                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
               />
