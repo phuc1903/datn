@@ -60,7 +60,7 @@ const BlogHome = () => {
   const recentBlogs = blogs.slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className=" min-h-screen bg-gray-50">
       {/* Hero Section with Slider */}
       <div className="relative h-[500px] overflow-hidden bg-gray-900">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 z-10"></div>
@@ -115,7 +115,7 @@ const BlogHome = () => {
       </div>
 
       {/* All Posts Section */}
-      <div className="container mx-auto px-4 py-16">
+      <div className="max-w-7xl container mx-auto px-4 py-16">
         {/* Featured Recent Posts */}
         <div className="mb-16">
           <div className="flex items-center justify-between mb-8">

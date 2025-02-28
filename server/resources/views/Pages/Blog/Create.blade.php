@@ -99,7 +99,7 @@
     <script>
         CKEDITOR.replace('description_blog', {
             language: 'vi',
-            height: 300
+            height: 800
         });
     </script>
 @endpush

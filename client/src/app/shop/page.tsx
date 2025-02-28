@@ -1,12 +1,10 @@
-"use client"
-import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { ChevronUp, ChevronDown, Diamond, Filter, Search } from 'lucide-react';
-import Link from 'next/link';
-import { API_BASE_URL } from '@/config/config';
+"use client";
+import React, { useEffect, useState } from "react";
+import Image from "next/image";
+import { ChevronUp, ChevronDown, Diamond, Filter, Search } from "lucide-react";
+import Link from "next/link";
+import { API_BASE_URL } from "@/config/config";
 import ReactSlider from "react-slider";
-
-
 
 const ProductListingPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -16,11 +14,7 @@ const ProductListingPage = () => {
   const [categories, setCategories] = useState([]);
   const [sortOrder, setSortOrder] = useState("");
   const FilterSearchHeader = ({ searchTerm, setSearchTerm }) => {
-    return (
-      <div>
-
-      </div>
-    );
+    return <div></div>;
   };
 
   useEffect(() => {
@@ -36,11 +30,7 @@ const ProductListingPage = () => {
         console.error("Error fetching data:", error);
         setLoading(false);
       });
-
-
   }, []);
-
-
 
   useEffect(() => {
     const filtered = products.filter((product) =>
@@ -68,15 +58,17 @@ const ProductListingPage = () => {
     );
 
     if (sortOrder === "Giá từ thấp đến cao") {
-      updatedProducts.sort((a, b) => a.skus[0].promotion_price - b.skus[0].promotion_price);
+      updatedProducts.sort(
+        (a, b) => a.skus[0].promotion_price - b.skus[0].promotion_price
+      );
     } else if (sortOrder === "Giá từ cao đến thấp") {
-      updatedProducts.sort((a, b) => b.skus[0].promotion_price - a.skus[0].promotion_price);
+      updatedProducts.sort(
+        (a, b) => b.skus[0].promotion_price - a.skus[0].promotion_price
+      );
     }
 
     setFilteredProducts(updatedProducts);
   }, [searchTerm, sortOrder, products]);
-
-
 
   // console.log(categories);
 
@@ -85,22 +77,22 @@ const ProductListingPage = () => {
     main: true,
     category1: true,
     ratings: true,
-    price: true
+    price: true,
   });
 
   const [selectedFilters, setSelectedFilters] = useState({
-    categories: ['Danh mục con 3'],
-    ratings: ['3'],
-    priceRange: { min: '', max: '' },
-    tags: []
+    categories: ["Danh mục con 3"],
+    ratings: ["3"],
+    priceRange: { min: "", max: "" },
+    tags: [],
   });
 
-  const [sortOption, setSortOption] = useState('');
+  const [sortOption, setSortOption] = useState("");
 
   const toggleCategory = (category) => {
-    setExpandedCategories(prev => ({
+    setExpandedCategories((prev) => ({
       ...prev,
-      [category]: !prev[category]
+      [category]: !prev[category],
     }));
   };
 
@@ -133,10 +125,12 @@ const ProductListingPage = () => {
       return;
     }
 
-    const filtered = products.filter((product) =>
-      product.categories && product.categories.some((category) =>
-        selectedFilters.categories.includes(category.id)
-      )
+    const filtered = products.filter(
+      (product) =>
+        product.categories &&
+        product.categories.some((category) =>
+          selectedFilters.categories.includes(category.id)
+        )
     );
 
     setFilteredProducts(filtered.length > 0 ? filtered : products);
@@ -145,12 +139,17 @@ const ProductListingPage = () => {
   const categoriesData = Array.from({ length: 50 }, (_, i) => ({
     id: `cate-${i + 1}`,
     name: `Danh mục ${i + 1}`,
-    subcategories: []
+    subcategories: [],
   }));
 
   const groupedCategories = categoriesData.reduce((acc, category, index) => {
     const groupIndex = Math.floor(index / 10);
-    if (!acc[groupIndex]) acc[groupIndex] = { id: `group-${groupIndex + 1}`, name: `Danh mục ${groupIndex + 1}`, subcategories: [] };
+    if (!acc[groupIndex])
+      acc[groupIndex] = {
+        id: `group-${groupIndex + 1}`,
+        name: `Danh mục ${groupIndex + 1}`,
+        subcategories: [],
+      };
     acc[groupIndex].subcategories.push(category);
     return acc;
   }, []);
@@ -159,7 +158,7 @@ const ProductListingPage = () => {
     setSelectedFilters((prev) => {
       const updatedFilters = { ...prev };
 
-      if (filterType === 'ratings') {
+      if (filterType === "ratings") {
         updatedFilters.ratings = prev.ratings.includes(value)
           ? prev.ratings.filter((rating) => rating !== value)
           : [...prev.ratings, value];
@@ -203,11 +202,18 @@ const ProductListingPage = () => {
       product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (selectedFilters.priceRange.min !== "" || selectedFilters.priceRange.max !== "") {
+    if (
+      selectedFilters.priceRange.min !== "" ||
+      selectedFilters.priceRange.max !== ""
+    ) {
       updatedProducts = updatedProducts.filter((product) => {
         const price = product.skus[0].promotion_price;
-        const minPrice = selectedFilters.priceRange.min ? parseFloat(selectedFilters.priceRange.min) : 0;
-        const maxPrice = selectedFilters.priceRange.max ? parseFloat(selectedFilters.priceRange.max) : Infinity;
+        const minPrice = selectedFilters.priceRange.min
+          ? parseFloat(selectedFilters.priceRange.min)
+          : 0;
+        const maxPrice = selectedFilters.priceRange.max
+          ? parseFloat(selectedFilters.priceRange.max)
+          : Infinity;
         return price >= minPrice && price <= maxPrice;
       });
     }
@@ -215,7 +221,7 @@ const ProductListingPage = () => {
     setFilteredProducts(updatedProducts);
   }, [selectedFilters.priceRange, searchTerm, products]);
 
-  const MIN_PRICE = 0;  // Giá thấp nhất, có thể thay đổi theo nhu cầu
+  const MIN_PRICE = 0; // Giá thấp nhất, có thể thay đổi theo nhu cầu
   const MAX_PRICE = 999000; // Giá cao nhất
 
   const ITEMS_PER_PAGE = 18;
@@ -252,85 +258,140 @@ const ProductListingPage = () => {
 
         {expandedCategories.main && (
           <div className="p-4 space-y-2">
-            {categories.reduce((acc, category, index) => {
-              if (index % 5 === 0) {
-                acc.push({
-                  id: `group-${Math.floor(index / 5) + 1}`,
-                  name: `Danh mục ${Math.floor(index / 5) + 1}`,
-                  subcategories: categories.slice(index, index + 5),
-                });
-              }
-              return acc;
-            }, []).map((group) => (
-              <div key={group.id}>
-                <div
-                  className="flex justify-between items-center cursor-pointer p-2 rounded-md hover:bg-gray-100"
-                  onClick={() => toggleCategory(group.id)}
-                >
-                  <div className="flex items-center gap-2">
-                    {group.id === "group-1" && (
-                      <svg className="w-4 h-4 text-[#ED0E69]" fill="none" strokeWidth="1.5" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z"></path>
-                    </svg>
+            {categories
+              .reduce((acc, category, index) => {
+                if (index % 5 === 0) {
+                  acc.push({
+                    id: `group-${Math.floor(index / 5) + 1}`,
+                    name: `Danh mục ${Math.floor(index / 5) + 1}`,
+                    subcategories: categories.slice(index, index + 5),
+                  });
+                }
+                return acc;
+              }, [])
+              .map((group) => (
+                <div key={group.id}>
+                  <div
+                    className="flex justify-between items-center cursor-pointer p-2 rounded-md hover:bg-gray-100"
+                    onClick={() => toggleCategory(group.id)}
+                  >
+                    <div className="flex items-center gap-2">
+                      {group.id === "group-1" && (
+                        <svg
+                          className="w-4 h-4 text-[#ED0E69]"
+                          fill="none"
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z"
+                          ></path>
+                        </svg>
+                      )}
+                      {group.id === "group-2" && (
+                        <svg
+                          className="w-4 h-4 text-[#ED0E69]"
+                          fill="none"
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"
+                          ></path>
+                        </svg>
+                      )}
+                      {group.id === "group-3" && (
+                        <svg
+                          className="w-4 h-4 text-[#ED0E69]"
+                          fill="none"
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
+                          ></path>
+                        </svg>
+                      )}
+                      {group.id === "group-4" && (
+                        <svg
+                          className="w-4 h-4 text-[#ED0E69]"
+                          fill="none"
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3"
+                          ></path>
+                        </svg>
+                      )}
+                      <span className="text-sm font-medium text-gray-700">
+                        {group.name}
+                      </span>
+                    </div>
+                    {expandedCategories[group.id] ? (
+                      <ChevronUp className="w-4 h-4 text-gray-500" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-gray-500" />
                     )}
-                    {group.id === "group-2" && (
-                      <svg className="w-4 h-4 text-[#ED0E69]" fill="none" strokeWidth="1.5" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"></path>
-                      </svg>
-                    )}
-                    {group.id === "group-3" && (
-                      <svg className="w-4 h-4 text-[#ED0E69]" fill="none" strokeWidth="1.5" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"></path>
-                      </svg>
-                    )}
-                    {group.id === "group-4" && (
-                      <svg className="w-4 h-4 text-[#ED0E69]"fill="none" strokeWidth="1.5" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3"></path>
-                      </svg>
-                    )}
-                    <span className="text-sm font-medium text-gray-700">{group.name}</span>
                   </div>
-                  {expandedCategories[group.id] ? (
-                    <ChevronUp className="w-4 h-4 text-gray-500" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-gray-500" />
+
+                  {expandedCategories[group.id] && (
+                    <div className="ml-6 mt-2 space-y-1">
+                      {group.subcategories.map((sub) => (
+                        <div key={sub.id} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedFilters.categories.includes(
+                              sub.id
+                            )}
+                            onChange={() => handleCategoryChange(sub.id)}
+                            className="w-4 h-4 rounded border-gray-300 accent-pink-500 focus:ring-pink-500"
+                          />
+                          <span className="text-sm text-gray-500">
+                            {sub.name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
-
-                {expandedCategories[group.id] && (
-                  <div className="ml-6 mt-2 space-y-1">
-                    {group.subcategories.map((sub) => (
-                      <div key={sub.id} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedFilters.categories.includes(sub.id)}
-                          onChange={() => handleCategoryChange(sub.id)}
-                          className="w-4 h-4 rounded border-gray-300 accent-pink-500 focus:ring-pink-500"
-                        />
-                        <span className="text-sm text-gray-500">{sub.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+              ))}
           </div>
         )}
       </div>
-
-
 
       {/* Rating Section */}
       <div className="mb-4 border border-[#E2E0DF]">
         <div
           className="flex justify-between items-center cursor-pointer p-5 border border-[#E2E0DF]"
-          onClick={() => toggleCategory('ratings')}
+          onClick={() => toggleCategory("ratings")}
         >
           <h3 className="font-medium  text-lg">Đánh Giá</h3>
-          {expandedCategories.ratings ?
-            <ChevronUp className="w-4 h-4" /> :
+          {expandedCategories.ratings ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
             <ChevronDown className="w-4 h-4" />
-          }
+          )}
         </div>
 
         {expandedCategories.ratings && (
@@ -340,8 +401,12 @@ const ProductListingPage = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    checked={selectedFilters.ratings.includes(rating.toString())}
-                    onChange={() => handleFilterChange('ratings', rating.toString())}
+                    checked={selectedFilters.ratings.includes(
+                      rating.toString()
+                    )}
+                    onChange={() =>
+                      handleFilterChange("ratings", rating.toString())
+                    }
                     className="w-4 h-4 rounded border-gray-300 accent-pink-500 focus:ring-pink-500"
                   />
                   <div className="flex items-center">
@@ -358,16 +423,17 @@ const ProductListingPage = () => {
       </div>
 
       {/* Price Range Section */}
-      <div className='border border-[#E2E0DF] p-5'>
+      <div className="border border-[#E2E0DF] p-5">
         <div
           className="flex justify-between items-center cursor-pointer"
-          onClick={() => toggleCategory('price')}
+          onClick={() => toggleCategory("price")}
         >
           <h3 className="font-medium text-lg">Giá</h3>
-          {expandedCategories.price ?
-            <ChevronUp className="w-4 h-4" /> :
+          {expandedCategories.price ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
             <ChevronDown className="w-4 h-4" />
-          }
+          )}
         </div>
 
         {expandedCategories.price && (
@@ -378,11 +444,14 @@ const ProductListingPage = () => {
               trackClassName="bg-pink-500 h-2 rounded-full"
               min={MIN_PRICE}
               max={MAX_PRICE}
-              value={[selectedFilters.priceRange.min || MIN_PRICE, selectedFilters.priceRange.max || MAX_PRICE]}
+              value={[
+                selectedFilters.priceRange.min || MIN_PRICE,
+                selectedFilters.priceRange.max || MAX_PRICE,
+              ]}
               onChange={([min, max]) => {
                 setSelectedFilters((prev) => ({
                   ...prev,
-                  priceRange: { min, max }
+                  priceRange: { min, max },
                 }));
               }}
             />
@@ -390,14 +459,14 @@ const ProductListingPage = () => {
               <input
                 type="number"
                 value={selectedFilters.priceRange.min}
-                onChange={(e) => handlePriceChange('min', e.target.value)}
+                onChange={(e) => handlePriceChange("min", e.target.value)}
                 placeholder="$ min"
                 className="w-24 px-2 py-1 text-sm border rounded"
               />
               <input
                 type="number"
                 value={selectedFilters.priceRange.max}
-                onChange={(e) => handlePriceChange('max', e.target.value)}
+                onChange={(e) => handlePriceChange("max", e.target.value)}
                 placeholder="$ max"
                 className="w-24 px-2 py-1 text-sm border rounded"
               />
@@ -411,7 +480,7 @@ const ProductListingPage = () => {
   return (
     <div className="bg-white py-4 mb-4 px-[100px] shadow-md">
       <div className="flex items-center gap-4">
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 w-full">
           {/* Header with Search and Filter */}
           <FilterSearchHeader
             searchTerm={searchTerm}
@@ -419,12 +488,22 @@ const ProductListingPage = () => {
           />
 
           <div className="container mx-auto px-4 py-4 sm:py-8">
-
             {/* Thanh tìm kiếm full width */}
             <div className="w-full mb-6 border-b border-gray-300 pb-4">
               <div className="flex items-center gap-4 ">
                 <button className="flex items-center gap-2 border border-pink-500 text-pink-500 py-2 px-4 rounded-lg hover:bg-pink-100 transition">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-sliders-vertical">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="lucide lucide-sliders-vertical"
+                  >
                     <line x1="4" x2="4" y1="21" y2="14" />
                     <line x1="4" x2="4" y1="10" y2="3" />
                     <line x1="12" x2="12" y1="21" y2="12" />
@@ -437,7 +516,9 @@ const ProductListingPage = () => {
                   </svg>
 
                   <span className="font-medium">Filter</span>
-                  <span className="bg-pink-500 text-white text-xs font-bold px-2 py-0.5 rounded">3</span>
+                  <span className="bg-pink-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+                    3
+                  </span>
                 </button>
                 <div className="flex-grow relative">
                   <input
@@ -455,23 +536,42 @@ const ProductListingPage = () => {
                   value={sortOrder}
                 >
                   <option value="">Tất cả</option>
-                  <option value="Giá từ thấp đến cao">Giá từ thấp đến cao</option>
-                  <option value="Giá từ cao đến thấp">Giá từ cao đến thấp</option>
+                  <option value="Giá từ thấp đến cao">
+                    Giá từ thấp đến cao
+                  </option>
+                  <option value="Giá từ cao đến thấp">
+                    Giá từ cao đến thấp
+                  </option>
                 </select>
               </div>
-              <div className="mt-4 flex justify-between items-center text-sm text-gray-500">
+              {/* <div className="mt-4 flex justify-between items-center text-sm text-gray-500">
                 <div>
                   Gợi ý:{" "}
-                  <span className="text-pink-500 cursor-pointer hover:underline">user interface</span>,{" "}
-                  <span className="text-pink-500 cursor-pointer hover:underline">user experience</span>,{" "}
-                  <span className="text-pink-500 cursor-pointer hover:underline">web design</span>,{" "}
-                  <span className="text-pink-500 cursor-pointer hover:underline">interface</span>,{" "}
-                  <span className="text-pink-500 cursor-pointer hover:underline">app</span>
+                  <span className="text-pink-500 cursor-pointer hover:underline">
+                    user interface
+                  </span>
+                  ,{" "}
+                  <span className="text-pink-500 cursor-pointer hover:underline">
+                    user experience
+                  </span>
+                  ,{" "}
+                  <span className="text-pink-500 cursor-pointer hover:underline">
+                    web design
+                  </span>
+                  ,{" "}
+                  <span className="text-pink-500 cursor-pointer hover:underline">
+                    interface
+                  </span>
+                  ,{" "}
+                  <span className="text-pink-500 cursor-pointer hover:underline">
+                    app
+                  </span>
                 </div>
                 <div className="text-gray-600 font-medium">
-                  <strong>3,145,684</strong> results find for <span className="italic">"ui/ux design"</span>
+                  <strong>3,145,684</strong> results find for{" "}
+                  <span className="italic">"ui/ux design"</span>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Layout mới: Sidebar và sản phẩm cùng hàng */}
@@ -486,7 +586,11 @@ const ProductListingPage = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {displayedProducts.length > 0 ? (
                     displayedProducts.map((item) => (
-                      <Link href={`/product/${item.id}`} key={item.id} className="block">
+                      <Link
+                        href={`/product/${item.id}`}
+                        key={item.id}
+                        className="block"
+                      >
                         <div className="relative bg-white rounded-lg shadow-md overflow-hidden group p-4">
                           <div className="relative w-full aspect-square mb-4 overflow-hidden">
                             <Image
@@ -498,17 +602,20 @@ const ProductListingPage = () => {
                           </div>
                           <div className="flex flex-wrap gap-2 mb-3">
                             {item.categories.map((tag) => (
-                              <span key={tag.id} className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full">
+                              <span
+                                key={tag.id}
+                                className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full"
+                              >
                                 {tag.name} {/* Chỉ hiển thị tên danh mục */}
                               </span>
                             ))}
-
-
                           </div>
                           <h3 className="text-sm font-medium mb-2 line-clamp-2 text-gray-900">
                             {item.name}
                           </h3>
-                          <p className="text-sm text-gray-500 line-clamp-3">{item.short_description}</p>
+                          <p className="text-sm text-gray-500 line-clamp-3">
+                            {item.short_description}
+                          </p>
                           <div className="mb-4">
                             {item.skus?.[0]?.promotion_price > 0 ? (
                               <>
@@ -516,7 +623,8 @@ const ProductListingPage = () => {
                                   {item.skus?.[0]?.price.toLocaleString()}đ
                                 </span>
                                 <span className="text-pink-600 font-bold text-lg">
-                                  {item.skus?.[0]?.promotion_price.toLocaleString()}đ
+                                  {item.skus?.[0]?.promotion_price.toLocaleString()}
+                                  đ
                                 </span>
                               </>
                             ) : (
@@ -526,7 +634,10 @@ const ProductListingPage = () => {
                             )}
                           </div>
                           <div className="flex items-center justify-between mb-4">
-                            <span className="text-yellow-500 text-sm ml-2">★ {item.rating ? item.rating.toFixed(1) : "Chưa có"}</span>
+                            <span className="text-yellow-500 text-sm ml-2">
+                              ★{" "}
+                              {item.rating ? item.rating.toFixed(1) : "Chưa có"}
+                            </span>
                             <button className="bg-pink-600 text-white py-2 px-4 rounded text-sm hover:bg-pink-700">
                               Mua Ngay
                             </button>
@@ -535,41 +646,46 @@ const ProductListingPage = () => {
                       </Link>
                     ))
                   ) : (
-                    <p className="text-gray-500 text-center col-span-full">Không tìm thấy sản phẩm nào.</p>
+                    <p className="text-gray-500 text-center col-span-full">
+                      Không tìm thấy sản phẩm nào.
+                    </p>
                   )}
                 </div>
-
-                <div className="mt-8 flex justify-center">
-                  <nav className="flex items-center gap-2">
-                    <button
-                      className="px-3 py-1 border rounded-lg text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                      disabled={currentPage === 1}
-                      onClick={() => handlePageChange(currentPage - 1)}
-                    >
-                      Trước
-                    </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                {displayedProducts.length < 0 && (
+                  <div className="mt-8 flex justify-center">
+                    <nav className="flex items-center gap-2">
                       <button
-                        key={page}
-                        className={`px-3 py-1 rounded-lg ${page === currentPage
-                          ? "bg-pink-600 text-white"
-                          : "text-gray-500 hover:bg-gray-50"
-                          }`}
-                        onClick={() => handlePageChange(page)}
+                        className="px-3 py-1 border rounded-lg text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                        disabled={currentPage === 1}
+                        onClick={() => handlePageChange(currentPage - 1)}
                       >
-                        {page}
+                        Trước
                       </button>
-                    ))}
-                    <button
-                      className="px-3 py-1 border rounded-lg text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                      disabled={currentPage === totalPages}
-                      onClick={() => handlePageChange(currentPage + 1)}
-                    >
-                      Sau 
-                    </button>
-                  </nav>
-                </div>
-
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                        (page) => (
+                          <button
+                            key={page}
+                            className={`px-3 py-1 rounded-lg ${
+                              page === currentPage
+                                ? "bg-pink-600 text-white"
+                                : "text-gray-500 hover:bg-gray-50"
+                            }`}
+                            onClick={() => handlePageChange(page)}
+                          >
+                            {page}
+                          </button>
+                        )
+                      )}
+                      <button
+                        className="px-3 py-1 border rounded-lg text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                        disabled={currentPage === totalPages}
+                        onClick={() => handlePageChange(currentPage + 1)}
+                      >
+                        Sau
+                      </button>
+                    </nav>
+                  </div>
+                )}
               </div>
             </div>
           </div>
