@@ -20,7 +20,9 @@
 
 <body class="bg-neuture-50 text-neuture-900" id="page-top">
 
-    @yield('content')
+    <div style="background-image: url('image/SKINCARE AND BEAUTY CLINIC BANNER ADVERTISEMENT.png');">
+        @yield('content')
+    </div>
 
     <x-toastr.index />
 
