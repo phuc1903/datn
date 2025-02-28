@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Api\V1\ProductFeedback;
 
 use App\Enums\Order\OrderItemStatus;
+use App\Enums\Order\OrderStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductFeedback;
 use App\Models\Sku;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ProductFeedbackController extends Controller
 {
@@ -21,6 +24,7 @@ class ProductFeedbackController extends Controller
     public function getAllOrderItem()
     {
         try {
+
             $userId = Auth::id();
 
             if (!$userId) {
@@ -32,7 +36,7 @@ class ProductFeedbackController extends Controller
             }
             $orderItems = OrderItem::whereHas('order', function ($query) use ($userId) {
                 $query->where('user_id', $userId)->where('status', 'success');
-            })->get();
+            })->orderBy('created_at', 'desc')->get();
             return ResponseSuccess('Get data successfully',$orderItems,200);
 
         } catch (\Exception $e) {
@@ -43,6 +47,7 @@ class ProductFeedbackController extends Controller
     public function create(Request $request)
     {
         try {
+            DB::beginTransaction();
             $sku = $request->sku_code
                 ? Sku::where('sku_code', $request->sku_code)->first()
                 : Sku::find($request->sku_id);
@@ -50,13 +55,36 @@ class ProductFeedbackController extends Controller
             if (!$sku) {
                 return ResponseError('Sku is not found', null, 404);
             }
-            $product_feedback = ProductFeedback::create([
+
+            $orderStatusCheck = Order::where('id',$request->order_id)
+                ->where('user_id',\auth()->id())
+                ->where('status',OrderStatus::Success())->exists();
+            $orderUserCheck = Order::where('id',$request->order_id)
+                ->where('user_id',\auth()->id())
+                ->exists();
+            $orderCheck = Order::where('id',$request->order_id)
+                ->exists();
+            if (!$orderStatusCheck) return  ResponseError('The Order not successfully ',400);
+            if (!$orderUserCheck)   return  ResponseError('User dont has this order ',400);
+            if (!$orderCheck)       return  ResponseError('The Order not found ',400);
+
+
+            $checkOrderItemStatus = OrderItem::where('order_id',$request->order_id)->where('sku_id',$request->sku_id);
+            if($checkOrderItemStatus){
+                $checkOrderItemStatus->update(['status'=>OrderItemStatus::Success()]);
+            }
+
+            $product_feedback = ProductFeedback::firstOrCreate([
                 'sku_id'=>$request->sku_id,
                 'user_id'=>\auth()->id(),
                 'order_id'=>$request->order_id,
                 'rating'=>$request->rating,
-                'content'=>$request->content,
+                'comment'=>$request->comment,
             ]);
+            if(!$product_feedback->wasRecentlyCreated){
+                return  ResponseError('This Product be Fedback',$product_feedback,400);
+            }
+            DB::commit();
             return ResponseSuccess('created Feedback successfully',$product_feedback,201);
         }
         catch (\Exception $e){
