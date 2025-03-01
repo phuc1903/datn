@@ -24,5 +24,6 @@ class AppServiceProvider extends ServiceProvider
     {
         Builder::useVite();
         Config::set('settings.image_default', asset(Config::get('settings.image_default')));
+        Config::set('settings.logo_icon', asset(Config::get('settings.logo_icon')));
     }
 }

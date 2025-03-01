@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\UserAddress;
 use App\Models\UserFavorite;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -28,12 +29,12 @@ class DatabaseSeeder extends Seeder
         | - admin
         |
         */
-        Admin::factory()->create([
-            'first_name' => 'Hữu Hiệp',
-            'last_name' => 'Trần',
-            'phone_number' => '(+84) 1234-5678',
+        Admin::create([
+            'first_name' => 'Trọng Phúc',
+            'last_name' => 'Đinh',
+            'phone_number' => '037746234',
             'email' => 'admin@gmail.com',
-            'password' => bcrypt('admin'),
+            'password' => Hash::make('123456'),
             'status' => 'active',
             'sex' => 'male',
             'created_at' => now(),
@@ -93,6 +94,8 @@ class DatabaseSeeder extends Seeder
             BlogSeeder::class,
             BlogTagSeeder::class,
             BlogProductSeeder::class,
+
+            SliderSeeder::class,
         ]);
     }
 }

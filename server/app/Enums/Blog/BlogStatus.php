@@ -25,6 +25,15 @@ final class BlogStatus extends Enum
         };
     }
 
+    public static function getKeyValuePairs(): array
+    {
+        return [
+            self::Archived => self::getLabel(self::Archived),
+            self::Draft => self::getLabel(self::Draft),
+            self::Published => self::getLabel(self::Published),
+        ];
+    }
+
     public function badge(): string
     {
         return match ($this->value) {
@@ -32,6 +41,16 @@ final class BlogStatus extends Enum
             self::Draft => "<span class='badge text-bg-secondary text-white'>{$this->label()}</span>",
             self::Published => "<span class='badge text-bg-primary text-white'>{$this->label()}</span>",
             default => "<span class='badge text-bg-info text-white'>Không xác định</span>",
+        };
+    }
+
+    public static function getLabel(string $value): string
+    {
+        return match ($value) {
+            self::Archived => 'Đang lưu trữ',
+            self::Draft => 'Nháp',
+            self::Published => 'Đã xuất bản',
+            default => 'Không xác định',
         };
     }
 }

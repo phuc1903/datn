@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ session('theme', 'light') }}">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <link rel="icon" href="{{ config('settings.logo_icon') }}" type="image/x-icon">
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Fonts -->
@@ -30,17 +30,18 @@
             <div id="content-wrapper" class="d-flex flex-column w-100">
 
                 <!-- Main Content -->
-                <div id="content">
+                <div id="content" class="bg-white-custom">
 
                     <!-- Topbar -->
-                    <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <nav class="navbar navbar-expand navbar-light bg-white-custom topbar mb-4 static-top shadow">
 
                         <!-- Sidebar Toggle (Topbar) -->
                         <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
                             <i class="fa fa-bars"></i>
                         </button>
 
-                        <x-button type="href" href="{{ config('settings.api_url')}}" label="Documentation API" icon="bi bi-book" />
+                        <x-button type="href" href="{{ config('settings.api_url') }}" label="Documentation API"
+                            icon="bi bi-book" />
                         <!-- Topbar Navbar -->
                         <ul class="navbar-nav ms-auto">
 
@@ -133,7 +134,8 @@
                                     <h6 class="dropdown-header">Message Center</h6>
                                     <a class="dropdown-item d-flex align-items-center" href="#">
                                         <div class="dropdown-list-image me-3">
-                                            <img class="rounded-circle" src="img/undraw_profile_1.svg" alt="...">
+                                            <img class="rounded-circle" src="img/undraw_profile_1.svg"
+                                                alt="...">
                                             <div class="status-indicator bg-success"></div>
                                         </div>
                                         <div class="font-weight-bold">
@@ -190,35 +192,36 @@
                             <li class="nav-item dropdown no-arrow">
                                 <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                     data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span class="me-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
-                                    <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
+                                    <span class="me-2 d-none d-lg-inline text-gray-600 small">{{ Auth::user()->last_name .' '. Auth::user()->first_name }}</span>
+                                    <x-image.index class="img-profile rounded-circle" />
                                 </a>
                                 <!-- Dropdown - User Information -->
                                 <div class="dropdown-menu dropdown-menu-end shadow animated--grow-in"
                                     aria-labelledby="userDropdown">
                                     <a class="dropdown-item" href="#">
                                         <i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>
-                                        Profile
+                                        Tài khoản
                                     </a>
-                                    <a class="dropdown-item" href="#">
+                                    {{-- <a class="dropdown-item" href="#">
                                         <i class="fas fa-cogs fa-sm fa-fw me-2 text-gray-400"></i>
                                         Settings
                                     </a>
                                     <a class="dropdown-item" href="#">
                                         <i class="fas fa-list fa-sm fa-fw me-2 text-gray-400"></i>
                                         Activity Log
-                                    </a>
+                                    </a> --}}
                                     <div class="dropdown-divider"></div>
                                     <a class="dropdown-item" href="#" data-bs-toggle="modal"
                                         data-bs-target="#logoutModal">
                                         <i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>
-                                        Logout
+                                        Đăng xuất
                                     </a>
                                 </div>
                             </li>
 
                         </ul>
 
+                        <button id="toggle-theme" class="btn btn-primary">Chuyển chế độ</button>
 
                     </nav>
                     <!-- End of Topbar -->
@@ -234,9 +237,9 @@
                 <!-- End of Main Content -->
 
                 <!-- Footer -->
-                <footer class="sticky-footer bg-white">
+                <footer class="sticky-footer bg-white-custom">
                     <div class="container my-auto">
-                        <div class="copyright text-center my-auto">
+                        <div class="copyright text-center my-auto text-dark-custom">
                             <span>Copyright &copy; ZBeauty</span>
                         </div>
                     </div>
@@ -260,15 +263,15 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">×</span>
-                        </button>
+                        <h5 class="modal-title" id="exampleModalLabel">Đăng xuất</h5>
                     </div>
-                    <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                    <div class="modal-body">Bạn chắc chắn có muốn đăng xuất tài khoản.</div>
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                        <a class="btn btn-primary" href="login.html">Logout</a>
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Hủy</button>
+                        <form action="{{ route('logout')}}" method="post">
+                            @csrf
+                            <x-button.index type="submit" label="Đăng xuất"/>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -276,8 +279,11 @@
 
     </div>
 
-    <script src="{{ asset('js/theme.js') }}"></script>
+    @stack('libs-js')
     @stack('scripts')
+
+    <x-toastr.index />
+
 </body>
 
 </html>

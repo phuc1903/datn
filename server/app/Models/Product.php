@@ -27,15 +27,31 @@ class Product extends Model
         return $this->hasMany(ProductImage::class)->select('id', 'product_id', 'image_url');
     }
 
-    // Quan hệ với phản hồi sản phẩm
-    public function feedbacks()
-    {
-        return $this->hasMany(ProductFeedback::class);
-    }
 
     // Quan hệ với danh mục (Nhiều danh mục)
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'product_categories')->select('categories.id', 'name', 'slug');
     }
+    public function favorites()
+    {
+        return $this->belongsToMany(User::class, 'user_favorites', 'product_id', 'user_id')->withTimestamps();
+    }
+    public function feedbacks()
+    {
+        return $this->belongsToMany(User::class, 'product_feedbacks', 'product_id', 'user_id')
+            ->withPivot('rating', 'content')  // Đảm bảo lấy thêm rating và comment
+            ->withTimestamps();  // Lấy timestamps nếu có
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+
+
+
+
+
 }

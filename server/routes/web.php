@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\Auth\AuthController;
 use App\Http\Controllers\Admin\Blog\BlogController;
+use App\Http\Controllers\Admin\Blog\TagController;
 use App\Http\Controllers\Admin\Category\CategoryController;
 use App\Http\Controllers\Admin\Dashboard\DashboardController;
 use App\Http\Controllers\Admin\Order\OrderController;
@@ -8,10 +10,13 @@ use App\Http\Controllers\Admin\Product\FeedbackController;
 use App\Http\Controllers\Admin\Product\ProductController;
 use App\Http\Controllers\Admin\Product\VariantController;
 use App\Http\Controllers\Admin\Setting\SettingController;
+use App\Http\Controllers\Admin\Slider\SliderController;
 use App\Http\Controllers\Admin\Team\TeamController;
 use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\Admin\Voucher\VoucherController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,9 +29,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware('guest:admin')->group(function() {
+    Route::get('/login', [AuthController::class, 'login'])->name('login');
+    Route::post('/login', [AuthController::class, 'loginStore'])->name('login.store');
+});
 
-Route::prefix('/admin')->as('admin.')->group(function () {
+Route::middleware('auth:admin')->group(function() {
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+
+Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function () {
     Route::resource('product', ProductController::class);
     Route::resource('category', CategoryController::class);
     Route::resource('user', UserController::class);
@@ -35,8 +48,18 @@ Route::prefix('/admin')->as('admin.')->group(function () {
     Route::resource('feedback-product', FeedbackController::class);
     Route::resource('setting', SettingController::class);
     Route::resource('blog', BlogController::class);
+    Route::resource('tag', TagController::class);
     Route::resource('voucher', VoucherController::class);
     Route::resource('variant', VariantController::class);
+    Route::resource('slider', SliderController::class);
 });
 
-// Auth::routes();
+Route::post('/save-theme', function (Request $request) {
+    $theme = $request->input('theme');
+    Session::put('theme', $theme);
+    return response()->json(['status' => 'success', 'theme' => $theme]);
+});
+
+Route::fallback(function() {
+    return redirect()->route('dashboard');
+});

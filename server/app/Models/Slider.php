@@ -16,4 +16,9 @@ class Slider extends Model
         'slide_status' => SlideStatus::class,
     ];
 
+    // Thêm miền vào link image_url cho FE get
+    public function getImageUrlAttribute($value)
+    {
+        return $value ? asset($value) : null;
+    }
 }

@@ -26,6 +26,16 @@ final class UserSex extends Enum
         };
     }
 
+    public static function fromLabel(string $label): ?self
+    {
+        return match ($label) {
+            'Nam' => new self(self::Male),
+            'Nữ' => new self(self::Female),
+            'Khác' => new self(self::Other),
+            default => null,
+        };
+    }
+
     public function badge(): string
     {
         return match ($this->value) {
