@@ -22,7 +22,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/detail/{id}', 'getProduct');
         Route::get('/category/{{id}}', 'getProductByCategory');
         Route::get('/most-favorites','getMostFavoritedProducts');
-        Route::get('/feedback-product/{id}','getFeedBackProduct');
+        Route::get('/feedback-product/{id}', 'getFeedBackProduct');
         Route::get('/skus/{id}', 'getSkus')->name('api.get.skus.product');
     });
 
@@ -49,21 +49,19 @@ Route::prefix('v1')->group(function () {
         | OrderController
         |--------------------------------------------------------------------------
         */
-    Route::prefix('orders')->controller(OrderController::class)->group(function (){
-        Route::middleware('auth:sanctum')->group(function (){
-            Route::post('create', 'createOrder');
-            Route::get('/{id}','orderUserDetail');
+    Route::prefix('orders')->controller(OrderController::class)->group(function () {
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::post('/create', 'createOrder');
+            Route::get('/{id}', 'orderUserDetail');
         });
+        Route::post('/payment/momo/ipn', 'handleMomoIpn');  // Nhận callback từ MOMO
     });
+
     /*
     |--------------------------------------------------------------------------
     | AuthController
     |--------------------------------------------------------------------------
     */
-
-
-
-
     Route::prefix('auth')->controller(AuthenticatorController::class)->group(function () {
         // Unauthenticated
         Route::post('/login', 'login');
@@ -74,7 +72,6 @@ Route::prefix('v1')->group(function () {
         Route::middleware(['auth:sanctum', 'auth.active'])->group(function () {
             Route::post('/logout', 'logout');
             Route::post('/change-password', 'changePassword');
-
         });
     });
 

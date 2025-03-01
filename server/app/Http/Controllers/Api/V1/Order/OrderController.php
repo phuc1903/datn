@@ -17,9 +17,156 @@ use App\Models\Voucher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
+use GuzzleHttp\Client;
+use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
+
+    /*
+    |--------------------------------------------------------------------------
+    | THANH TOÁN MOMO
+    |--------------------------------------------------------------------------
+    */
+    private function createMomoPayment(Order $order)
+    {
+        $config = config('momo');
+
+        // Tạo orderId duy nhất bằng cách kết hợp order->id và timestamp
+        $orderId = (string) $order->id . '-' . time(); // Ví dụ: "8-1740510800"
+        $amount = (int) $order->total_amount;
+        $requestId = (string) time(); // requestId cũng nên duy nhất
+        $orderInfo = "Thanh toan don hang #{$order->id}";
+        $extraData = base64_encode(json_encode(['order_type' => 'online_payment']));
+
+        // Kiểm tra trạng thái đơn hàng trước khi gửi
+        if ($order->status === OrderStatus::Pending) {
+            throw new \Exception('Đơn hàng đã được thanh toán trước đó.' . $order->id);
+        }
+
+        $rawHash = "accessKey={$config['access_key']}&amount={$amount}&extraData={$extraData}&ipnUrl={$config['ipn_url']}&orderId={$orderId}&orderInfo={$orderInfo}&partnerCode={$config['partner_code']}&redirectUrl={$config['redirect_url']}&requestId={$requestId}&requestType=captureWallet";
+        $signature = hash_hmac("sha256", $rawHash, $config['secret_key']);
+
+        $payload = [
+            'partnerCode' => $config['partner_code'],
+            'requestId' => $requestId,
+            'amount' => $amount,
+            'orderId' => $orderId,
+            'orderInfo' => $orderInfo,
+            'redirectUrl' => $config['redirect_url'],
+            'ipnUrl' => $config['ipn_url'],
+            'requestType' => 'captureWallet',
+            'extraData' => $extraData,
+            'signature' => $signature,
+            'lang' => 'vi',
+        ];
+
+        \Log::info('MoMo Payment Request Payload: ' . json_encode($payload));
+        \Log::info('MoMo Raw Hash for Signature: ' . $rawHash);
+
+        $client = new Client();
+        try {
+            $response = $client->post($config['endpoint'], [
+                'json' => $payload,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ]);
+            $result = json_decode($response->getBody(), true);
+
+            \Log::info('MoMo Payment Response: ' . json_encode($result));
+
+            if ($result['resultCode'] == 0) {
+                return ['paymentUrl' => $result['payUrl']];
+            }
+
+            throw new \Exception($result['message'] . ' (Result Code: ' . $result['resultCode'] . ')');
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $errorResponse = json_decode($e->getResponse()->getBody()->getContents(), true);
+            \Log::error('MoMo Payment Error: ' . json_encode($errorResponse));
+            throw new \Exception($errorResponse['message'] ?? 'Unknown error from MoMo');
+        }
+    }
+
+    private function createMomoCardPayment(Order $order)
+    {
+        $config = config('momo');
+        $orderId = (string) $order->id . '-' . time();
+        $amount = (int) $order->total_amount;
+        $requestId = (string) time();
+        $orderInfo = "Thanh toan don hang #{$order->id}";
+        $extraData = base64_encode(json_encode(['order_type' => 'card_payment']));
+
+        // Chuỗi rawHash cho thẻ, thêm requestType=payWithCC
+        $rawHash = "accessKey={$config['access_key']}&amount={$amount}&extraData={$extraData}&ipnUrl={$config['ipn_url']}&orderId={$orderId}&orderInfo={$orderInfo}&partnerCode={$config['partner_code']}&redirectUrl={$config['redirect_url']}&requestId={$requestId}&requestType=payWithCC";
+        $signature = hash_hmac("sha256", $rawHash, $config['secret_key']);
+
+        $payload = [
+            'partnerCode' => $config['partner_code'],
+            'requestId' => $requestId,
+            'amount' => $amount,
+            'orderId' => $orderId,
+            'orderInfo' => $orderInfo,
+            'redirectUrl' => $config['redirect_url'],
+            'ipnUrl' => $config['ipn_url'],
+            'requestType' => 'payWithCC', // Dùng payWithCC thay vì captureWallet
+            'extraData' => $extraData,
+            'signature' => $signature,
+            'lang' => 'vi',
+        ];
+
+        \Log::info('MoMo Card Payment Request Payload: ' . json_encode($payload));
+        \Log::info('MoMo Card Raw Hash for Signature: ' . $rawHash);
+
+        $client = new Client();
+        try {
+            $response = $client->post($config['endpoint'], [
+                'json' => $payload,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ]);
+            $result = json_decode($response->getBody(), true);
+
+            \Log::info('MoMo Card Payment Response: ' . json_encode($result));
+
+            if ($result['resultCode'] == 0) {
+                return ['paymentUrl' => $result['payUrl']]; // MoMo trả về URL để nhập thẻ
+            }
+
+            throw new \Exception($result['message'] . ' (Result Code: ' . $result['resultCode'] . ')');
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $errorResponse = json_decode($e->getResponse()->getBody()->getContents(), true);
+            \Log::error('MoMo Card Payment Error: ' . json_encode($errorResponse));
+            throw new \Exception($errorResponse['message'] ?? 'Unknown error from MoMo');
+        }
+    }
+
+    private function handleMomoCallback(array $data)
+    {
+        $config = config('momo');
+        $rawHash = "accessKey={$config['access_key']}&amount={$data['amount']}&extraData={$data['extraData']}&message={$data['message']}&orderId={$data['orderId']}&orderInfo={$data['orderInfo']}&orderType={$data['orderType']}&partnerCode={$data['partnerCode']}&payType={$data['payType']}&requestId={$data['requestId']}&responseTime={$data['responseTime']}&resultCode={$data['resultCode']}&transId={$data['transId']}";
+        $signature = hash_hmac("sha256", $rawHash, $config['secret_key']);
+
+        if ($signature !== $data['signature']) {
+            return false;
+        }
+
+        $order = Order::find($data['orderId']);
+        if ($order) {
+            if ($data['resultCode'] == 0) {
+                $order->status = OrderStatus::Pending;
+            } else {
+                $order->status = OrderStatus::Cancel;
+                $order->reason = $data['message'];
+            }
+            $order->save();
+            return true;
+        }
+
+        return false;
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Tạo đơn hàng
@@ -134,7 +281,7 @@ class OrderController extends Controller
         return max(0, $totalAmount - $discountAmount);
     }
 
-    private function createOrderRecord(User $user, array $orderData, $totalAmount, $shippingCost)
+    private function createOrderRecord(User $user, array $orderData, $totalAmount, $shippingCost, $paymentMethod = 'cod')
     {
         return Order::create([
             'user_id' => $user->id,
@@ -143,7 +290,7 @@ class OrderController extends Controller
             'address' => $orderData['address'],
             'phone_number' => $orderData['phone_number'],
             'payment_method' => $orderData['payment_method'],
-            'status' => OrderStatus::Pending,
+            'status' => ($paymentMethod == 'cod') ? OrderStatus::Pending : OrderStatus::Waiting,
             'shipping_cost' => $shippingCost,
             'total_amount' => $totalAmount + $shippingCost,
             'note' => $orderData['note'] ?? null
@@ -210,7 +357,7 @@ class OrderController extends Controller
                 }
 
                 // Tạo hóa đơn
-                $order = $this->createOrderRecord($user, $orderData, $totalAmount, $shippingCost);
+                $order = $this->createOrderRecord($user, $orderData, $totalAmount, $shippingCost, $orderData['payment_method']);
 
                 // Tạo hóa đơn chi tiết
                 $orderItems = $this->createOrderItems($order, $orderData['orders'], $skus);
@@ -220,9 +367,21 @@ class OrderController extends Controller
                     $this->attachVouchersToOrder($order, $vouchers, $totalAmount);
                 }
 
+                $paymentResult = null;
+                if ($orderData['payment_method'] === 'bank') {
+                    if (config('momo.requestType') == 'payWithCC') {
+                        // Thanh toán momo VISA
+                        $paymentResult = $this->createMomoCardPayment($order);
+                    } else {
+                        // Thánh toán momo QR
+                        $paymentResult = $this->createMomoPayment($order);
+                    }
+                }
+
                 return [
                     'order' => $order,
-                    'order_items' => $orderItems
+                    'order_items' => $orderItems,
+                    'payment_url' => $paymentResult['paymentUrl'] ?? null
                 ];
             });
 
@@ -232,21 +391,28 @@ class OrderController extends Controller
         }
     }
 
-
-    public function orderUserDetail($id):JsonResponse
-{
-    try {
-        $order =Order::
-            with('items')
-            ->find($id); // Load các sản phẩm trong đơn hàng;
-        if ($order) {
-            return ResponseSuccess('Order retrieved successfully.',$order,200);
-        } else {
-            return ResponseError('Order not Found',null,404);
+    public function handleMomoIpn(Request $request)
+    {
+        try {
+            $success = $this->handleMomoCallback($request->all());
+            return response()->json(['success' => $success]);
+        } catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
         }
     }
-    catch (\Exception $e){
-        return ResponseError($e->getMessage(),null,500);
+
+    public function orderUserDetail($id): JsonResponse
+    {
+        try {
+            $order = Order::with('items')
+                ->find($id); // Load các sản phẩm trong đơn hàng;
+            if ($order) {
+                return ResponseSuccess('Order retrieved successfully.', $order, 200);
+            } else {
+                return ResponseError('Order not Found', null, 404);
+            }
+        } catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
+        }
     }
-}
 }
