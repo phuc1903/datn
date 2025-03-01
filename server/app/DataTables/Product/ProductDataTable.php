@@ -5,6 +5,7 @@ namespace App\DataTables\Product;
 use App\Enums\Product\ProductStatus;
 use App\Models\Product;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
 use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
@@ -16,6 +17,7 @@ use Yajra\DataTables\Services\DataTable;
 
 class ProductDataTable extends DataTable
 {
+    protected bool $deleteItem = true;
     /**
      * Build the DataTable class.
      *
@@ -28,33 +30,53 @@ class ProductDataTable extends DataTable
             ->addColumn('action', function ($product) {
                 $editUrl = route('admin.product.edit', $product->id);
                 $deleteUrl = route('admin.product.destroy', $product->id);
-                return '
-                    <div class="d-flex gap-2">
-                        <a class="btn btn-warning text-white" href="' . $editUrl . '">Sửa</a>
-                        <form action="' . $deleteUrl . '" method="POST" class="btn btn-danger ml-2">
-                            ' . csrf_field() . method_field('DELETE') . '
-                            <button type="submit" class="bg-transparent border-0 text-white">Xóa</button>
-                        </form>
-                    </div>
-                ';
+                // return '
+                //     <div class="d-flex gap-2">
+                //         <a class="btn btn-warning text-white" href="' . $editUrl . '">Sửa</a>
+                //         <form action="' . $deleteUrl . '" method="POST" class="btn btn-danger ml-2">
+                //             ' . csrf_field() . method_field('DELETE') . '
+                //             <button type="submit" class="bg-transparent border-0 text-white">Xóa</button>
+                //         </form>
+                //     </div>
+                // ';
+
+                $buttons = '<div class="d-flex gap-2">
+                                <a class="btn btn-warning text-white" href="' . $editUrl . '">Sửa</a>';
+
+                if (!$this->deleteItem) {
+                    $buttons .= '<form action="' . $deleteUrl . '" method="POST" class="d-inline">
+                    ' . csrf_field() . method_field('DELETE') . '
+                    <button type="submit" class="btn btn-danger text-white">Xóa</button>
+                </form>';
+                } else {
+                    $buttons .= '<button type="button" class="btn btn-danger text-white deleteItem" 
+                    data-route-delete="' . $deleteUrl . '" data-id-table="products-table">Xóa</button>';
+                }
+
+                $buttons .= '</div>';
+
+                return $buttons;
             })
-            ->editColumn('status', function ($product) {
-                $statusEnum = ProductStatus::fromValue($product->status);
+            ->editColumn('status', function ($model) {
+                $statusEnum = ProductStatus::fromValue($model->status);
                 return $statusEnum->badge();
             })
-            // ->editColumn('created_at', function ($product) {
-            //     return Carbon::parse($product->created_at)->format('d-m-Y');
-            // })
+            ->editColumn('created_at', function ($product) {
+                return Carbon::parse($product->created_at)->format('Y-m-d');
+            })
             // ->editColumn('updated_at', function ($product) {
             //     return Carbon::parse($product->updated_at)->format('d-m-Y');
             // })
             ->editColumn('image', function ($product) {
-                return '<img class="rounded mx-auto d-block image-cover image-table" src="' . $product->skus[0]->image_url . '"/>';
+                $imageUrl = optional($product->skus->first())->image_url ?? asset('default-image.jpg');
+                return '<img class="rounded mx-auto d-block image-cover image-table" src="' . asset($imageUrl) . '"/>';
             })
             ->editColumn('price', function ($product) {
                 $price = $product->price ?? 0;
-                $formattedPrice = number_format($price, 0, '.', '.');
-                return '<div class="price" data-sort="' . $price . '">' . $formattedPrice . ' VNĐ</div>';
+                return number_format($price, 0, ',', '.') . ' VNĐ';
+            })
+            ->editColumn('short_description', function ($product) {
+                return Str::limit($product->short_description, 50, '...');
             })
 
             ->setRowId('id')
@@ -67,10 +89,18 @@ class ProductDataTable extends DataTable
     public function query(Product $model): QueryBuilder
     {
         return $model->newQuery()
+            ->select(
+                'products.id',
+                'products.name',
+                'products.short_description',
+                'products.status',
+                'products.created_at',
+                \DB::raw('COALESCE(MIN(skus.price), 0) as price')
+            )
             ->leftJoin('skus', 'products.id', '=', 'skus.product_id')
-            ->select('products.*', \DB::raw('MIN(skus.price) as price'))
-            ->groupBy('products.id');
+            ->groupBy('products.id', 'products.name', 'products.short_description', 'products.status', 'products.created_at');
     }
+
 
     /**
      * Optional method if you want to use the html builder.
@@ -84,7 +114,7 @@ class ProductDataTable extends DataTable
             // ->dom('Brtip')
             // ->pageLength(8)
             // ->pagingType('full_numbers')
-            ->orderBy(2)
+            ->orderBy(6)
             ->selectStyleSingle()
             ->parameters([
                 'language' => [
@@ -123,8 +153,8 @@ class ProductDataTable extends DataTable
             Column::make('name')->title("Tên sản phẩm"),
             Column::make('short_description')->title("Mô tả ngắn"),
             Column::make('status')->title("Trạng thái"),
-            Column::make('price')->title("Giá")->orderable(true)->width(200),
-            // Column::make('created_at')->title('Ngày thêm')->width(150),
+            Column::make('price')->title("Giá")->orderable(true)->width(200)->type("num"),
+            Column::make('created_at')->title('Ngày thêm')->width(150)->type("date"),
             // Column::make('updated_at')->title('Ngày cập nhật')->width(150),
             Column::computed('action')
                 ->title('Hành động')

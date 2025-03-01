@@ -24,6 +24,18 @@ final class UserStatus extends Enum
             default => "Không xác định",
         };
     }
+
+    /**
+     * Chuyển chuỗi tiếng Việt thành giá trị Enum
+     */
+    public static function fromLabel(string $label): ?self
+    {
+        return match ($label) {
+            'Đang hoạt động' => new self(self::Active),
+            'Đang bị khóa' => new self(self::Banned),
+            default => null,
+        };
+    }
     public function badge(): string
     {
         return match ($this->value) {

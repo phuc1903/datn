@@ -1,9 +1,14 @@
 "use client";
+
 import { useState } from "react";
-// import DOMPurify from "dompurify";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import Cookies from "js-cookie";
+import Link from "next/link";
+import Swal from 'sweetalert2';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -12,28 +17,15 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({ email: "", password: "" });
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const validatePassword = (password) => {
-    return password.length >= 8;
-  };
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validatePassword = (password) => password.length >= 8;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
-    // Làm sạch dữ liệu đầu vào để tránh XSS
-    const sanitizedValue = DOMPurify.sanitize(value);
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: sanitizedValue,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const { email, password } = formData;
 
@@ -47,8 +39,50 @@ export default function LoginPage() {
       return;
     }
 
-    // Gửi dữ liệu hợp lệ
-    console.log("Form data submitted:", formData);
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/v1/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Đăng nhập thất bại");
+      }
+
+      const result = await response.json();
+      console.log("Login response:", result);
+      
+      if (result.status === "success") {
+        // Hiển thị thông báo thành công
+        await Swal.fire({
+          title: 'Thành công!',
+          text: 'Đăng nhập thành công!',
+          icon: 'success',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#db2777', // pink-600 color
+        });
+
+        // Lưu token vào cookies
+        Cookies.set("accessToken", result.data.token, { expires: 1 });
+        Cookies.set("userEmail", email, { expires: 1 });
+
+        router.push("/profile");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      // Hiển thị thông báo lỗi
+      Swal.fire({
+        title: 'Lỗi!',
+        text: 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#db2777', // pink-600 color
+      });
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -58,7 +92,6 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
-        {/* Logo */}
         <div className="flex justify-center mb-8">
           <div>
             <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
@@ -129,9 +162,9 @@ export default function LoginPage() {
             </div>
 
             <div className="text-sm">
-              <a href="/forgot-password" className="text-pink-600 hover:text-blue-700 font-medium">
+              <Link href="/forgot-password" className="text-pink-600 hover:text-blue-700 font-medium">
                 Quên mật khẩu?
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -163,9 +196,9 @@ export default function LoginPage() {
 
         <p className="mt-6 text-sm text-center text-gray-600">
           Chưa có tài khoản?{" "}
-          <a href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
             Đăng ký ngay
-          </a>
+          </Link>
         </p>
       </div>
     </div>

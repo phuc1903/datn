@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('promotion_price');
             $table->integer('quantity');
             $table->string('image_url');
-            $table->foreign('product_id')->references('id')->on('products');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');;
             $table->timestamps();
         });
     }

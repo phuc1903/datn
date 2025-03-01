@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('full_name');
             $table->string('email');
             $table->string('phone_number');
@@ -26,7 +26,7 @@ return new class extends Migration
             $table->integer('shipping_cost');
             $table->integer('total_amount');
             $table->string('note')->nullable();
-            $table->string('reason');
+            $table->string('reason')->nullable();
             $table->timestamps();
         });
     }

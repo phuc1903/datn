@@ -29,16 +29,28 @@ class Category extends Model
         return $this->hasMany(Category::class, 'parent_id');
     }
 
-    // Hàm đệ quy để lấy tất cả các danh mục con
     public function getAllChildren()
     {
-        // Lấy tất cả các danh mục con (nếu có)
         $children = $this->children()->with('children')->get();
 
         foreach ($children as $child) {
-            $child->children = $child->getAllChildren(); // Đệ quy lấy các danh mục con của mỗi danh mục con
+            $child->children = $child->getAllChildren(); 
         }
 
         return $children;
+    }
+
+
+    public function getParentCount()
+    {
+        $parentCount = 0;
+        $parent = $this->parent; 
+
+        while ($parent) {
+            $parentCount++;
+            $parent = $parent->parent;
+        }
+
+        return $parentCount; 
     }
 }

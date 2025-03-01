@@ -5,7 +5,7 @@
         <div class="card-header d-flex justify-content-between bg-white py-3 align-items-center">
             <h2 class="mb-0">Quản lý danh mục</h2>
             <div class="d-block">
-                <x-button type="href" href="{{ route('admin.category.create') }}" label="Thêm sản phẩm" icon="bi bi-plus" />
+                <x-button type="href" href="{{ route('admin.category.create') }}" label="Thêm danh mục" icon="bi bi-plus" />
             </div>
         </div>
         <div class="card-body table-dataTables">

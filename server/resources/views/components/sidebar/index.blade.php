@@ -32,11 +32,11 @@
                     'path' => route('admin.product.create'),
                 ],
                 [
-                    'label' => 'Danh sách biến thể',
+                    'label' => 'Danh sách thuộc tính',
                     'path' => route('admin.variant.index'),
                 ],
                 [
-                    'label' => 'Thêm biến thể',
+                    'label' => 'Thêm thuộc tính',
                     'path' => route('admin.variant.create'),
                 ],
             ],
@@ -66,16 +66,6 @@
             'type' => 'nav',
             'icon' => 'bi-cart',
             'path' => route('admin.order.index'),
-            'child' => [
-                [
-                    'label' => 'Danh sách đơn hàng',
-                    'path' => route('admin.order.index'),
-                ],
-                [
-                    'label' => 'Thêm đơn hàng',
-                    'path' => route('admin.order.create'),
-                ],
-            ],
         ],
         // Quản lý đánh giá sản phẩm
         [
@@ -110,6 +100,14 @@
                 [
                     'label' => 'Thêm bài viết',
                     'path' => route('admin.blog.create')
+                ],
+                [
+                    'label' => 'DS danh mục bài viết',
+                    'path' => route('admin.tag.index')
+                ],
+                [
+                    'label' => 'Thêm danh mục',
+                    'path' => route('admin.tag.create')
                 ],
             ],
         ],
@@ -164,6 +162,23 @@
                 [
                     'label' => 'Thêm thành viên',
                     'path' => route('admin.team.create'),
+                ],
+            ],
+        ],
+        [
+            'label' => 'Slider',
+            'active' => request()->routeIs('admin.slider.index'),
+            'type' => 'nav',
+            'icon' => 'bi-images',
+            'path' => route('admin.slider.index'),
+            'child' => [
+                [
+                    'label' => 'Danh sách Slider',
+                    'path' => route('admin.slider.index'),
+                ],
+                [
+                    'label' => 'Thêm Slide',
+                    'path' => route('admin.slider.create'),
                 ],
             ],
         ],

@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('vouchers', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('admin_id');
-            $table->foreign('admin_id')->references('id')->on('admins')->onDelete('cascade');
+            $table->foreign('admin_id')->references('id')->on('admins')->onDelete('cascade')->onDelete('cascade');
             $table->string('title');
             $table->string('description', 500)->nullable();
             $table->integer('quantity')->default(0);
