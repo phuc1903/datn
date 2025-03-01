@@ -19,4 +19,5 @@ class SkuVariant extends Model
     {
         return $this->belongsTo(VariantValue::class);
     }
+    
 }

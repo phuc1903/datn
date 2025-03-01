@@ -21,8 +21,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/', 'getAllProduct');
         Route::get('/detail/{id}', 'getProduct');
         Route::get('/category/{{id}}', 'getProductByCategory');
-        Route::get('/most-favorites', 'getMostFavoritedProducts');
+        Route::get('/most-favorites','getMostFavoritedProducts');
         Route::get('/feedback-product/{id}', 'getFeedBackProduct');
+        Route::get('/skus/{id}', 'getSkus')->name('api.get.skus.product');
     });
 
 

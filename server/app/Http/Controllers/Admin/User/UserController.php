@@ -3,8 +3,13 @@
 namespace App\Http\Controllers\Admin\User;
 
 use App\DataTables\User\UserDataTable;
+use App\Enums\User\UserSex;
+use App\Enums\User\UserStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\User\UserRequest;
 use App\Models\User;
+use App\Models\UserAddress;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -22,15 +27,53 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+        $sexList = collect(UserSex::getValues())
+            ->map(fn($value) => [
+                'label' => UserSex::fromValue($value)->label(),
+                'value' => $value,
+            ])
+            ->values()
+            ->toArray();
+
+        return view('Pages.User.Create', ['sexList' => $sexList]);
     }
+
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(UserRequest $request)
     {
-        //
+
+        try {
+            $sex = UserSex::fromValue($request->sex);
+
+            $user = User::create([
+                'first_name'   => $request->first_name,
+                'last_name'    => $request->last_name,
+                'phone_number' => $request->phone_number,
+                'password' => Hash::make($request->password),
+                'email'        => $request->email,
+                'sex'          => $sex->value,
+            ]);
+
+            if ($request->has('addresses') && is_array($request->addresses)) {
+                foreach ($request->addresses as $address) {
+                    UserAddress::create([
+                        'user_id'  => $user->id,
+                        'city'     => $address['city'] ?? null,
+                        'district' => $address['district'] ?? null,
+                        'ward'     => $address['ward'] ?? null,
+                        'address'  => $address['address'] ?? null,
+                    ]);
+                }
+            }
+
+            return redirect()->route('admin.user.index')->with('success', 'Thêm thành công');
+        } catch (\Exception $e) {
+
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -46,7 +89,40 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        //
+        $userShow = $user->load('addresses');
+
+        $orderStatus = UserStatus::fromValue($userShow->status);
+        $userSex = UserSex::fromValue($userShow->sex);
+
+        $statusList = collect(UserStatus::getValues())
+            ->filter(fn($status) => $status !== $orderStatus->value)
+            ->map(fn($value) => [
+                'label' => UserStatus::fromValue($value)->label(),
+                'value' => $value,
+            ])
+            ->values()
+            ->toArray();
+
+
+        $sexList = collect(UserSex::getValues())
+            ->filter(fn($payment) => $payment !== $userSex->value)
+            ->map(fn($value) => [
+                'label' => UserSex::fromValue($value)->label(),
+                'value' => $value,
+            ])
+            ->values()
+            ->toArray();
+
+
+        return view('Pages.User.Edit', [
+            'user' => $userShow,
+            'statusList' => $statusList,
+            'sexList' => $sexList,
+            'statusActive' => $orderStatus->label(),
+            'statusActiveValue' => $orderStatus->value,
+            'sexActive' => $userSex->label(),
+            'sexActiveValue' => $userSex->value,
+        ]);
     }
 
     /**
@@ -54,14 +130,50 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        //
+        try {
+            $status = UserStatus::fromValue($request->status) ?? UserStatus::fromLabel($request->status);
+            $sex = UserSex::fromValue($request->sex) ?? UserSex::fromLabel($request->sex);
+
+            $user->update([
+                'first_name'   => $request->first_name,
+                'last_name'    => $request->last_name,
+                'phone_number' => $request->phone_number,
+                'password'     => Hash::make($request->password),
+                'email'        => $request->email,
+                'status'       => $status->value,
+                'sex'          => $sex->value,
+            ]);
+
+            UserAddress::where('user_id', $user->id)->delete();
+
+            if ($request->has('addresses') && is_array($request->addresses)) {
+                foreach ($request->addresses as $address) {
+                    UserAddress::create([
+                        'user_id'  => $user->id,
+                        'city'     => $address['city'] ?? null,
+                        'district' => $address['district'] ?? null,
+                        'ward'     => $address['ward'] ?? null,
+                        'address'  => $address['address'] ?? null,
+                    ]);
+                }
+            }
+
+            return redirect()->back()->with('success', 'Cập nhật thành công');
+        } catch (\Exception $e) {
+
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user)
     {
-        //
+        $user->delete();
+        if ($request->ajax()) {
+            return response()->json(['type' => 'success', 'redirect' => route('admin.user.index')]);
+        }
+        return redirect()->route('admin.user.index')->with('success', 'Xóa tài khoản khách hàng thành công');
     }
 }

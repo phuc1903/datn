@@ -22,6 +22,53 @@ if (!function_exists('ResponseSuccess')) {
     }
 }
 
+if (!function_exists('flattenCategories')) {
+    function flattenCategories($categories, $parentId = 0, $depth = 0)
+    {
+        $flattened = [];
+
+        foreach ($categories as $category) {
+            if ($category->parent_id == $parentId) {
+                $category->depth = $depth;
+                $flattened[] = $category;
+
+                $flattened = array_merge($flattened, flattenCategories($categories, $category->id, $depth + 1));
+            }
+        }
+
+        return $flattened;
+    }
+}
+
+if (!function_exists('mapEnumToArray')) {
+    function mapEnumToArray(string $enumClass, string $currentValue = null): array
+    {
+        if (!method_exists($enumClass, 'getValues') || !method_exists($enumClass, 'fromValue')) {
+            throw new InvalidArgumentException("$enumClass không phải là một Enum hợp lệ");
+        }
+
+        if (!isset($currentValue)) {
+            return array_map(function ($value) use ($enumClass) {
+                $enumInstance = $enumClass::fromValue($value);
+                return [
+                    'label' => $enumInstance->label(),
+                    'value' => $enumInstance->value,
+                ];
+            }, $enumClass::getValues());
+        }
+        return collect($enumClass::getValues())
+            ->when($currentValue, function ($collection, $currentValue) {
+                return $collection->filter(fn($value) => $value !== $currentValue); // Loại bỏ giá trị hiện tại nếu có
+            })
+            ->map(fn($value) => [
+                'label' => $enumClass::fromValue($value)->label(),
+                'value' => $value,
+            ])
+            ->values()
+            ->toArray();
+    }
+}
+
 // Kiểm tra cấu hình Mail có đầy đủ không
 if (!function_exists('hasCompleteMailConfig')) {
     function hasCompleteMailConfig()
@@ -39,5 +86,12 @@ if (!function_exists('hasCompleteMailConfig')) {
         }
 
         return true; // Cấu hình đầy đủ
+    }
+}
+
+if(!function_exists('checkDataUpdate')) {
+    function checkDataUpdate(array $newData, array $oldData) {
+        $check = empty(array_diff_assoc($newData, $oldData));
+        return $check;
     }
 }

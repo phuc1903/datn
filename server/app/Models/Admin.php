@@ -5,12 +5,19 @@ namespace App\Models;
 use App\Enums\Admin\AdminSex;
 use App\Enums\Admin\AdminStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class Admin extends Model
+class Admin extends Authenticatable
 {
-    use HasFactory;
-    protected $guarded = [];
+    use HasFactory, Notifiable;
+    protected $fillable = [
+        'first_name', 'last_name', 'phone_number', 'email', 'password', 'status', 'sex'
+    ];
+
+    protected $hidden = [
+        'password',
+    ];
 
     protected $casts = [
         'random_flag' => 'boolean',

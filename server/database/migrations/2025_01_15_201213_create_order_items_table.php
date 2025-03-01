@@ -18,9 +18,9 @@ return new class extends Migration
             $table->unsignedBigInteger('sku_id');
             $table->integer('quantity');
             $table->integer('price');
-            $table->foreign('order_id')->references('id')->on('orders');
-            $table->foreign('product_id')->references('id')->on('products');
-            $table->foreign('sku_id')->references('id')->on('skus');
+            $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->foreign('sku_id')->references('id')->on('skus')->onDelete('cascade');
             $table->timestamps();
         });
     }

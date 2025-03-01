@@ -208,4 +208,13 @@ class ProductController extends Controller
 
 
     }
+
+    public function getSkus($id) {
+        try {
+            $product = Product::with('skus.variantValues')->find($id);
+            return response()->json($product->skus);
+        }catch(\Exception $e) {
+            return response()->json($e->getMessage());
+        }
+    }
 }

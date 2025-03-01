@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('history_moneys', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('wallet_id');
-            $table->foreign('wallet_id')->references('id')->on('wallets');
+            $table->foreign('wallet_id')->references('id')->on('wallets')->onDelete('cascade');
             $table->integer('before');
             $table->integer('amount');
             $table->integer('after');
