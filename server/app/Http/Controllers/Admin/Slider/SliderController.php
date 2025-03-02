@@ -46,11 +46,8 @@ class SliderController extends Controller
                 $data['priority'] = Slider::max('priority') + 1;
             }
 
-            $path = null;
-
-            if ($request->hasFile(key: 'image_url')) {
-                $path = Storage::disk('public')->put('slider_images', contents: $request->image_url);
-                $data['image_url'] = '/storage/' . $path;
+            if ($request->hasFile('image_url')) {
+                $data['image_url'] = putImage('slider_image', $request->image_url);
             } else {
                 $data['image_url'] = config(key: 'settings.image_default');
             }
@@ -136,6 +133,8 @@ class SliderController extends Controller
     public function destroy(Request $request, slider $slider)
     {
         try {
+
+            deleteImage($slider->image_url);
             $slider->delete();
 
             if ($request->ajax()) {

@@ -182,6 +182,23 @@
                 ],
             ],
         ],
+        [
+            'label' => 'Quyền',
+            'active' => request()->routeIs('admin.permission.index'),
+            'type' => 'nav',
+            'icon' => 'bi-images',
+            'path' => route('admin.permission.index'),
+            'child' => [
+                [
+                    'label' => 'Danh sách Quyền',
+                    'path' => route('admin.permission.index'),
+                ],
+                [
+                    'label' => 'Thêm Quyền',
+                    'path' => route('admin.permission.create'),
+                ],
+            ],
+        ],
         // Cài đặt chung
         [
             'label' => 'Cài đặt chung',

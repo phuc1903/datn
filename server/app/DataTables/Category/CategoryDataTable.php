@@ -16,9 +16,7 @@ class CategoryDataTable extends BaseDataTable
     protected bool $includeCreatedAt = true;
     protected bool $includeUpdatedAt = true;
 
-    protected int $orderBy = 5;
-
-    protected bool $deleteItem = true;
+    protected int $orderBy = 4;
 
     /**
      * Get the query source of dataTable.
@@ -50,8 +48,7 @@ class CategoryDataTable extends BaseDataTable
                 return $statusEnum->badge();
             })
             ->editColumn('image', function ($category) {
-                $imageUrl = $category->image ?? asset('default-image.jpg');
-                return '<img class="rounded mx-auto d-block image-cover image-table" src="' . asset($imageUrl) . '"/>';
+                return '<img class="rounded mx-auto d-block image-cover image-table category small" src="' . asset($category->image) . '"/>';
             });
     }
 }

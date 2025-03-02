@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\Slider\SliderController;
 use App\Http\Controllers\Admin\Team\TeamController;
 use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\Admin\Voucher\VoucherController;
+use App\Http\Controllers\Admin\Permission\PermissionController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
@@ -52,6 +53,7 @@ Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function 
     Route::resource('voucher', VoucherController::class);
     Route::resource('variant', VariantController::class);
     Route::resource('slider', SliderController::class);
+    Route::resource('permission', PermissionController::class);
 });
 
 Route::post('/save-theme', function (Request $request) {

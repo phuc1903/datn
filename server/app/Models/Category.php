@@ -53,4 +53,9 @@ class Category extends Model
 
         return $parentCount; 
     }
+
+    public function getImageUrlAttribute($value)
+    {
+        return $value ? asset($value) : null;
+    }
 }
