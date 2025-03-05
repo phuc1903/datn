@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
-import { StarIcon } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { StarIcon, HeartIcon } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import toast, { Toaster } from "react-hot-toast";
+import Cookies from "js-cookie";
 
 interface ProductVariant {
   id: number;
@@ -33,6 +35,7 @@ interface Review {
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const router = useRouter();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedSku, setSelectedSku] = useState<Sku | null>(null);
@@ -42,22 +45,50 @@ export default function ProductDetail() {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
+  const token = Cookies.get("accessToken");
 
   useEffect(() => {
-    if (id) {
-      fetch(`http://127.0.0.1:8000/api/v1/products/detail/${id}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.status === "success") {
-            setProduct(data.data);
-            setSelectedSku(data.data.skus[0]);
-          }
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
-    }
-  }, [id]);
+    if (!id) return;
+
+    const fetchProductAndWishlist = async () => {
+      setLoading(true);
+      try {
+        // Fetch product details
+        const productResponse = await fetch(`http://127.0.0.1:8000/api/v1/products/detail/${id}`);
+        if (!productResponse.ok) throw new Error("Failed to fetch product");
+        const productData = await productResponse.json();
+        if (productData.status !== "success") throw new Error("Product fetch failed");
+        
+        setProduct(productData.data);
+        setSelectedSku(productData.data.skus[0]);
+
+        // Fetch wishlist if authenticated
+        if (token) {
+          const wishlistResponse = await fetch("http://127.0.0.1:8000/api/v1/users/favorites", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!wishlistResponse.ok) throw new Error("Failed to fetch wishlist");
+          const wishlistData = await wishlistResponse.json();
+          
+          const isInWishlist = wishlistData.data?.favorites?.some(
+            (item) => item.id === parseInt(id as string)
+          );
+          setIsWishlisted(isInWishlist);
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("Không thể tải thông tin sản phẩm.");
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProductAndWishlist();
+  }, [id, token]);
 
   const reviews: Review[] = [
     {
@@ -76,43 +107,58 @@ export default function ProductDetail() {
     },
   ];
 
-  const handleQuantityChange = (value: number) => {
-    if (!selectedSku) return;
-    const newQuantity = Math.max(1, Math.min(value, selectedSku.quantity));
-    setQuantity(newQuantity);
-  };
+  const handleQuantityChange = useCallback(
+    (value: number) => {
+      if (!selectedSku) return;
+      const newQuantity = Math.max(1, Math.min(value, selectedSku.quantity));
+      setQuantity(newQuantity);
+    },
+    [selectedSku]
+  );
 
-  const handleVariantChange = (variantName: string, value: string) => {
-    const newSelectedVariants = { ...selectedVariants, [variantName]: value };
-    setSelectedVariants(newSelectedVariants);
+  const handleVariantChange = useCallback(
+    (variantName: string, value: string) => {
+      const newSelectedVariants = { ...selectedVariants, [variantName]: value };
+      setSelectedVariants(newSelectedVariants);
 
-    // Tìm SKU phù hợp với tất cả các variant đã chọn
-    const matchedSku = product.skus.find((sku: Sku) =>
-      sku.variant_values.every((variant) =>
-        newSelectedVariants[variant.variant.name] === variant.value ||
-        !newSelectedVariants[variant.variant.name]
-      )
-    );
-    if (matchedSku) {
-      setSelectedSku(matchedSku);
-    }
-    setQuantity(1);
-  };
+      const matchedSku = product?.skus.find((sku: Sku) =>
+        sku.variant_values.every(
+          (variant) =>
+            newSelectedVariants[variant.variant.name] === variant.value ||
+            !newSelectedVariants[variant.variant.name]
+        )
+      );
+      if (matchedSku) {
+        setSelectedSku(matchedSku);
+      }
+      setQuantity(1);
+    },
+    [selectedVariants, product?.skus]
+  );
 
   const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!token) {
+      toast.error("Vui lòng đăng nhập để gửi đánh giá!");
+      router.push("/login");
+      return;
+    }
     console.log({ rating, comment });
+    toast.success("Đánh giá của bạn đã được gửi!");
     setRating(0);
     setComment("");
     setShowReviewForm(false);
   };
 
-  const [cart, setCart] = useState([]);
-
-  const handleAddToCart = () => {
+  const handleAddToCart = useCallback(() => {
+    if (!token) {
+      toast.error("Vui lòng đăng nhập để thêm vào giỏ hàng!");
+      router.push("/login");
+      return;
+    }
     if (!selectedSku || !product) return;
 
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
     const existingItem = storedCart.find((item) => item.sku_id === selectedSku.id);
     let updatedCart;
 
@@ -138,8 +184,54 @@ export default function ProductDetail() {
       updatedCart = [...storedCart, cartItem];
     }
 
-    setCart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
+    toast.success("Đã thêm vào giỏ hàng!");
+  }, [selectedSku, product, quantity, token, router]);
+
+  const toggleWishlist = useCallback(async () => {
+    if (!token) {
+      toast.error("Vui lòng đăng nhập để thêm vào danh sách yêu thích!");
+      router.push("/login");
+      return;
+    }
+    if (!product) return;
+
+    setWishlistLoading(true);
+    const url = isWishlisted
+      ? "http://127.0.0.1:8000/api/v1/users/remove-favorite"
+      : "http://127.0.0.1:8000/api/v1/users/add-favorite";
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ product_id: parseInt(id as string) }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to update wishlist");
+
+      setIsWishlisted(!isWishlisted);
+      toast.success(isWishlisted ? "Đã xóa khỏi yêu thích!" : "Đã thêm vào yêu thích!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Có lỗi xảy ra khi cập nhật danh sách yêu thích.");
+    } finally {
+      setWishlistLoading(false);
+    }
+  }, [id, token, isWishlisted, product, router]);
+
+  const handleBuyNow = () => {
+    if (!token) {
+      toast.error("Vui lòng đăng nhập để mua hàng!");
+      router.push("/login");
+      return;
+    }
+    toast.success("Chuyển đến trang thanh toán...");
+    // router.push("/checkout");
   };
 
   if (loading) return <p className="text-center p-5">Đang tải...</p>;
@@ -149,7 +241,6 @@ export default function ProductDetail() {
     return sku.promotion_price > 0 ? sku.promotion_price : sku.price;
   };
 
-  // Thu thập tất cả các variant duy nhất theo tên
   const variantOptions: { [key: string]: Set<string> } = {};
   product?.skus.forEach((sku: Sku) => {
     sku.variant_values.forEach((variant) => {
@@ -161,12 +252,13 @@ export default function ProductDetail() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 py-12 relative">
+      <Toaster position="top-right" />
       <div className="max-w-7xl mx-auto px-4">
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
-              <div className="relative aspect-square rounded-lg overflow-hidden">
+              <div className="relative aspect-square rounded-lg overflow-hidden transition-all duration-300">
                 <Image
                   src={selectedSku?.image_url || "/placeholder.jpg"}
                   alt={product.name}
@@ -175,7 +267,7 @@ export default function ProductDetail() {
                   priority
                 />
               </div>
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {product.skus.map((sku) => (
                   <div
                     key={sku.id}
@@ -197,7 +289,28 @@ export default function ProductDetail() {
 
             <div className="space-y-6">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+              <div className="flex justify-between items-center">
+  <div>
+    <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+    {product?.categories?.length > 0 && (
+      <h3 className="text-base md:text-lg font-bold text-gray-500">
+        Danh mục: {product.categories.map((category) => category.name).join(", ")}
+        {selectedSku && ` - Mã sản phẩm: ${selectedSku.sku_code}`}
+      </h3>
+    )}
+  </div>
+  <button
+    onClick={toggleWishlist}
+    disabled={wishlistLoading}
+    className="p-2 rounded-full hover:bg-gray-100"
+  >
+    <HeartIcon
+      className={`w-6 h-6 ${
+        isWishlisted ? "text-red-500 fill-red-500" : "text-gray-500"
+      }`}
+    />
+  </button>
+</div>
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -214,7 +327,7 @@ export default function ProductDetail() {
               <div className="border-t border-b py-4">
                 {selectedSku && (
                   <>
-                    <div className="text-3xl font-bold text-pink-600 mb-2">
+                    <div className="text-2xl md:text-3xl font-bold text-pink-600 mb-2">
                       {getDisplayPrice(selectedSku).toLocaleString()}đ
                     </div>
                     {selectedSku.promotion_price > 0 && (
@@ -229,24 +342,32 @@ export default function ProductDetail() {
                 )}
               </div>
 
-              {/* Hiển thị các variant */}
               {Object.entries(variantOptions).map(([variantName, values]) => (
                 <div key={variantName}>
                   <h3 className="text-sm font-medium text-gray-900 mb-4">{variantName}:</h3>
                   <div className="grid grid-cols-3 gap-4">
-                    {Array.from(values).map((value) => (
-                      <button
-                        key={value}
-                        className={`border rounded-lg py-2 px-4 text-sm font-medium ${
-                          selectedVariants[variantName] === value
-                            ? "border-pink-600 text-pink-600"
-                            : "border-gray-200 text-gray-900 hover:border-gray-300"
-                        }`}
-                        onClick={() => handleVariantChange(variantName, value)}
-                      >
-                        {value}
-                      </button>
-                    ))}
+                    {Array.from(values).map((value) => {
+                      const isAvailable = product.skus.some(
+                        (sku) =>
+                          sku.variant_values.some(
+                            (v) => v.value === value && v.variant.name === variantName
+                          ) && sku.quantity > 0
+                      );
+                      return (
+                        <button
+                          key={value}
+                          disabled={!isAvailable}
+                          className={`border rounded-lg py-2 px-4 text-sm font-medium ${
+                            selectedVariants[variantName] === value
+                              ? "border-pink-600 text-pink-600"
+                              : "border-gray-200 text-gray-900 hover:border-gray-300"
+                          } ${!isAvailable ? "opacity-50 cursor-not-allowed" : ""}`}
+                          onClick={() => handleVariantChange(variantName, value)}
+                        >
+                          {value}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -255,7 +376,10 @@ export default function ProductDetail() {
                 <h3 className="text-sm font-medium text-gray-900 mb-4">Số lượng:</h3>
                 <div className="flex items-center space-x-4">
                   <button
-                    className="w-10 h-10 rounded-lg border text-black border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                    disabled={quantity <= 1}
+                    className={`w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 ${
+                      quantity <= 1 ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                     onClick={() => handleQuantityChange(quantity - 1)}
                   >
                     -
@@ -265,11 +389,16 @@ export default function ProductDetail() {
                     min="1"
                     max={selectedSku?.quantity || 1}
                     value={quantity}
-                    onChange={(e) => handleQuantityChange(parseInt(e.target.value))}
+                    onChange={(e) =>
+                      handleQuantityChange(Math.min(parseInt(e.target.value) || 1, selectedSku?.quantity))
+                    }
                     className="w-20 h-10 border border-gray-300 rounded-lg text-center text-pink-600"
                   />
                   <button
-                    className="w-10 h-10 rounded-lg border border-gray-300 text-black flex items-center justify-center hover:bg-gray-50"
+                    disabled={quantity >= selectedSku?.quantity}
+                    className={`w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 ${
+                      quantity >= selectedSku?.quantity ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                     onClick={() => handleQuantityChange(quantity + 1)}
                   >
                     +
@@ -277,14 +406,17 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 hidden md:grid">
                 <button
                   onClick={handleAddToCart}
                   className="bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700"
                 >
                   Thêm vào giỏ hàng
                 </button>
-                <button className="w-full bg-gray-900 text-white rounded-lg py-3 font-medium hover:bg-gray-800 transition-colors">
+                <button
+                  onClick={handleBuyNow}
+                  className="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 font-semibold"
+                >
                   Mua ngay
                 </button>
               </div>
@@ -292,8 +424,8 @@ export default function ProductDetail() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
-          <div className="border-b">
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-20 md:mb-8">
+          <div className="border-b sticky top-0 bg-white z-10">
             <nav className="flex">
               {["description", "specifications", "reviews"].map((tab) => (
                 <button
@@ -315,23 +447,31 @@ export default function ProductDetail() {
 
           <div className="p-6">
             {activeTab === "description" && (
-              <div className="prose max-w-none text-black">
-                <div dangerouslySetInnerHTML={{ __html: product.description }} />
-                <p>{product.short_description}</p>
-              </div>
+              product.description || product.short_description ? (
+                <div className="prose max-w-none text-black">
+                  <div dangerouslySetInnerHTML={{ __html: product.description }} />
+                  <p>{product.short_description}</p>
+                </div>
+              ) : (
+                <p className="text-gray-500">Chưa có mô tả sản phẩm.</p>
+              )
             )}
 
             {activeTab === "specifications" && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-black">
-                  {selectedSku?.variant_values.map((variant) => (
-                    <div key={variant.id} className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="font-medium mb-2">{variant.variant.name}</h4>
-                      <p>{variant.value}</p>
-                    </div>
-                  ))}
+              selectedSku?.variant_values.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-black">
+                    {selectedSku.variant_values.map((variant) => (
+                      <div key={variant.id} className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="font-medium mb-2">{variant.variant.name}</h4>
+                        <p>{variant.value}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <p className="text-gray-500">Chưa có thông số sản phẩm.</p>
+              )
             )}
 
             {activeTab === "reviews" && (
@@ -393,35 +533,65 @@ export default function ProductDetail() {
                   </form>
                 )}
 
-                <div className="space-y-6">
-                  {reviews.map((review) => (
-                    <div
-                      key={review.id}
-                      className="border-b last:border-0 pb-6 last:pb-0 text-black"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-4">
-                          <div className="font-medium">{review.user}</div>
-                          <div className="flex items-center">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <StarIcon
-                                key={star}
-                                className={`w-4 h-4 ${
-                                  star <= review.rating ? "text-yellow-400" : "text-gray-300"
-                                }`}
-                              />
-                            ))}
+                {reviews.length > 0 ? (
+                  <div className="space-y-6">
+                    {reviews.map((review) => (
+                      <div
+                        key={review.id}
+                        className="border-b last:border-0 pb-6 last:pb-0 text-black"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-4">
+                            <div className="font-medium">{review.user}</div>
+                            <div className="flex items-center">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <StarIcon
+                                  key={star}
+                                  className={`w-4 h-4 ${
+                                    star <= review.rating ? "text-yellow-400" : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                            </div>
                           </div>
+                          <div className="text-sm text-gray-500">{review.date}</div>
                         </div>
-                        <div className="text-sm text-gray-500">{review.date}</div>
+                        <p className="text-gray-600">{review.comment}</p>
                       </div>
-                      <p className="text-gray-600">{review.comment}</p>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">Chưa có đánh giá nào.</p>
+                )}
               </div>
             )}
           </div>
+        </div>
+
+        <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-4 flex items-center justify-between md:hidden z-20">
+          <button
+            onClick={toggleWishlist}
+            disabled={wishlistLoading}
+            className="p-2 rounded-full hover:bg-gray-100"
+          >
+            <HeartIcon
+              className={`w-6 h-6 ${
+                isWishlisted ? "text-red-500 fill-red-500" : "text-gray-500"
+              }`}
+            />
+          </button>
+          <button
+            onClick={handleAddToCart}
+            className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 flex-1 mx-2"
+          >
+            Thêm vào giỏ
+          </button>
+          <button
+            onClick={handleBuyNow}
+            className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 flex-1 font-semibold"
+          >
+            Mua ngay
+          </button>
         </div>
       </div>
     </div>

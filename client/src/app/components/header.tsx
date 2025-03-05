@@ -329,12 +329,7 @@ const Header: React.FC = () => {
   {renderSearchResults()}
 </div>
 
-              <Link href="/wishlist" className="p-2 hover:text-pink-600 transition-colors relative">
-                <Heart className="h-6 w-6" />
-                <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  0
-                </span>
-              </Link>
+              
 
               <Link
       href="/cart"
