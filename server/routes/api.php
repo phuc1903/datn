@@ -9,7 +9,9 @@ use App\Http\Controllers\Api\V1\Slider\SliderController;
 use App\Http\Controllers\Api\V1\User\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\Order\OrderController;
+use App\Http\Controllers\Api\V1\Voucher\VoucherController;
 use App\Http\Controllers\Api\V1\ProductFeedback\ProductFeedbackController;
+
 // Version 1
 Route::prefix('v1')->group(function () {
     /*
@@ -102,13 +104,13 @@ Route::prefix('v1')->group(function () {
             Route::get('/favorites', 'favorites');
             Route::post('/add-favorite', 'addToFavorites');
             Route::post('/remove-favorite', 'removeFromFavorites');
+
+            // Danh sách vouchers
+            Route::get('/vouchers', 'vouchers');
         });
 
         Route::get('/', 'index');
         Route::get('/{id}', 'show');
-
-        Route::get('/{id}/vouchers', 'vouchers');
-
         Route::get('/{id}/product-feedbacks', 'productFeedbacks');
     });
 
@@ -147,5 +149,25 @@ Route::prefix('v1')->group(function () {
 
         // Lấy chi tiết blog theo ID
         Route::get('/{blog_id}', 'getDetailBlog');
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | VoucherController
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('vouchers')->controller(VoucherController::class)->group(function () {
+        // Lấy tất cả Voucher
+        Route::get('/', 'getAllVouchers');
+
+        // Lấy chi tiết Voucher
+        Route::get('/{id}', 'getDetailVouchers');
+
+        // Authenticator
+        Route::middleware(['auth:sanctum', 'auth.active'])->group(function () {
+            // Nhận Voucher
+            Route::post('/{id}/claim', 'claimVouchers');
+        });
     });
 });
