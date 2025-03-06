@@ -78,11 +78,11 @@ class DatabaseSeeder extends Seeder
             VariantSeeder::class,
             ProductSeeder::class,
             ProductImageSeeder::class,
-            ProductFeedbackSeeder::class,
             ProductTagSeeder::class,
             ProductCategorySeeder::class,
 
             OrderSeeder::class,
+            ProductFeedbackSeeder::class,
             VoucherSeeder::class,
             UserVoucherSeeder::class,
             OrderVoucherSeeder::class,

@@ -141,10 +141,6 @@ class ProductController extends Controller
         }
     }
 
-
-
-
-
     /*
     |--------------------------------------------------------------------------
     | Lấy thông tin toàn bộ Products theo Category

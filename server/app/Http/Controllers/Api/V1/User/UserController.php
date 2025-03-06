@@ -273,40 +273,4 @@ class UserController extends Controller
         }
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Lấy danh sách đánh giả sản phẩm User
-    | Path: /api/users/{{userId}}/product-feedbacks
-    |--------------------------------------------------------------------------
-    */
-    public function productFeedbacks($userId)
-    {
-        try {
-            // Lấy user kèm theo danh sách orders
-            $user = User::with('productFeedbacks.product')->find($userId);
-
-            // Không tìm thấy User
-            if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                    'data' => NULL
-                ], 404);
-            }
-
-            // Trả về danh sách orders
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Got user product feedbacks',
-                'data' => $user
-            ], 200);
-        } catch (\Exception $e) {
-            // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
 }
