@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Enums\User\UserAddress;
 
 return new class extends Migration
 {
@@ -19,6 +20,9 @@ return new class extends Migration
             $table->string('city');
             $table->string('district');
             $table->string('ward');
+            $table->string('phone_number');
+            $table->string('name');
+            $table->enum('default',UserAddress::getValues());
             $table->timestamps();
         });
     }

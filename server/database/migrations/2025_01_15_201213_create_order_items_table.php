@@ -14,13 +14,12 @@ return new class extends Migration
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('order_id');
-            $table->unsignedBigInteger('product_id');
-            $table->unsignedBigInteger('sku_id');
+            $table->unsignedBigInteger('sku_id')->nullable();
+            $table->unsignedBigInteger('combo_id')->nullable();
             $table->integer('quantity');
             $table->integer('price');
             $table->enum('status',OrderItemStatus::getValues())->default(OrderItemStatus::Pending);
             $table->foreign('order_id')->references('id')->on('orders');
-            $table->foreign('product_id')->references('id')->on('products');
             $table->foreign('sku_id')->references('id')->on('skus');
             $table->timestamps();
         });

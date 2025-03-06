@@ -16,11 +16,16 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('voucher_id');
             $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('voucher_id')->references('id')->on('vouchers');
             $table->string('full_name');
             $table->string('email');
             $table->string('phone_number');
             $table->string('address');
+            $table->string('city');
+            $table->string('district');
+            $table->string('ward');
             $table->enum('payment_method', OrderPaymentMethod::getValues());
             $table->enum('status', OrderStatus::getValues())->default(OrderStatus::Pending);
             $table->integer('shipping_cost');
