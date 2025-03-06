@@ -510,7 +510,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <div className="flex flex-col md:flex-row items-center gap-6">
@@ -570,7 +570,7 @@ export default function ProfilePage() {
               { id: "dia-chi", label: "Sổ địa chỉ", icon: MapPin },
               { id: "voucher", label: "Voucher", icon: Gift },
               { id: "doi-mat-khau", label: "Đổi mật khẩu", icon: Lock },
-              { id: "dang-xuat", label: "Đăng xuất", icon: LogOut },
+              // { id: "dang-xuat", label: "Đăng xuất", icon: LogOut },
             ].map((tab) => (
               <button
                 key={tab.id}
