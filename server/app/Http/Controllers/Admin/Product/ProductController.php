@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Product;
 use App\Enums\Product\ProductStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ProductCategory;
+use App\Models\ProductTag;
 use Illuminate\Http\Request;
 use App\DataTables\Product\ProductDataTable;
 use App\Http\Requests\Admin\Product\ProductRequest;
@@ -15,6 +16,7 @@ use App\Models\Variant;
 use App\Models\Product;
 use App\Models\Sku;
 use App\Models\SkuVariant;
+use App\Models\Tag;
 
 class ProductController extends Controller
 {
@@ -37,11 +39,13 @@ class ProductController extends Controller
 
         $categories = Category::all();
 
+        $tags = Tag::all();
+
         $categoryTree = flattenCategories($categories);
 
         // dd($variants);
 
-        return view('Pages.Product.Create', ['productStatus' => $productStatusData, 'variants' => $variants, 'categories' => $categoryTree]);
+        return view('Pages.Product.Create', ['productStatus' => $productStatusData, 'variants' => $variants, 'categories' => $categoryTree, 'tags' => $tags]);
     }
 
     /**
@@ -69,6 +73,12 @@ class ProductController extends Controller
                 }
             }
 
+            if(isset($request->tags)) {
+                foreach($request->tags as $tag) {
+                    ProductTag::insert(['product_id' => $product->id, 'tag_id' => $tag]);
+                }
+            }
+
             if (!empty($request->variants)) {
                 foreach ($request->variants as $key => $variantData) {
                     $sku = Sku::create([
@@ -88,7 +98,29 @@ class ProductController extends Controller
                             ]);
                         }
                     }
+
+                    if (isset($requst->statusWarehouse)) {
+                        $product->update([
+                            'status' => $request->statusWarehouse,
+                        ]);
+                    }
                 }
+            } else {
+                $skuData = [
+                    'product_id' => $product->id,
+                    'sku_code' => "SKU-" . strtoupper(Str::random(8)) . $product->id,
+                    'price' => $request->price,
+                    'promotion_price' => $request->promotion_price,
+                    'quantity' => $request->quantity_default,
+                ];
+
+                if ($request->hasFile('image_url')) {
+                    $skuData['image_url'] = putImage('product_images', $request->image_url);
+                } else {
+                    $skuData['image_url'] = config('settings.image_default');
+                }
+
+                Sku::create($skuData);
             }
 
             \DB::commit();
@@ -133,6 +165,9 @@ class ProductController extends Controller
             'label' =>  $productStatus->label()
         ];
 
+        $product->load('tags')->get();
+        // dd($product);
+
         $status = mapEnumToArray(ProductStatus::class, $product->status);
 
         $variants = Variant::with('values')->get();
@@ -140,7 +175,9 @@ class ProductController extends Controller
         // dd($productStatus);
         $categories = Category::all();
 
-        return view('Pages.Product.Edit', compact('product', 'variants', 'skus', 'categories', 'status', 'sta'));
+        $tags = Tag::all();
+
+        return view('Pages.Product.Edit', compact('product', 'variants', 'skus', 'categories', 'status', 'sta', 'tags'));
     }
 
     /**
@@ -148,6 +185,7 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
+        // dd($request);
         try {
             \DB::beginTransaction();
 
@@ -171,6 +209,16 @@ class ProductController extends Controller
                 }
             }
 
+            if($request->has('tags')) {
+                ProductTag::where('product_id', $product->id)->delete();
+                foreach($request->tags as $tag) {
+                    ProductTag::create([
+                        'product_id' => $product->id,
+                        'tag_id' => $tag
+                    ]);
+                }
+            }
+
             $existingSkus = $product->skus->pluck('id')->toArray();
             $newSkus = [];
 
@@ -179,8 +227,9 @@ class ProductController extends Controller
                     $sku = Sku::where('product_id', $product->id)
                         ->whereHas('skuVariants', function ($query) use ($variantData) {
                             $query->whereIn('variant_value_id', $variantData['variant_values'] ?? []);
-                        })
+                        }, '=', count($variantData['variant_values'] ?? []))
                         ->first();
+
 
                     if (!$sku) {
                         $sku = Sku::create([
@@ -198,7 +247,7 @@ class ProductController extends Controller
                             'quantity' => $variantData['quantity'] ?? 0,
                             'image_url' => $request->hasFile("variants.$key.image")
                                 ? $this->uploadImage($request, "variants.$key.image", $sku->image_url)
-                                : $sku->image_url, 
+                                : $sku->image_url,
                         ]);
                     }
 
@@ -215,10 +264,50 @@ class ProductController extends Controller
                         }
                     }
                 }
+            } else {
+                $sku = $product->skus->first();
+
+                if ($sku) {
+                    $skuData = [
+                        'price' => $request->price ?? 0,
+                        'promotion_price' => $request->promotion_price ?? 0,
+                        'quantity' => $request->quantity_default ?? 0,
+                    ];
+
+                    if ($request->hasFile('image_url')) {
+                        if ($sku->image_url) deleteImage($sku->image_url);
+                        $skuData['image_url'] = putImage('product_images', $request->image_url);
+                    } else {
+                        $skuData['image_url'] = $sku->image_url ?? config('settings.image_default');
+                    }
+
+                    $sku->update($skuData);
+                    $newSkus[] = $sku->id;
+                } else {
+                    $sku = Sku::create([
+                        'product_id' => $product->id,
+                        'sku_code' => "SKU-" . strtoupper(Str::random(8)) . $product->id,
+                        'price' => $request->price ?? 0,
+                        'promotion_price' => $request->promotion_price ?? 0,
+                        'quantity' => $request->quantity_default ?? 0,
+                        'image_url' => $request->hasFile('image_url')
+                            ? putImage('product_images', $request->image_url)
+                            : config('settings.image_default'),
+                    ]);
+
+                    $newSkus[] = $sku->id;
+                }
             }
 
             $skusToDelete = array_diff($existingSkus, $newSkus);
-            Sku::whereIn('id', $skusToDelete)->delete();
+            if (!empty($skusToDelete)) {
+                $skusToDeleteInstances = Sku::whereIn('id', $skusToDelete)->get();
+                foreach ($skusToDeleteInstances as $skuToDelete) {
+                    if ($skuToDelete->image_url) deleteImage($skuToDelete->image_url);
+                    $skuToDelete->delete();
+                }
+            }
+
 
             \DB::commit();
             return redirect()->route('admin.product.index')->with('success', 'Sản phẩm đã được cập nhật thành công!');

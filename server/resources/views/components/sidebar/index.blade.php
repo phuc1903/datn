@@ -41,6 +41,24 @@
                 ],
             ],
         ],
+        // Quản lý chương trình combo
+        [
+            'label' => 'Combo',
+            'active' => request()->routeIs('admin.combo.index'),
+            'type' => 'nav',
+            'icon' => 'bi-box',
+            'path' => route('admin.combo.index'),
+            'child' => [
+                [
+                    'label' => 'Danh sách sản phẩm',
+                    'path' => route('admin.combo.index'),
+                ],
+                [
+                    'label' => 'Thêm sản phẩm',
+                    'path' => route('admin.combo.create'),
+                ],
+            ],
+        ],
         // Quản lý danh mục
         [
             'label' => 'Danh mục',
@@ -182,6 +200,7 @@
                 ],
             ],
         ],
+        // Permission
         [
             'label' => 'Quyền',
             'active' => request()->routeIs('admin.permission.index'),
@@ -196,6 +215,24 @@
                 [
                     'label' => 'Thêm Quyền',
                     'path' => route('admin.permission.create'),
+                ],
+            ],
+        ],
+        // Role
+        [
+            'label' => 'Vai trò',
+            'active' => request()->routeIs('admin.role.index'),
+            'type' => 'nav',
+            'icon' => 'bi-images',
+            'path' => route('admin.role.index'),
+            'child' => [
+                [
+                    'label' => 'Danh sách vai trò',
+                    'path' => route('admin.role.index'),
+                ],
+                [
+                    'label' => 'Thêm vai trò',
+                    'path' => route('admin.role.create'),
                 ],
             ],
         ],

@@ -58,10 +58,16 @@ $(document).ready(function () {
         try {
             existingSkus = await fetchSkus();
 
+            console.log(existingSkus);
+            
+
             if (existingSkus) {
                 parseExistingSkus(existingSkus);
                 loadExistingAttributes();
-                generateVariants();
+                if(existingSkus[0].variant_values.length > 1) {
+                    generateVariants();
+
+                }
             }
         } catch (error) {
             // alert(error);
@@ -164,7 +170,7 @@ $(document).ready(function () {
                         <select class="form-select attribute-values" id="${selectId}" multiple>
                             ${variantOptions}
                         </select>
-                        <button type="button" class="btn btn-danger remove-attribute mt-2" data-attribute-id="${attributeId}">Xóa</button>
+                        <button type="button" class="btn btn-danger remove-attribute mt-2" data-attribute-id="${attributeId}">Xóa thuộc tính này</button>
                     </div>
                 </div>
             </div>`;
@@ -267,7 +273,7 @@ $(document).ready(function () {
                                     <label class="form-label text-dark-custom">Số lượng</label>
                                     <input type="number" class="form-control variant-quantity" data-index="${index}" value="${quantity}" min="1" required>
                                 </div>   
-                                <button type="button" class="btn btn-danger remove-variant" data-variant-index="${index}">Xóa biến thể</button>
+                                <button type="button" class="btn btn-danger remove-variant" data-variant-index="${index}">Xóa biến thể này</button>
                             </div>
                         </div>
                     </div>
@@ -315,6 +321,49 @@ $(document).ready(function () {
     $("#generate-variants").click(generateVariants);
     $("#add-attribute").click(addAttribute);
     $("#save-attributes").click(saveAttributes);
+
+    $(document).on("click", ".remove-attribute", function () {
+        let attributeId = $(this).data("attribute-id");
+        let attributeElement = $(`#attribute-${attributeId}`);
+
+        Swal.fire({
+            title: "Xóa thộc tính",
+            text: "Bạn chắc chắn muốn xóa thuộc tính này?",
+            icon: "error",
+            showCancelButton: true,
+            confirmButtonText: "Xóa",
+            cancelButtonText: "Hủy",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                attributeElement.remove();
+                delete attributes[attributeId];
+                generateVariants(); 
+                toastr.success("Xóa thuộc tính thành công!", "Thành công");
+            }
+        });
+    });
+
+    $(document).on("click", ".remove-variant", function () {
+        let variantIndex = $(this).data("variant-index");
+        let variantElement = $(`#variant-${variantIndex}`);
+
+        Swal.fire({
+            title: "Xóa biến thể",
+            text: "Bạn chắc chắn muốn xóa biến thể này ?",
+            icon: "error",
+            showCancelButton: true,
+            confirmButtonText: "Xóa",
+            cancelButtonText: "Hủy",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                variantElement.remove();
+                toastr.success("Xóa biến thể thành công!", "Thành công");
+            }
+        });
+  
+    });
+
+
 });
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -593,7 +642,6 @@ $(document).ready(function () {
                             ),
                         },
                         success: function (response) {
-                            console.log("success");
 
                             if (response.type === "success") {
                                 Swal.fire({
@@ -606,7 +654,6 @@ $(document).ready(function () {
                             }
                         },
                         error: function (error) {
-                            console.log(error);
                         },
                     });
                 }
@@ -653,7 +700,6 @@ $(document).ready(function () {
                             }
                         },
                         error: function (error) {
-                            console.log(error);
                         },
                     });
                 }
@@ -663,26 +709,44 @@ $(document).ready(function () {
 
     function addVariantValue() {
         const variantContainer = $("#VariantValue");
-        const variantsDatabase = variantContainer.data("variants") || [];
-
+        const routeApi = variantContainer.data('route');
+        let variantsDatabase = []; 
+    
         const variantTemplate = () => ({
-            label: "Tên biến thể",
             value: "",
             name: "value",
         });
-
-        let variants =
-            Array.isArray(variantsDatabase) && variantsDatabase.length > 0
+    
+        function getVariants(variantsDatabase) {
+            return Array.isArray(variantsDatabase) && variantsDatabase.length > 0
                 ? variantsDatabase.map((variant) => ({
                       name: "value",
                       value: variant.value || "",
                   }))
                 : [variantTemplate()];
-
+        }
+    
+        let variants = []; 
+    
+        $.ajax({
+            url: routeApi,
+            method: "GET",
+            dataType: "json",
+            cache: false,
+            success: function (data) {
+                variantsDatabase = data['values'] || [];
+    
+                variants = getVariants(variantsDatabase);
+    
+                render();
+            },
+            error: function (error) {
+            }
+        });
+    
         function saveCurrentValues() {
             $(".variant").each(function () {
                 const index = $(this).data("index");
-
                 $(this)
                     .find("input")
                     .each(function () {
@@ -693,54 +757,54 @@ $(document).ready(function () {
                     });
             });
         }
-
+    
         function Html(variant, index) {
             return `<div class="variant mb-4 border-bottom border-primary" data-index="${index}">
                         <h5 class="title">Biến thể ${index + 1}</h5>
                         <div class="mb-3">
-                            <label class="form-label">${variant.label}</label>
+                            <label class="form-label">Tên biến thể</label>
                             <input type="text" class="form-control" 
                                 name="variants[${index}][${variant.name}]" 
                                 data-index="${index}" 
                                 data-name="${variant.name}" 
                                 value="${variant.value}" 
-                                placeholder="${variant.label}">
+                                placeholder="Tên biến thể">
                         </div>
                         <button type="button" class="btn btn-danger text-white mb-3 d-flex ms-auto delete_value" data-index="${index}">Xóa biến thể này</button>
                     </div>`;
         }
-
+    
         function render() {
             $("#VariantValue").html(
                 variants.map((variant, index) => Html(variant, index)).join("")
             );
-
+    
             $("#VariantValue .variant").each(function (newIndex) {
                 $(this).attr("data-index", newIndex);
                 $(this).find(".delete_value").attr("data-index", newIndex);
             });
-
+    
             $(".delete_value")
                 .off("click")
                 .on("click", function (e) {
                     e.preventDefault();
-
+    
                     saveCurrentValues();
-
+    
                     const index = $(this).data("index");
-
+    
                     if (index >= 0 && index < variants.length) {
                         variants.splice(index, 1);
                     }
-
+    
                     if (variants.length === 0) {
                         variants.push(variantTemplate());
                     }
-
+    
                     render();
                 });
         }
-
+    
         $("#add_variant_value")
             .off("click")
             .on("click", function (e) {
@@ -749,9 +813,8 @@ $(document).ready(function () {
                 variants.push(variantTemplate());
                 render();
             });
-
-        render();
     }
+    
 
     function addProductOrder() {
         const buttonAdd = $("#add-product-order");

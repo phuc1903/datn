@@ -77,6 +77,11 @@
     text-align: center;
 }
 
+.modules {
+    background-color: var(--muted);
+    border-radius: 16px;
+}
+
 
 #attributes-pane {
     .accordion-item {
@@ -192,6 +197,11 @@
 
 .image {
     object-fit: cover;
+}
+
+.image-product-combo {
+    width: 80px;
+    height: 80px;
 }
 .button-custom {
     width: fit-content;
