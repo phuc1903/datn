@@ -54,17 +54,20 @@ class BlogController extends Controller
                 $data['slug'] = Str::slug($request->title);
             }
 
-            $path = null;
+            // $path = null;
 
             if ($request->hasFile('image_url')) {
-                $path = Storage::disk('public')->put('blog_images', $request->image_url);
-                $data['image_url'] = '/storage/' . $path;
+                // $path = Storage::disk('public')->put('blog_images', $request->image_url);
+                $data['image_url'] = putImage('blog_images', $request->image_url);
             } else {
-                $data['image_url'] = config(key: 'settings.image_default');
+                $data['image_url'] = config('settings.image_default');
             }
 
+            // dd($data['image_url']);
+            
             $blog = Blog::create($data);
-
+            
+            // dd($blog->image_url);
             if (isset($request->tags) && !empty($request->tags)) {
                 foreach ($request->tags as $tag) {
                     BlogTag::create(['blog_id' => $blog->id, 'tag_id' => $tag]);
@@ -154,22 +157,22 @@ class BlogController extends Controller
      * Remove the specified resource from storage.
      */
     public function destroy(Request $request, Blog $blog)
-    {
-        try {
+{
+    try {
 
-            if (Str::contains($blog->image_url, 'storage')) {
-                $path = str_replace('storage/', '', $blog->image_url);
-                Storage::disk('public')->delete($path);
-            }
+        deleteImage($blog->image_url);
 
-            $blog->delete();
-            if ($request->ajax()) {
-                return response()->json(['type' => 'success', 'redirect' => route('admin.blog.index')]);
-            }
+        $blog->delete();
 
-            return redirect()->route('admin.slider.index')->with('success', 'Xóa slider thành công');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+        if ($request->ajax()) {
+            return response()->json(['type' => 'success', 'redirect' => route('admin.blog.index')]);
         }
+
+        return redirect()->route('admin.blog.index')->with('success', 'Xóa blog thành công');
+        
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', $e->getMessage());
     }
+}
+
 }

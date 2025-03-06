@@ -29,12 +29,12 @@
                             </select>
                         </div>
                     </div>
-                    @php
+                    {{-- @php
                         $statusWarehouse = [
                             ['value' => 'in_stock', 'label' => 'Còn hàng'],
                             ['value' => 'out_of_stock', 'label' => 'Hết hàng'],
                         ];
-                    @endphp
+                    @endphp --}}
 
                     <div class="card-body padding-0 card-type-product">
                         <div id="simple-product" class="h-100">
@@ -98,6 +98,22 @@
                                     value="{{ $cate->id }}" id="{{ $cate->name . '-' . $cate->id }}">
                                 <label class="form-check-label text-dark-custom" for="{{ $cate->name . '-' . $cate->id }}">
                                     {{ $cate->name }}
+                                </label>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="title">Chọn thẻ</h5>
+                    </div>
+                    <div class="card-body choseCategories">
+                        @foreach ($tags as $tag)
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="tags[]"
+                                    value="{{ $tag->id }}" id="{{ $tag->name . '-' . $tag->id }}">
+                                <label class="form-check-label text-dark-custom" for="{{ $tag->name . '-' . $tag->id }}">
+                                    {{ $tag->name }}
                                 </label>
                             </div>
                         @endforeach

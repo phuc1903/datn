@@ -20,7 +20,7 @@ class SliderDataTable extends BaseDataTable
     protected bool $includeCreatedAt = true;
     protected bool $includeUpdatedAt = true;
 
-    protected int $orderBy = 6;
+    protected int $orderBy = 5;
 
     /**
      * Get the query source of dataTable.

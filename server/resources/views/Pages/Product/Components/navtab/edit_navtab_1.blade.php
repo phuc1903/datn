@@ -22,8 +22,8 @@
             {{-- Nội dung Giá sản phẩm --}}
             <div class="tab-pane fade show active" id="price-pane" role="tabpanel"
                 aria-labelledby="price-tab" tabindex="0">
-                <x-form.input_text label="Giá bán thường" name="price" />
-                <x-form.input_text label="Giá khuyến mãi" name="promotion_price" />
+                <x-form.input_text label="Giá bán thường" name="price" value="{{$skus[0]->price}}" />
+                <x-form.input_text label="Giá khuyến mãi" name="promotion_price" value="{{$skus[0]->promotion_price}}" />
             </div>
             {{-- Nội dung Kiểm kê kho hàng --}}
             <div class="tab-pane fade" id="warehouse-pane-simple" role="tabpanel"
@@ -33,10 +33,11 @@
                         thái kho hàng</label>
                     <select class="form-select selec-custom input-text-custom"
                         name="statusWarehouse">
+                        <option value="" selected></option>
                         <x-form.select.option :options="$statusWarehouse" />
                     </select>
                 </div> --}}
-                <x-form.input_text label="Số lượng sản phẩm" name="quantity_default" />
+                <x-form.input_text label="Số lượng sản phẩm" name="quantity_default" value="{{$skus[0]->quantity}}" />
             </div>
         </div>
     </div>

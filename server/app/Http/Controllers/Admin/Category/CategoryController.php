@@ -7,7 +7,7 @@ use App\Enums\Category\CategoryStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Category\CategoryRequest;
 use App\Models\Category;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -56,10 +56,10 @@ class CategoryController extends Controller
             $path = null;
 
             if ($request->hasFile('image')) {
-                $path = Storage::disk('public')->put('category_images', $request->image);
-                $data['image'] = '/storage/' . $path;
+                // $path = Storage::disk('public')->put('category_images', $request->image);
+                $data['image'] = putImage('category_images',$request->image);
             } else {
-                $data['image'] = config(key: 'settings.image_default');
+                $data['image'] = config('settings.image_default');
             }
 
             Category::create($data);
@@ -138,10 +138,8 @@ class CategoryController extends Controller
     public function destroy(Request $request, Category $category)
     {
         try {
-            if (Str::contains($category->image, 'storage')) {
-                $path = str_replace('storage/', '', $category->image);
-                Storage::disk('public')->delete($path);
-            }
+     
+            deleteImage($category->image);
 
             $category->delete();
 

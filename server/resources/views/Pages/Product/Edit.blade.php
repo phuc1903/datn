@@ -32,16 +32,16 @@
                             </select>
                         </div>
                     </div>
-                    @php
+                    {{-- @php
                         $statusWarehouse = [
                             ['value' => 'in_stock', 'label' => 'Còn hàng'],
                             ['value' => 'out_of_stock', 'label' => 'Hết hàng'],
                         ];
-                    @endphp
+                    @endphp --}}
 
                     <div class="card-body padding-0 card-type-product">
                         <div id="simple-product" class="h-100">
-                            @include('Pages.Product.Components.navtab.navtab_1')
+                            @include('Pages.Product.Components.navtab.edit_navtab_1')
                         </div>
 
                         <div id="variable-product" class="h-100" style="display: none;">
@@ -112,11 +112,37 @@
                 </div>
                 <div class="card mb-3">
                     <div class="card-header">
+                        <h5 class="title">Chọn thẻ</h5>
+                    </div>
+                    <div class="card-body choseCategories">
+                        @foreach ($tags as $tag)
+                        @php
+                            $isChecked = $product->tags->contains($tag->id);
+                        @endphp
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="tags[]"
+                                        value="{{ $tag->id }}" id="{{ $tag->name . '-' . $tag->id }}"
+                                        {{ $isChecked ? 'checked' : '' }}>
+                                    <label class="form-check-label text-dark-custom" for="{{ $tag->name . '-' . $tag->id }}">
+                                        {{ $tag->name }}
+                                    </label>
+                                </div>
+                        @endforeach
+                    </div>
+
+                </div>
+                <div class="card mb-3">
+                    <div class="card-header">
                         <h5 class="title">Hình ảnh sản phẩm</h5>
                     </div>
                     <div class="card-body">
-                        <x-image.index class="mb-3" />
-                        <x-button.index label="Tải ảnh" />
+                        <x-image.index id="image-product" class="mb-3 img-fluid" src="{{ $skus->first()->image_url }}"
+                            alt="{{ $product->name }}" />
+
+                        <x-button.index label="Tải ảnh" onclick="chooseImage()" />
+
+                        <x-form.input_text hidden id="typeFile" onchange="previewImage(this);" type="file"
+                            accept="image/png, image/jpeg, image/jpg" name="image" />
                     </div>
                 </div>
             </div>
@@ -129,6 +155,7 @@
 @endpush
 
 @push('scripts')
+<x-script.upload_image idPreview="image-product" />
     <script>
         CKEDITOR.replace('description', {
             language: 'vi',
