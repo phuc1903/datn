@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('order_id');
             $table->enum('rating',['1','2','3','4','5']);
-            $table->string('comment');
+            $table->string('comment')->nullable();
             $table->enum('status',ProductFeedbackStatus::getValues());
             $table->foreign('sku_id')->references('id')->on('skus')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
