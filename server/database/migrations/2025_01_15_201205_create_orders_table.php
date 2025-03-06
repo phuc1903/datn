@@ -23,9 +23,12 @@ return new class extends Migration
             $table->string('email');
             $table->string('phone_number');
             $table->string('address');
-            $table->string('city');
-            $table->string('district');
-            $table->string('ward');
+            $table->unsignedBigInteger('province_id');
+            $table->unsignedBigInteger('district_id');
+            $table->unsignedBigInteger('ward_id');
+            $table->foreign('province_id')->references('id')->on('provinces')->onDelete('cascade');
+            $table->foreign('district_id')->references('id')->on('districts')->onDelete('cascade');
+            $table->foreign('ward_id')->references('id')->on('wards')->onDelete('cascade');
             $table->enum('payment_method', OrderPaymentMethod::getValues());
             $table->enum('status', OrderStatus::getValues())->default(OrderStatus::Pending);
             $table->integer('shipping_cost');

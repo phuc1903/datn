@@ -17,10 +17,12 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
             $table->string('address');
-            $table->string('city');
-            $table->string('district');
-            $table->string('ward');
-            $table->string('phone_number');
+            $table->unsignedBigInteger('province_id');
+            $table->unsignedBigInteger('district_id');
+            $table->unsignedBigInteger('ward_id');
+            $table->foreign('province_id')->references('id')->on('provinces')->onDelete('cascade');
+            $table->foreign('district_id')->references('id')->on('districts')->onDelete('cascade');
+            $table->foreign('ward_id')->references('id')->on('wards')->onDelete('cascade');
             $table->string('name');
             $table->enum('default',UserAddress::getValues());
             $table->timestamps();
