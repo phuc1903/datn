@@ -485,10 +485,20 @@ $(document).ready(function () {
     deleteUser();
     deleteItem();
     addVariantValue();
-    addProductOrder();
     choseAttribute();
+    formatPriceMain()
 
-    
+    function formatPriceMain() {
+        function formatPrice(number) {
+            number = number.replace(/\D/g, '');
+            return new Intl.NumberFormat('vi-VN').format(number) + ' VNĐ';
+        }
+        $('.price').on('keyup', function () {
+            let input = $(this).val();
+            $(this).val(formatPrice(input));
+        });
+    }
+
 
     function choseAttribute() {
         let selectedAttributes = [1, 2, 3, 4, 5];
@@ -815,8 +825,5 @@ $(document).ready(function () {
             });
     }
     
-
-    function addProductOrder() {
-        const buttonAdd = $("#add-product-order");
-    }
+    
 });

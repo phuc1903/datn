@@ -8,6 +8,7 @@
     'placeholder' => '',
     'success' => '',
     'name' => '',
+    'class' => '',
 ])
 
 <div class="mb-3">
@@ -16,7 +17,7 @@
     @endif
 
     <input {{ $attributes}} type="{{ $type }}" name="{{ $name }}"
-        class="form-control bg-white-custom input-text-custom @error($name) is-invalid @enderror"
+        class="form-control bg-white-custom input-text-custom {{isset($class) ? $class : ""}} @error($name) is-invalid @enderror"
         id="{{ $id ?? $name }}" value="{{ $value }}" placeholder="{{ $placeholder }}"
         >
 

@@ -8,4 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class ComboImage extends Model
 {
     use HasFactory;
+
+    protected $guarded = [];
+
+    public function combo()
+    {
+        return $this->belongsTo(Combo::class);
+    }
 }

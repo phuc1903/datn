@@ -10,12 +10,12 @@
         </div>
         <div class="card-body table-dataTables">
             <div class="table-responsive position-relative">
-                {{-- {{ $dataTable->table(['class' => 'table table-striped'], true) }} --}}
+                {{ $dataTable->table(['class' => 'table table-striped'], true) }}
             </div>
         </div>
     </div>
 @endsection
 
 @push('scripts')
-    {{-- {{ $dataTable->scripts() }} --}}
+    {{ $dataTable->scripts() }}
 @endpush

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('admin_id');
             $table->foreign('admin_id')->references('id')->on('admins')->onDelete('cascade');
             $table->string('name');
+            $table->string('image_url');
             $table->string('slug');
             $table->mediumText('short_description');
             $table->longText('description');
@@ -25,6 +26,8 @@ return new class extends Migration
             $table->integer('price');
             $table->integer('promotion_price');
             $table->integer('quantity');
+            $table->timestamp('date_start');
+            $table->timestamp('date_end')->nullable();
             $table->enum('status', ComboStatus::getValues())->default(ComboStatus::Active);
             $table->timestamps();
             $table->softDeletes();

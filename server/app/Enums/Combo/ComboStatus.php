@@ -37,4 +37,23 @@ final class ComboStatus extends Enum
             default => "Không xác định",
         };
     }
+
+    public static function getKeyValuePairs(): array
+    {
+        return [
+            self::Active => self::getLabel(self::Active),
+            self::Archived => self::getLabel(self::Archived),
+            self::OutOfStock => self::getLabel(self::OutOfStock),
+        ];
+    }
+
+    public static function getLabel(string $value): string
+    {
+        return match ($value) {
+            self::Active => 'Đang hoạt động',
+            self::Archived => 'Đang lưu trữ',
+            self::OutOfStock => 'Hết hàng',
+            default => 'Không xác định',
+        };
+    }
 }

@@ -2,25 +2,33 @@
 
 namespace App\Http\Controllers\Admin\Combo;
 
+use App\DataTables\Combo\ComboDataTable;
+use App\Enums\Combo\ComboHot;
+use App\Enums\Combo\ComboStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Combo;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
 class ComboController extends Controller
 {
-    public function index()
+    public function index(ComboDataTable $dataTable)
     {
-        return view('Pages.Combo.Index');
+        return $dataTable->render('Pages.Combo.Index');
     }
 
     public function create()
     {
 
         $products = Product::with('skus')->get();
+
         $categories = Category::all();
 
-        return view('Pages.Combo.Create', compact('products', 'categories'));
+        $status = ComboStatus::getKeyValuePairs();
+        $hots = ComboHot::getKeyValuePairs();
+
+        return view('Pages.Combo.Create', compact('products', 'categories', 'status', 'hots'));
     }
 
     public function store(Request $request)
@@ -28,9 +36,9 @@ class ComboController extends Controller
         dd($request);
     }
 
-    public function edit()
+    public function edit(Combo $combo)
     {
-        
+        dd($combo->load('skus', 'skus.product'));
     }
 
     public function update()

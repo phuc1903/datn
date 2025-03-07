@@ -14,11 +14,26 @@
 
                         <x-form.input_text label="Slug" name="slug" />
 
-                        <x-form.input_text label="Số lượng" name="quantitty" />
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-2">
+                                <x-form.input_text label="Số lượng" name="quantitty" type="number" />
+                            </div>
+                            <div class="col-12 col-md-5">
+                                <x-form.input_text label="Giá" name="price" class="price" />
+                            </div>
+                            <div class="col-12 col-md-5">
+                                <x-form.input_text label="Giá giảm" name="promotion_price" class="price"  />
+                            </div>
+                        </div>
 
-                        <x-form.input_text label="Giá" name="price" />
-
-                        <x-form.input_text label="Giá giảm" name="promotion_price" />
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6">
+                                <x-form.input_text label="Ngày bắt đầu" name="date_start" type="date" />
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <x-form.input_text label="Ngày kết thúc" name="date_end" type="date" />
+                            </div>
+                        </div>
 
                         <div class="form-floating mb-3">
                             <textarea class="form-control input-text-custom @error('short_description') is-invalid @enderror"
@@ -62,7 +77,8 @@
                                             <div class="row">
                                                 <div class="col-1">
                                                     <div class="input-group mb-3">
-                                                        <input class="form-check-input mt-0" type="checkbox" value="{{$sku->id}}" name="skus[]"
+                                                        <input class="form-check-input mt-0" type="checkbox"
+                                                            value="{{ $sku->id }}" name="skus[]"
                                                             aria-label="Checkbox for following text input">
                                                     </div>
                                                 </div>
@@ -102,9 +118,9 @@
                     <div class="card-body">
                         <select class="form-select selec-custom input-text-custom" aria-label="Default select example"
                             name="status">
-                            {{-- @foreach ($status as $key => $sta)
+                            @foreach ($status as $key => $sta)
                                 <option value="{{ $key }}">{{ $sta }}</option>
-                            @endforeach --}}
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -115,10 +131,9 @@
                     <div class="card-body">
                         <select class="form-select selec-custom input-text-custom" aria-label="Default select example"
                             name="is_hot">
-                            @php
-                                $hotArray = [['value' => 1, 'label' => 'Có'], ['value' => 0, 'label' => 'Không']];
-                            @endphp
-                            <x-form.select.option :options="$hotArray" />
+                            @foreach ($hots as $key => $sta)
+                                <option value="{{ $key }}">{{ $sta }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -135,7 +150,8 @@
                             <div class="form-check mf-level" style="--cat-depth: {{ $pxMargin }}px;">
                                 <input class="form-check-input" type="checkbox" name="categories[]"
                                     value="{{ $cate->id }}" id="{{ $cate->name . '-' . $cate->id }}">
-                                <label class="form-check-label text-dark-custom" for="{{ $cate->name . '-' . $cate->id }}">
+                                <label class="form-check-label text-dark-custom"
+                                    for="{{ $cate->name . '-' . $cate->id }}">
                                     {{ $cate->name }}
                                 </label>
                             </div>
