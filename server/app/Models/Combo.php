@@ -6,7 +6,6 @@ use App\Enums\Combo\ComboHot;
 use App\Enums\Combo\ComboStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Combo extends Model
 {
@@ -23,11 +22,6 @@ class Combo extends Model
     public function skus()
     {
         return $this->belongsToMany(Sku::class, 'combo_products');
-    }
-
-    public function images()
-    {
-        return $this->hasMany(ComboImage::class);
     }
 
     public function categories() 
