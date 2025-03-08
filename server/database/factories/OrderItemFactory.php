@@ -28,7 +28,6 @@ class OrderItemFactory extends Factory
 
         return [
             'order_id' => Order::inRandomOrder()->first()->id,
-            'product_id' => Product::inRandomOrder()->first()->id,
             'sku_id' => $skuId,
             'quantity' => $this->faker->randomNumber(1, true),
             'price' => $sku->price,

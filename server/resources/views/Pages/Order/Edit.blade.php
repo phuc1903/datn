@@ -21,7 +21,8 @@
                             </div>
                             <div class="col-12 col-md-6">
                                 <h5>Thông tin giao hàng</h5>
-                                <x-form.input_text label="Họ và tên" value="{{ $order->full_name }}" name="full_name" disabled />
+                                <x-form.input_text label="Họ và tên" value="{{ $order->full_name }}" name="full_name"
+                                    disabled />
                                 <x-form.input_text label="Email" value="{{ $order->email }}" name="email" disabled />
                                 <x-form.input_text label="Số điện thoại" value="{{ $order->phone_number }}"
                                     name="phone_number" disabled />
@@ -41,6 +42,7 @@
                                     <tr>
                                         <th scope="col" class="text-center text-dark-custom">STT</th>
                                         <th scope="col" class="text-center text-dark-custom">Tên sản phẩm</th>
+                                        <th scope="col" class="text-center text-dark-custom">Loại</th>
                                         <th scope="col" class="text-center text-dark-custom">Giá</th>
                                         <th scope="col" class="text-center text-dark-custom">Số lượng</th>
                                         <th scope="col" class="text-center text-dark-custom">Tổng tiền</th>
@@ -48,11 +50,19 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($order->items as $index => $item)
+                                        @php
+                                            $variantValues = $item->sku->variantValues->pluck('value')->implode(' - ');
+                                        @endphp
                                         <tr>
                                             <th scope="row" class="text-center text-dark-custom">{{ $index + 1 }}</th>
-                                            <td class="text-center text-dark-custom">{{ $item->product->name }}</td>
-                                            <td class="text-center text-dark-custom" style="width: 200px;">{{ number_format($item->price, 2, '.', '.') }} VNĐ</td>
-                                            <td class="text-center text-dark-custom" style="width: 100px;">{{ $item->quantity }}</td>
+                                            <td class="text-center text-dark-custom">
+                                                {{ $item->sku->product->name}}</td>
+                                                <td class="text-center text-dark-custom">
+                                                    {{ $variantValues }}</td>
+                                            <td class="text-center text-dark-custom" style="width: 200px;">
+                                                {{ number_format($item->price, 2, '.', '.') }} VNĐ</td>
+                                            <td class="text-center text-dark-custom" style="width: 100px;">
+                                                {{ $item->quantity }}</td>
                                             <td class="text-center text-dark-custom" style="width: 200px;">
                                                 {{ number_format($item->quantity * $item->price, 2, '.', '.') }} VNĐ</td>
                                         </tr>
@@ -80,7 +90,7 @@
                     </div>
                     <div class="card-body">
                         <select class="form-select selec-custom" aria-label="Default select example" name="status">
-                            <option value="{{$statusActiveValue}}" selected>{{ $statusActive }}</option>
+                            <option value="{{ $statusActiveValue }}" selected>{{ $statusActive }}</option>
                             <x-form.select.option :options="$statusList" />
                         </select>
                     </div>
@@ -91,7 +101,7 @@
                     </div>
                     <div class="card-body">
                         <select class="form-select selec-custom" aria-label="Default select example" name="payment_method">
-                            <option value="{{$paymentActiveValue}}" selected>{{ $paymentActive }}</option>
+                            <option value="{{ $paymentActiveValue }}" selected>{{ $paymentActive }}</option>
                             <x-form.select.option :options="$paymentList" />
                         </select>
                     </div>

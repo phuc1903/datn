@@ -72,7 +72,8 @@ class OrderController extends Controller
      */
     public function edit(order $order)
     {
-        $orderShow = $order->load('user', 'items', 'items.product');
+        $orderShow = $order->load('user', 'items', 'items.sku', 'items.sku.product', 'items.sku.variantValues');
+        // dd($orderShow);
 
         $orderStatus = OrderStatus::fromValue($orderShow->status);
         $orderPayment = OrderPaymentMethod::fromValue($orderShow->payment_method);
@@ -146,6 +147,12 @@ class OrderController extends Controller
      */
     public function destroy(order $order)
     {
-        return redirect()->route('admin.order.index')->with('info', 'Không thể xóa đơn hàng');
+        try {
+            $order->delete();
+            return redirect()->route('admin.order.index')->with('success', 'Xóa đơn hàng thành công');
+        }catch(\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+        // return redirect()->route('admin.order.index')->with('info', 'Không thể xóa đơn hàng');
     }
 }

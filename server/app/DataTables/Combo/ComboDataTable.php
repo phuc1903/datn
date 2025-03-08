@@ -9,19 +9,12 @@ use App\Models\Combo;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
 use Yajra\DataTables\EloquentDataTable;
-use Yajra\DataTables\Html\Builder as HtmlBuilder;
-use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
-use Yajra\DataTables\Html\Editor\Editor;
-use Yajra\DataTables\Html\Editor\Fields;
-use Yajra\DataTables\Services\DataTable;
 
 class ComboDataTable extends BaseDataTable
 {
     protected string $tableId = "combo-table";
     protected string $routeName = "combo";
-    protected bool $includeCreatedAt = true;
-    protected bool $includeUpdatedAt = true;
 
     protected int $orderBy = 4;
 

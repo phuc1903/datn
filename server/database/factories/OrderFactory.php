@@ -4,11 +4,15 @@ namespace Database\Factories;
 
 use App\Enums\Order\OrderPaymentMethod;
 use App\Enums\Order\OrderStatus;
+use App\Models\Combo;
+use App\Models\District;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
+use App\Models\Province;
 use App\Models\Sku;
 use App\Models\User;
+use App\Models\Voucher;
+use App\Models\Ward;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -24,16 +28,29 @@ class OrderFactory extends Factory
     public function definition(): array
     {
         $status = $this->faker->randomElement(OrderStatus::getValues());
+
+        $province = Province::inRandomOrder()->first();
+        $district = District::where('province_code', $province->code)->inRandomOrder()->first();
+        $ward = Ward::where('district_code', $district->code)->inRandomOrder()->first();
+
         return [
             'user_id' => User::inRandomOrder()->first()->id,
+            'voucher_id' => Voucher::inRandomOrder()->first()->id,
+
             'full_name' => $this->faker->userName(),
             'email' => $this->faker->unique()->userName . '@gmail.com',
-            'address' => $this->faker->address(),
             'phone_number' => $this->faker->phoneNumber(),
+            'address' => "12/1232 hẻm 12 " .$ward->name . " ". $district->name . " " .$province->name,
+
             'payment_method' => $this->faker->randomElement(OrderPaymentMethod::getValues()),
             'status' => $status,
             'shipping_cost' => $this->faker->randomElement([0, 10000]),
             'total_amount' => 0,
+
+            'province_code' => $province->code,
+            'district_code' => $district->code,
+            'ward_code' => $ward->code,
+
             'note' => $this->faker->sentence(),
             'reason' => $status === 'cancel' ? $this->faker->sentence() : '',
             'created_at' => now(),
@@ -48,8 +65,8 @@ class OrderFactory extends Factory
                 ->count($count)
                 ->create([
                     'order_id' => $order->id,
-                    'product_id' => Product::inRandomOrder()->first()->id,
                     'sku_id' => Sku::inRandomOrder()->first()->id,
+                    'quantity' => 3,
                 ]);
 
             $totalAmount = $orderDetails->sum(function ($orderItem) {

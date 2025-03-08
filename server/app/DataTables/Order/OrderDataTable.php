@@ -8,27 +8,21 @@ use App\Enums\Order\OrderStatus;
 use App\Models\Order;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
 use Yajra\DataTables\EloquentDataTable;
-use Yajra\DataTables\Html\Builder as HtmlBuilder;
-use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
-use Yajra\DataTables\Html\Editor\Editor;
-use Yajra\DataTables\Html\Editor\Fields;
 
 class OrderDataTable extends BaseDataTable
 {
-    protected bool $includeCreatedAt = true;
-    // protected bool $includeUpdatedAt = true;
-    protected bool $includeAction = true;
+    protected bool $includeUpdatedAt = false;
 
     protected string $routeName = 'order';
     protected string $tableId = 'order-table';
-    protected int $orderBy = 7;
+    protected int $orderBy = 3;
     /**
      * Get the query source of dataTable.
      */
     public function query(): QueryBuilder
     {
-        return Order::query();
+        return Order::query()->with('province');
     }
 
     protected function extraColumns(): array
@@ -36,6 +30,7 @@ class OrderDataTable extends BaseDataTable
         return [
             // Column::make('avatar')->title('Ảnh đại diện')->orderable(false)->searchable(false),
             Column::make('full_name')->title('Khách hàng'),
+            Column::make('address')->title('Địa chỉ giao hàng')->orderable(true),
             Column::make('phone_number')->title('SĐT Khách hàng'),
             Column::make('payment_method')->title('PT Thanh toán'),
             Column::make('total_amount')->title('Tổng tiền'),
@@ -45,7 +40,7 @@ class OrderDataTable extends BaseDataTable
 
     protected function getEditableColumns(): array
     {
-        return ['status', 'payment_method', 'full_name', 'total_amount'];
+        return ['status', 'payment_method', 'full_name', 'total_amount', 'address'];
     }
 
     protected function customizeDataTable(EloquentDataTable $dataTable): EloquentDataTable
@@ -56,6 +51,9 @@ class OrderDataTable extends BaseDataTable
         })
         ->editColumn('full_name', function ($order) {
             return '<a href="' . route('admin.user.edit', $order->user_id) . '">' . e($order->full_name) . '</a>';
+        })
+        ->editColumn('address', function($order) {
+            return '<div data-sort="' . $order->province->name . '">' . $order->address . '</div>';
         })
         ->editColumn('total_amount', function ($order) {
             $price = $order->total_amount ?? 0;

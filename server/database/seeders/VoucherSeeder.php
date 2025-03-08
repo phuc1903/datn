@@ -25,7 +25,7 @@ class VoucherSeeder extends Seeder
         */
         Voucher::factory()
             ->count(20)
-            ->createProductVoutcher(2)
+            // ->createProductVoutcher(2)
             ->create();
     }
 }

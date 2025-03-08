@@ -13,8 +13,8 @@ use Carbon\Carbon;
 abstract class BaseDataTable extends DataTable
 {
     protected bool $includeAction = true;
-    protected bool $includeCreatedAt = false;
-    protected bool $includeUpdatedAt = false;
+    protected bool $includeCreatedAt = true;
+    protected bool $includeUpdatedAt = true;
     protected string $routeName = '';
     protected string $tableId = '';
 
