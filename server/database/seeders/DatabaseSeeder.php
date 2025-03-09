@@ -51,17 +51,17 @@ class DatabaseSeeder extends Seeder
         | - user
         |
         */
-        // User::factory()->create([
-        //     'first_name' => 'Hữu Hiệp',
-        //     'last_name' => 'Trần',
-        //     'phone_number' => '(+84) 1234-5678',
-        //     'email' => 'admin@gmail.com',
-        //     'password' => bcrypt('user'),
-        //     'status' => 'active',
-        //     'sex' => 'male',
-        //     'created_at' => now(),
-        //     'updated_at' => now()
-        // ]);
+         User::factory()->create([
+             'first_name' => 'Hữu Hiệp',
+             'last_name' => 'Trần',
+             'phone_number' => '(+84) 1234-5678',
+             'email' => 'admin@gmail.com',
+             'password' => bcrypt('user'),
+             'status' => 'active',
+             'sex' => 'male',
+             'created_at' => now(),
+             'updated_at' => now()
+         ]);
 
         /*
         |--------------------

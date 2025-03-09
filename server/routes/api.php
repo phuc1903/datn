@@ -11,9 +11,17 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\Order\OrderController;
 use App\Http\Controllers\Api\V1\Voucher\VoucherController;
 use App\Http\Controllers\Api\V1\ProductFeedback\ProductFeedbackController;
-
+use App\Http\Controllers\Api\V1\Address\AddressController;
 // Version 1
 Route::prefix('v1')->group(function () {
+    /*
+    |--------------------------------------------------------------------------
+    | AddressController
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/get-location-in-vn',[AddressController::class,'index']);
+
+
     /*
     |--------------------------------------------------------------------------
     | ProductController
@@ -107,6 +115,13 @@ Route::prefix('v1')->group(function () {
 
             // Danh sách vouchers
             Route::get('/vouchers', 'vouchers');
+
+            //  Danh sách địa chỉ
+            Route::get('/addresses','getAddressUser');
+            Route::post('/add-addresses', 'addAddressUser');
+            Route::put('/update-addresses', 'updateAddressUser');
+            Route::delete('/delete-addresses', 'deleteAddressUser');
+
         });
 
         Route::get('/', 'index');
