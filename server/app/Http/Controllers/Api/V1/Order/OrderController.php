@@ -8,6 +8,7 @@ use App\Enums\Voucher\VoucherStatus;
 use App\Enums\Voucher\VoucherType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Order\CreateOrderRequest;
+use App\Models\Combo;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -173,112 +174,107 @@ class OrderController extends Controller
     | Path: api/v1/orders
     |--------------------------------------------------------------------------
     */
-    private function validateProducts(array $orders, $skus)
+    private function validateProducts(array $orders, $skus, $combos)
     {
         foreach ($orders as $order) {
-            $sku = $skus->get($order['sku_id']);
-            $product = Product::find($sku->product_id);
-
-            if (!$sku) {
-                throw new \Exception('Sku not found for SKU ID ' . $order['sku_id'], 400);
+            if (!isset($order['sku_id']) && !isset($order['combo_id'])) {
+                throw new \Exception('Order item must have either SKU ID or Combo ID.', 400);
             }
 
-            if ($product->status != ProductStatus::Active) {
-                throw new \Exception('Product is out of stock for SKU ID ' . $order['sku_id'], 404);
+            if (!empty($order['sku_id']) && !empty($order['combo_id'])) {
+                throw new \Exception('An order item cannot have both SKU ID and Combo ID.', 400);
             }
 
-            if ($sku->quantity < $order['quantity']) {
-                throw new \Exception('Not enough stock for SKU ID ' . $order['sku_id'], 400);
+            if (!empty($order['sku_id'])) {
+                if (!isset($skus[$order['sku_id']])) {
+                    throw new \Exception('Sku not found for SKU ID ' . $order['sku_id'], 400);
+                }
+
+                $sku = $skus[$order['sku_id']];
+                $product = Product::find($sku->product_id);
+                if (!$product || $product->status != ProductStatus::Active) {
+                    throw new \Exception('Product is out of stock for SKU ID ' . $order['sku_id'], 404);
+                }
+
+                if ($sku->quantity < $order['quantity']) {
+                    throw new \Exception('Not enough stock for SKU ID ' . $order['sku_id'], 400);
+                }
+            }
+
+            if (!empty($order['combo_id'])) {
+                if (!isset($combos[$order['combo_id']])) {
+                    throw new \Exception('Combo not found for Combo ID ' . $order['combo_id'], 400);
+                }
+
+                $combo = $combos[$order['combo_id']];
+                if ($combo->status != ProductStatus::Active) {
+                    throw new \Exception('Combo is out of stock for Combo ID ' . $order['combo_id'], 404);
+                }
+
+                if ($combo->quantity < $order['quantity']) {
+                    throw new \Exception('Not enough stock for Combo ID ' . $order['combo_id'], 400);
+                }
             }
         }
     }
-    private function calculateTotalAmount(array $orders, $skus)
+
+    private function calculateTotalAmount(array $orders, $skus, $combos)
     {
         $totalAmount = 0;
         foreach ($orders as $order) {
-            // Lấy SKU tương ứng từ mảng $skus
-            $sku = $skus->get($order['sku_id']);
-
-            // Kiểm tra xem SKU có tồn tại không (đảm bảo không lỗi nếu không tìm thấy)
-            if (!$sku) {
-                // Nếu SKU không tồn tại, log lỗi hoặc thông báo lỗi tại đây
-                throw new \Exception("SKU không tồn tại với ID: " . $order['sku_id']);
+            if (!empty($order['sku_id'])) {
+                $sku = $skus->get($order['sku_id']);
+                if (!$sku) {
+                    throw new \Exception("SKU not found for ID: " . $order['sku_id']);
+                }
+                $price = !empty($sku->promotion_price) ? $sku->promotion_price : $sku->price;
+                $orderTotal = $order['quantity'] * $price;
+            } elseif (!empty($order['combo_id'])) {
+                $combo = $combos->get($order['combo_id']);
+                if (!$combo) {
+                    throw new \Exception("Combo not found for ID: " . $order['combo_id']);
+                }
+                $orderTotal = $order['quantity'] * $combo->price;
+            } else {
+                throw new \Exception("Order item must have either SKU ID or Combo ID");
             }
-
-            // Lấy giá (giá giảm giá nếu có, nếu không thì lấy giá gốc)
-            $price = empty($sku->promotion_price) ? $sku->price : $sku->promotion_price;
-
-            // Tính toán tổng tiền cho đơn hàng hiện tại
-            $orderTotal = $order['quantity'] * $price;
-
-            // Cộng dồn vào tổng tiền
             $totalAmount += $orderTotal;
         }
         return $totalAmount;
     }
-    private function validateVouchers(User $user, Collection $vouchers, $totalAmount, array $orders, $skus)
+    private function validateVoucher(User $user, Voucher $voucher, $totalAmount)
     {
-        foreach ($vouchers as $voucher) {
-            if ($voucher->status != VoucherStatus::Active) {
-                throw new \Exception('Voucher ' . $voucher->code . ' is not active', 404);
-            }
+        if ($voucher->status != VoucherStatus::Active) {
+            throw new \Exception('Voucher ' . $voucher->code . ' is not active', 404);
+        }
 
-            if ($voucher->quantity <= 0) {
-                throw new \Exception('Voucher ' . $voucher->code . ' is out of stock', 404);
-            }
+        if ($voucher->quantity <= 0) {
+            throw new \Exception('Voucher ' . $voucher->code . ' is out of stock', 404);
+        }
 
-            if ($totalAmount < $voucher->min_order_value) {
-                throw new \Exception('Order is below minimum value for voucher ' . $voucher->code, 403);
-            }
+        if ($totalAmount < $voucher->min_order_value) {
+            throw new \Exception('Order is below minimum value for voucher ' . $voucher->code, 403);
+        }
 
-            // Kiểm tra xem voucher đã được sử dụng chưa
-            $hasUsedVoucher = $user->orders()->whereHas('vouchers', function ($query) use ($voucher) {
-                $query->where('voucher_id', $voucher->id);
-            })->exists();
+        $hasUsedVoucher = $user->orders()->where('voucher_id', $voucher->id)->exists();
+        if ($hasUsedVoucher) {
+            throw new \Exception('Voucher ' . $voucher->code . ' already used', 400);
+        }
 
-            if ($hasUsedVoucher) {
-                throw new \Exception('Voucher ' . $voucher->code . ' already used', 400);
-            }
+        $userOwnsVoucher = $user->vouchers()->where('voucher_id', $voucher->id)->exists();
+        if (!$userOwnsVoucher) {
+            throw new \Exception('User does not own this voucher', 403);
         }
     }
 
-    private function applyVoucherDiscount(Collection $vouchers, $totalAmount, array $orders, $skus)
+
+    private function applyVoucherDiscount(Voucher $voucher, $totalAmount)
     {
-        $discountAmount = 0;
+        $discount = ($voucher->type == VoucherType::Percent)
+            ? min($totalAmount * ($voucher->discount_value / 100), $voucher->max_discount_value)
+            : min($voucher->discount_value, $totalAmount);
 
-        foreach ($vouchers as $voucher) {
-            $eligibleAmount = 0;
-
-            foreach ($orders as $order) {
-                $sku = $skus->get($order['sku_id']);
-                $product = Product::find($sku->product_id);
-                $price = empty($sku->promotion_price) ? $sku->price : $sku->promotion_price;
-                $orderTotal = $order['quantity'] * $price;
-
-                // Chỉ áp dụng giảm giá nếu voucher hợp lệ với sản phẩm
-                if ($voucher->product_id && $voucher->product_id != $sku->product_id) {
-                    continue;
-                }
-
-                if ($voucher->category_id && !$product->categories->contains($voucher->category_id)) {
-                    continue;
-                }
-
-                $eligibleAmount += $orderTotal;
-            }
-
-            // Tính giảm giá theo loại voucher
-            if ($voucher->type == VoucherType::Percent) {
-                $discount = $eligibleAmount * ($voucher->discount_value / 100);
-                $discount = min($discount, $voucher->max_discount_value);
-            } elseif ($voucher->type == VoucherType::Price) {
-                $discount = min($voucher->discount_value, $eligibleAmount);
-            }
-
-            $discountAmount += $discount;
-        }
-
-        return max(0, $totalAmount - $discountAmount);
+        return max(0, $totalAmount - $discount);
     }
 
     private function createOrderRecord(User $user, array $orderData, $totalAmount, $shippingCost, $paymentMethod = 'cod')
@@ -296,16 +292,22 @@ class OrderController extends Controller
             'note' => $orderData['note'] ?? null
         ]);
     }
-    private function createOrderItems(Order $order, array $orderItems, $skus)
+    private function createOrderItems(Order $order, array $orderItems, $skus, $combos)
     {
-        return array_map(function ($item) use ($order, $skus) {
-            $sku = $skus->get($item['sku_id']);
+        return array_map(function ($item) use ($order, $skus, $combos) {
+            if (!empty($item['sku_id']) && !empty($item['combo_id'])) {
+                throw new \Exception('An order item cannot have both SKU ID and Combo ID.', 400);
+            }
+
+            $sku = !empty($item['sku_id']) ? $skus->get($item['sku_id']) : null;
+            $combo = !empty($item['combo_id']) ? $combos->get($item['combo_id']) : null;
+
             return OrderItem::create([
                 'order_id' => $order->id,
-                'product_id' => $sku->product_id,
-                'sku_id' => $item['sku_id'],
+                'sku_id' => $item['sku_id'] ?? null,
+                'combo_id' => $item['combo_id'] ?? null,
                 'quantity' => $item['quantity'],
-                'price' => empty($sku->promotion_price) ? $sku->price : $sku->promotion_price,
+                'price' => $sku ? (!empty($sku->promotion_price) ? $sku->promotion_price : $sku->price) : ($combo ? $combo->price : 0),
             ]);
         }, $orderItems);
     }
@@ -332,62 +334,54 @@ class OrderController extends Controller
 
             $result = DB::transaction(function () use ($orderData, $user) {
                 $skuIds = array_column($orderData['orders'], 'sku_id');
+                $comboIds = array_column($orderData['orders'], 'combo_id');
                 $skus = Sku::findMany($skuIds)->keyBy('id');
+                $combos = Combo::findMany($comboIds)->keyBy('id');
                 $shippingCost = 0;
 
-                // Validate sản phẩm
-                $this->validateProducts($orderData['orders'], $skus);
+                $this->validateProducts($orderData['orders'], $skus, $combos);
+                $totalAmount = $this->calculateTotalAmount($orderData['orders'], $skus,$combos);
 
-                // Tính tổng tiền trước khi áp dụng voucher
-                $totalAmount = $this->calculateTotalAmount($orderData['orders'], $skus);
+                $voucherId = $orderData['voucher_id'] ?? null;
+                $voucher = $voucherId ? Voucher::find($voucherId) : null;
 
-                // Lấy danh sách voucher từ request
-                $voucherIds = $orderData['voucher_ids'] ?? [];
-                $vouchers = Voucher::whereIn('id', $voucherIds)->get();
-
-                // Kiểm tra và áp dụng voucher
-                if ($vouchers->isNotEmpty()) {
-                    $this->validateVouchers($user, $vouchers, $totalAmount, $orderData['orders'], $skus);
-                    $totalAmount = $this->applyVoucherDiscount($vouchers, $totalAmount, $orderData['orders'], $skus);
-
-                    // Giảm số lượng voucher
-                    foreach ($vouchers as $voucher) {
-                        $voucher->decrement('quantity');
-                    }
+                if ($voucher) {
+                    $this->validateVoucher($user, $voucher, $totalAmount, $orderData['orders'], $skus);
+                    $totalAmountBeforeDiscount = $this->applyVoucherDiscount($voucher, $totalAmount);
+                    $voucher->decrement('quantity');
                 }
 
-                // Tạo hóa đơn
-                $order = $this->createOrderRecord($user, $orderData, $totalAmount, $shippingCost, $orderData['payment_method']);
+                $order = Order::create([
+                    'user_id' => $user->id,
+                    'voucher_id' => $voucher?->id,
+                    'full_name' => $orderData['first_name'] . ' ' . $orderData['last_name'],
+                    'email' => $user->email,
+                    'address' => $orderData['address'],
+                    'province_code' => $orderData['province_code'],
+                    'district_code' => $orderData['district_code'],
+                    'ward_code' => $orderData['ward_code'],
+                    'phone_number' => $orderData['phone_number'],
+                    'payment_method' => $orderData['payment_method'],
+                    'status' => ($orderData['payment_method'] == 'cod') ? OrderStatus::Pending : OrderStatus::Waiting,
+                    'shipping_cost' => $shippingCost,
+                    'total_amount' => $totalAmount + $shippingCost,
+                    'discount_amount' => $voucher ? ($totalAmount - $totalAmountBeforeDiscount) : 0,
 
-                // Tạo hóa đơn chi tiết
-                $orderItems = $this->createOrderItems($order, $orderData['orders'], $skus);
+                    'note' => $orderData['note'] ?? null,
+                    'reason' => $orderData['reason'] ?? null,
+                ]);
 
-                // Gắn voucher vào đơn hàng nếu có
-                if ($vouchers->isNotEmpty()) {
-                    $this->attachVouchersToOrder($order, $vouchers, $totalAmount);
-                }
-
-                $paymentResult = null;
-                if ($orderData['payment_method'] === 'bank') {
-                    if (config('momo.requestType') == 'payWithCC') {
-                        // Thanh toán momo VISA
-                        $paymentResult = $this->createMomoCardPayment($order);
-                    } else {
-                        // Thánh toán momo QR
-                        $paymentResult = $this->createMomoPayment($order);
-                    }
-                }
+                $orderItems = $this->createOrderItems($order, $orderData['orders'], $skus,$combos);
 
                 return [
                     'order' => $order,
                     'order_items' => $orderItems,
-                    'payment_url' => $paymentResult['paymentUrl'] ?? null
                 ];
             });
 
             return ResponseSuccess('Order created successfully!', $result, 201);
         } catch (\Exception $e) {
-            return ResponseError($e->getMessage(), null, (int)($e->getCode() ?: 500));
+            return ResponseError($e->getMessage(), null, 500);
         }
     }
 

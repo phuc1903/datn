@@ -68,23 +68,23 @@ class DatabaseSeeder extends Seeder
         | Tạo các seeders khác
         |--------------------
          */
-        // $this->call([
+         $this->call([
         //     AdminSeeder::class,
         //     UserSeeder::class,
         //     WalletSeeder::class,
-        //     CategorySeeder::class,
-        //     TagSeeder::class,
+             CategorySeeder::class,
+             TagSeeder::class,
 
-        //     VariantSeeder::class,
-        //     ProductSeeder::class,
-        //     ProductImageSeeder::class,
-        //     ProductTagSeeder::class,
-        //     ProductCategorySeeder::class,
+             VariantSeeder::class,
+             ProductSeeder::class,
+             ProductImageSeeder::class,
+             ProductTagSeeder::class,
+             ProductCategorySeeder::class,
 
         //     OrderSeeder::class,
         //     ProductFeedbackSeeder::class,
-        //     VoucherSeeder::class,
-        //     UserVoucherSeeder::class,
+             VoucherSeeder::class,
+             UserVoucherSeeder::class,
         //     OrderVoucherSeeder::class,
 
         //     UserAddressSeeder::class,
@@ -96,6 +96,6 @@ class DatabaseSeeder extends Seeder
         //     BlogProductSeeder::class,
 
         //     SliderSeeder::class,
-        // ]);
+         ]);
     }
 }
