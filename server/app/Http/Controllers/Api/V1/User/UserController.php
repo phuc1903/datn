@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Api\V1\User;
 
 use App\Enums\Voucher\VoucherStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Address\AddAddressRequest;
+use App\Http\Requests\Api\V1\Address\PutAddressRequest;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductFeedback;
 use App\Models\User;
+use App\Models\UserAddress;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -265,4 +268,159 @@ class UserController extends Controller
         }
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | function address
+    |--------------------------------------------------------------------------
+    */
+    public function getAddressUser()
+    {
+        try {
+            $userId = Auth::id();
+            // Không tìm thấy User
+            if (!$userId) {
+                return ResponseError('User not found',null,404);
+            }
+
+            $userAddresses = UserAddress::with(['province', 'district', 'ward'])
+                ->where('user_id', $userId)
+                ->select('name', 'address', 'province_code', 'district_code', 'ward_code', 'default')
+                ->orderByRaw("CASE WHEN `default` = 'default' THEN 1 ELSE 0 END DESC")
+                ->get();
+
+            // Trả về danh sách orders
+            return ResponseSuccess('Got user address',$userAddresses);
+        } catch (\Exception $e) {
+            // Bắt lỗi nếu có ngoại lệ
+            return ResponseError($e->getMessage(),null,500);
+        }
+    }
+
+    public function addAddressUser(AddAddressRequest $request)
+    {
+        try {
+            $userId = Auth::id();
+
+            if (!$userId) {
+                return ResponseError('User not authenticated', null, 401);
+            }
+
+            $user = User::find($userId);
+            if (!$user) {
+                return ResponseError('User not found', null, 404);
+            }
+
+            // Nếu địa chỉ mới được đặt làm mặc định, cập nhật các địa chỉ khác thành 'non-default'
+            if ($request->default === 'default') {
+                UserAddress::where('user_id', $userId)->update(['default' => 'other']);
+            }
+
+            // Thêm địa chỉ mới vào bảng `user_address`
+            $newAddress = UserAddress::create([
+                'user_id' => $userId,
+                'address' => $request->address,
+                'province_code' => $request->province_code,
+                'district_code' => $request->district_code,
+                'ward_code' => $request->ward_code,
+                'name' => $request->name,
+                'phone_number' => $request->phone_number,
+                'default' => $request->default ?? 'other', // Nếu không có, đặt mặc định là 'non-default'
+            ]);
+
+            // Lấy lại danh sách địa chỉ sau khi thêm mới
+            $userAddresses = UserAddress::with(['province', 'district', 'ward'])
+                ->where('user_id', $userId)
+                ->orderByRaw("CASE WHEN `default` = 'default' THEN 1 ELSE 0 END DESC")
+                ->get();
+
+            return ResponseSuccess('Address added successfully', $userAddresses);
+        } catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
+        }
+    }
+    public function updateAddressUser(PutAddressRequest $request)
+    {
+        try {
+
+            $userId = Auth::id();
+
+            if (!$userId) {
+                return ResponseError('User not authenticated', null, 401);
+            }
+
+            $user = User::find($userId);
+            if (!$user) {
+                return ResponseError('User not found', null, 404);
+            }
+
+            $address = UserAddress::where('id', $request->address_id)
+                ->where('user_id', Auth::id()) // Đảm bảo địa chỉ thuộc về user đang đăng nhập
+                ->first();
+            if (!$address) {
+                return ResponseError('User dont have this address', null, 400);
+            }
+
+            // Nếu địa chỉ mới được đặt làm mặc định, cập nhật các địa chỉ khác thành 'other'
+            if ($request->default === 'default') {
+                UserAddress::where('user_id', $userId)->update(['default' => 'other']);
+            }
+
+            // Sửa địa chỉ bảng `user_address`
+            $newAddress = UserAddress::find($address->id)->update([
+                'address' => $request->address,
+                'province_code' => $request->province_code,
+                'district_code' => $request->district_code,
+                'ward_code' => $request->ward_code,
+                'name' => $request->name,
+                'phone_number' => $request->phone_number,
+                'default' => $request->default,
+            ]);
+
+            // Lấy lại danh sách địa chỉ sau khi thêm mới
+            $userAddresses = UserAddress::with(['province', 'district', 'ward'])
+                ->where('user_id', $userId)
+                ->orderByRaw("CASE WHEN `default` = 'default' THEN 1 ELSE 0 END DESC")
+                ->get();
+
+            return ResponseSuccess('Address update successfully', $userAddresses);
+        } catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
+        }
+    }
+    public function deleteAddressUser(Request $request)
+    {
+        try {
+
+            $userId = Auth::id();
+
+            if (!$userId) {
+                return ResponseError('User not authenticated', null, 401);
+            }
+
+            $user = User::find($userId);
+            if (!$user) {
+                return ResponseError('User not found', null, 404);
+            }
+
+            $address = UserAddress::where('id', $request->address_id)
+                ->where('user_id', Auth::id()) // Đảm bảo địa chỉ thuộc về user đang đăng nhập
+                ->first();
+            if (!$address) {
+                return ResponseError('User dont have this address', null, 400);
+            }
+
+            UserAddress::find($address->id)->delete();
+
+            // Lấy lại danh sách địa chỉ sau khi thêm mới
+            $userAddresses = UserAddress::with(['province', 'district', 'ward'])
+                ->where('user_id', $userId)
+                ->orderByRaw("CASE WHEN `default` = 'default' THEN 1 ELSE 0 END DESC")
+                ->get();
+
+            return ResponseSuccess('Address delete successfully', $userAddresses);
+        } catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
+        }
+    }
 }
