@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Enums\Order;
 
@@ -39,5 +41,26 @@ final class OrderStatus extends Enum
             self::Cancel => "<span class='badge text-bg-danger text-white'>{$this->label()}</span>",
             default => "<span class='badge text-bg-info text-white'> Không xác định</span>",
         };
+    }
+
+    public function canTransitionTo(self $newStatus): bool
+    {
+        $validTransitions = [
+            self::Waiting => [self::Pending],
+            self::Pending => [self::Shipped],
+            self::Shipped => [self::Success],
+            self::Success => [],
+            self::Cancel => [],
+        ];
+
+        if($newStatus->value === self::Success && $newStatus->value === self::Cancel) {
+            return false;
+        }
+
+        if ($newStatus->value === self::Cancel) {
+            return true;
+        }
+
+        return in_array($newStatus->value, $validTransitions[$this->value] ?? []);
     }
 }

@@ -32,11 +32,10 @@ class UserDataTable extends BaseDataTable
     protected function extraColumns(): array
     {
         return [
-            // Column::make('avatar')->title('Ảnh đại diện')->orderable(false)->searchable(false),
             Column::make('first_name')->title('Họ và Tên'),
             Column::make('email')->title('Email'),
             Column::make('phone_number')->title('Số điện thoại'),
-            Column::make('status')->title('Trạng thái'),
+            Column::make('status')->title('Trạng thái')->addClass("no-search"),
         ];
     }
 

@@ -13,15 +13,8 @@ import TomSelect from "tom-select";
 import "tom-select/dist/css/tom-select.css";
 
 window.Swal = Swal;
+window.TomSelect = TomSelect;
 window.toastr = toastr;
-
-document.addEventListener("DOMContentLoaded", function () {
-    new TomSelect("#attribute", {
-        persist: false,
-        createOnBlur: true,
-        create: true,
-    });
-});
 
 $('.accordion-header').on('click', function(e) {
     if(this.getAttribute('href') === '#') {
@@ -57,9 +50,6 @@ $(document).ready(function () {
     async function loadSkusData() {
         try {
             existingSkus = await fetchSkus();
-
-            console.log(existingSkus);
-            
 
             if (existingSkus) {
                 parseExistingSkus(existingSkus);
@@ -263,15 +253,15 @@ $(document).ready(function () {
                             <div class="w-100"> 
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Giá bán (đ)</label>
-                                    <input type="number" class="form-control variant-price" data-index="${index}" value="${price}" min="0" required>
+                                    <input class="form-control variant-price price" data-index="${index}" value="${price}" min="0" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Giá khuyến mãi (đ)</label>
-                                    <input type="number" class="form-control variant-promotion-price" data-index="${index}" value="${promotion_price}" min="0">
+                                    <input class="form-control variant-promotion-price price" data-index="${index}" value="${promotion_price}" min="0">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Số lượng</label>
-                                    <input type="number" class="form-control variant-quantity" data-index="${index}" value="${quantity}" min="1" required>
+                                    <input class="form-control variant-quantity" data-index="${index}" value="${quantity}" min="1" required>
                                 </div>   
                                 <button type="button" class="btn btn-danger remove-variant" data-variant-index="${index}">Xóa biến thể này</button>
                             </div>
@@ -485,27 +475,34 @@ $(document).ready(function () {
     deleteUser();
     deleteItem();
     addVariantValue();
-    choseAttribute();
     formatPriceMain()
 
     function formatPriceMain() {
         function formatPrice(number) {
-            number = number.replace(/\D/g, '');
+            number = number.replace(/\D/g, ''); 
             return new Intl.NumberFormat('vi-VN').format(number) + ' VNĐ';
         }
+    
+        $('.price').each(function () {
+            let input = $(this).val();
+            if (input) {
+                $(this).val(formatPrice(input));
+            }
+        });
+    
         $('.price').on('keyup', function () {
             let input = $(this).val();
             $(this).val(formatPrice(input));
         });
+    
+        $('form').on('submit', function () {
+            $('.price').each(function () {
+                let rawPrice = $(this).val().replace(/\D/g, '');
+                $(this).val(rawPrice);
+            });
+        });
     }
 
-
-    function choseAttribute() {
-        let selectedAttributes = [1, 2, 3, 4, 5];
-        const getAttribute = document.getElementById("getAttributes");
-        const buttonGetAttribute = document.getElementById("addAttribute");
-        const attributeList = document.getElementById("attributeList");
-    }
 
     function addAddress() {
         const addressContainer = $("#address-books");
@@ -824,6 +821,5 @@ $(document).ready(function () {
                 render();
             });
     }
-    
     
 });

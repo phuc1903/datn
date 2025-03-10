@@ -13,14 +13,18 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-12 col-md-6">
-                                <h5>Thông tin chung</h5>
-                                <div class="form-floating gap-3">
-                                    <textarea class="form-control" name="reason" disabled placeholder="Leave a comment here" id="floatingTextarea">{{ $order->reason }}</textarea>
-                                    <label for="floatingTextarea">Lý do</label>
-                                </div>
+                                <h5 class="mb-3">Thông tin chung</h5>
+                                <div class="mb-3">
+                                    <label for="note" class="form-label">Ghi chú đơn hàng của khách hàng</label>
+                                    <textarea class="form-control" name="note" disabled id="note" rows="3">{{ $order->note }}</textarea>
+                                  </div>
+                                <div class="mb-3">
+                                    <label for="reason" class="form-label">Lý do hủy đơn</label>
+                                    <textarea class="form-control @error('reason')  @endError" @if($checkStatus) disabled @endif name="reason" id="reason" rows="3">{{ $order->reason }}</textarea>
+                                  </div>
                             </div>
                             <div class="col-12 col-md-6">
-                                <h5>Thông tin giao hàng</h5>
+                                <h5 class="mb-3">Thông tin giao hàng</h5>
                                 <x-form.input_text label="Họ và tên" value="{{ $order->full_name }}" name="full_name"
                                     disabled />
                                 <x-form.input_text label="Email" value="{{ $order->email }}" name="email" disabled />
@@ -56,9 +60,9 @@
                                         <tr>
                                             <th scope="row" class="text-center text-dark-custom">{{ $index + 1 }}</th>
                                             <td class="text-center text-dark-custom">
-                                                {{ $item->sku->product->name}}</td>
-                                                <td class="text-center text-dark-custom">
-                                                    {{ $variantValues }}</td>
+                                                {{ $item->sku->product->name }}</td>
+                                            <td class="text-center text-dark-custom">
+                                                {{ $variantValues }}</td>
                                             <td class="text-center text-dark-custom" style="width: 200px;">
                                                 {{ number_format($item->price, 2, '.', '.') }} VNĐ</td>
                                             <td class="text-center text-dark-custom" style="width: 100px;">
@@ -89,7 +93,8 @@
                         <h5 class="title">Trạng thái đơn hàng</h5>
                     </div>
                     <div class="card-body">
-                        <select class="form-select selec-custom" aria-label="Default select example" name="status">
+                        <select class="form-select selec-custom" id="statusOrder" aria-label="Default select example"
+                            name="status">
                             <option value="{{ $statusActiveValue }}" selected>{{ $statusActive }}</option>
                             <x-form.select.option :options="$statusList" />
                         </select>
@@ -100,13 +105,11 @@
                         <h5 class="title">Phương thức thanh toán</h5>
                     </div>
                     <div class="card-body">
-                        <select class="form-select selec-custom" aria-label="Default select example" name="payment_method">
-                            <option value="{{ $paymentActiveValue }}" selected>{{ $paymentActive }}</option>
-                            <x-form.select.option :options="$paymentList" />
-                        </select>
+                        <x-form.input_text disabled value="{{ $paymentActive }}" name="address" />
                     </div>
                 </div>
             </div>
         </div>
+
     </form>
 @endsection

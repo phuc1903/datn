@@ -17,9 +17,9 @@ return new class extends Migration
             $table->unsignedBigInteger('category_id')->nullable();
             $table->unsignedBigInteger('combo_id')->nullable();
             $table->timestamps();
-            $table->foreign('product_id')->references('id')->on('products');
-            $table->foreign('category_id')->references('id')->on('categories');
-            $table->foreign('combo_id')->references('id')->on('combos');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
+            $table->foreign('combo_id')->references('id')->on('combos')->onDelete('cascade');
         });
     }
 

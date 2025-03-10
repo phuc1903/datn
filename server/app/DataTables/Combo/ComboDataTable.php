@@ -29,7 +29,7 @@ class ComboDataTable extends BaseDataTable
     public function extraColumns(): array
     {
         return [
-            Column::make('image_url')->title('Ảnh')->orderable(false)->searchable(false),
+            Column::make('image_url')->title('Ảnh')->orderable(false)->searchable(false)->addClass("no-search"),
             Column::make('name')->title('Tên combo'),
             Column::make('quantity')->title('Số lượng'),
             Column::make('price')->title('Giá'),
@@ -37,7 +37,7 @@ class ComboDataTable extends BaseDataTable
             Column::make('date_start')->title('Ngày bắt đầu'),
             Column::make('date_end')->title('Ngày kết thúc'),
             Column::make('is_hot')->title('Hot'),
-            Column::make('status')->title('Trạng thái'),
+            Column::make('status')->title('Trạng thái')->addClass("no-search"),
         ];
     }
 

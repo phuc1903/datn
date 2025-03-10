@@ -9,6 +9,14 @@
             'path' => route('dashboard'),
             'icon' => "bi-bar-chart-line",
         ],
+        // Quản lý đơn hàng
+        [
+            'label' => 'Đơn hàng',
+            'active' => request()->routeIs('admin.order.index'),
+            'type' => 'nav',
+            'icon' => 'bi-cart',
+            'path' => route('admin.order.index'),
+        ],
         // Title
         [
             'label' => 'Quản lý',
@@ -50,11 +58,11 @@
             'path' => route('admin.combo.index'),
             'child' => [
                 [
-                    'label' => 'Danh sách sản phẩm',
+                    'label' => 'Danh sách combo',
                     'path' => route('admin.combo.index'),
                 ],
                 [
-                    'label' => 'Thêm sản phẩm',
+                    'label' => 'Thêm combo',
                     'path' => route('admin.combo.create'),
                 ],
             ],
@@ -76,14 +84,6 @@
                     'path' => route('admin.category.create'),
                 ],
             ],
-        ],
-        // Quản lý đơn hàng
-        [
-            'label' => 'Đơn hàng',
-            'active' => request()->routeIs('admin.order.index'),
-            'type' => 'nav',
-            'icon' => 'bi-cart',
-            'path' => route('admin.order.index'),
         ],
         // Quản lý đánh giá sản phẩm
         [

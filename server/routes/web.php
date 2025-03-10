@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\Address\AddressController;
 use App\Http\Controllers\Admin\Auth\AuthController;
 use App\Http\Controllers\Admin\Blog\BlogController;
 use App\Http\Controllers\Admin\Blog\TagController;
@@ -58,6 +59,12 @@ Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function 
     Route::resource('permission', PermissionController::class);
     Route::resource('role', RoleController::class);
     Route::resource('combo', ComboController::class);
+
+    // Loctions
+
+    Route::get('provinces', [AddressController::class, 'getProvinces'])->name('provinces');
+    Route::get('districts', [AddressController::class, 'getDistrictsByProvince'])->name('districts');
+    Route::get('ward', [AddressController::class, 'getWardsByDistrict'])->name('wards');
 });
 
 Route::post('/save-theme', function (Request $request) {

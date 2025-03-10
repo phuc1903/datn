@@ -40,7 +40,7 @@ class OrderFactory extends Factory
             'full_name' => $this->faker->userName(),
             'email' => $this->faker->unique()->userName . '@gmail.com',
             'phone_number' => $this->faker->phoneNumber(),
-            'address' => "12/1232 hẻm 12 " .$ward->name . " ". $district->name . " " .$province->name,
+            'address' => $this->faker->randomElement([0, 100])."/132 hẻm 12 " .$ward->name . " ". $district->name . " " .$province->name,
 
             'payment_method' => $this->faker->randomElement(OrderPaymentMethod::getValues()),
             'status' => $status,

@@ -60,13 +60,71 @@
     --secondary-foreground: #{$secondary-50};
 }
 
-// *,
-// *::after,
-// *::before {
-//     padding: 0;
-//     margin: 0;
-//     box-sizing: border-box;
-// }
+*,
+*::after,
+*::before {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    line-height: normal;
+}
+
+.dashboard {
+    background-color: var(--background);
+
+    .card-list {
+        .card-item {
+            .item {
+                background-color: #{$neuture-50};
+                padding: 24px;
+                border-radius: 8px;
+                &.danger {
+                    background: radial-gradient(
+                            circle,
+                            #{$danger-300},
+                            #{$danger-600}
+                        ),
+                        radial-gradient(circle, #{$danger-700}, #{$danger-200});
+                }
+                h4 {
+                    font-size: 16px;
+                    color: #{$neuture-700};
+                }
+
+                span {
+                    font-size: 28px;
+                    display: block;
+                    color: var(--foreground);
+                    margin-bottom: 6px;
+                }
+
+                .icon {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 14px;
+                    margin-right: 24px;
+                }
+
+                &.primary {
+                    .icon {
+                        background: #{$primary-200};
+                        svg {
+                            color: #{$primary-500};
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+.selectLocation {
+
+    .ts-control {
+        border: none !important;
+    }
+}
 
 .variant-warning {
     background-color: orange;
@@ -81,7 +139,6 @@
     background-color: var(--muted);
     border-radius: 16px;
 }
-
 
 #attributes-pane {
     .accordion-item {
@@ -163,7 +220,6 @@
 .border-color {
     border-color: var(--border);
 }
-
 
 // component
 
