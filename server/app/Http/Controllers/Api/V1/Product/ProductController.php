@@ -31,12 +31,8 @@ class ProductController extends Controller
                 'categories',
                 'skus.variantValues.variant'
             ])
-                ->withCount('feedbacks') // Đếm số lượt đánh giá
-                ->withAvg('feedbacks', 'product_feedback.rating') // Lấy số sao trung bình
-                ->select([
-                    'products.*',
-                    DB::raw("ROUND((SELECT AVG(product_feedbacks.rating) FROM product_feedbacks WHERE product_feedbacks.product_id = products.id), 1) as rating_avg")
-                ])
+                ->withCount('feedbacks') // Đếm số lượt đánh giá dựa trên SKU
+                ->withAvg('feedbacks', 'rating') // Lấy số sao trung bình từ feedbacks
                 ->get();
 
             if ($products->isEmpty()) {
@@ -50,6 +46,7 @@ class ProductController extends Controller
         }
     }
 
+
     /*
     |--------------------------------------------------------------------------
     | Lấy thông tin toàn bộ Products không có SKU
@@ -59,30 +56,24 @@ class ProductController extends Controller
     public function getListProductsNotSku(): JsonResponse
     {
         try {
-            $products = $this->product->with([
+            $products = Product::with([
                 'images',
                 'categories'
             ])
-                ->withCount('feedbacks') // Đếm số lượt đánh giá
-                ->withAvg('feedbacks', 'product_feedback.rating') // Lấy số sao trung bình
-                ->select([
-                    'products.*',
-                    DB::raw("ROUND((SELECT AVG(product_feedbacks.rating) FROM product_feedbacks WHERE product_feedbacks.product_id = products.id), 1) as rating_avg")
-                ])
+                ->whereDoesntHave('skus') // Lọc ra sản phẩm không có SKU
                 ->get();
-            if ($products) {
-                return ResponseSuccess('Products retrieved successfully.',$products,200);
-            } else {
-                return ResponseError('Dont have any products',null,404);
+
+            if ($products->isEmpty()) {
+                return ResponseError('No products without SKU found.', null, 404);
             }
 
+            return ResponseSuccess('Products without SKU retrieved successfully.', $products, 200);
         }
         catch (\Exception $e) {
-            return ResponseError($e->getMessage(),null,500);
-
+            return ResponseError($e->getMessage(), null, 500);
         }
-
     }
+
     /*
     |--------------------------------------------------------------------------
     | Lấy thông tin 1 Product
@@ -92,54 +83,54 @@ class ProductController extends Controller
     public function getProduct($id): JsonResponse
     {
         try {
-            // Lấy sản phẩm kèm bình luận, người dùng và thông tin khác
             $product = Product::with([
                 'images',
                 'categories',
                 'skus.variantValues.variant'
             ])
-                ->withAvg('feedbacks', 'product_feedbacks.rating')  // Lấy số sao trung bình
+                ->withCount('feedbacks') // Đếm số feedback qua SKU
                 ->find($id);
 
-            // Kiểm tra nếu sản phẩm không tồn tại
             if (!$product) {
                 return ResponseError('Product not found', null, 404);
             }
 
-            // Làm tròn số sao trung bình nếu có
-            $product->rating_avg = $product->feedbacks_avg_product_feedback_rating
-                ? round($product->feedbacks_avg_product_feedback_rating, 1)
-                : null;
+            // Lấy trung bình số sao từ feedbacks của SKU
+            $averageRating = $product->feedbacks()->avg('rating');
+
+            $product->rating_avg = $averageRating ? round($averageRating, 1) : null;
 
             return ResponseSuccess('Product retrieved successfully.', $product, 200);
         } catch (\Exception $e) {
             return ResponseError($e->getMessage(), null, 500);
         }
     }
+
+
+
     public function getFeedBackProduct($id): JsonResponse
     {
         try {
-            // Lấy các feedback của sản phẩm với điều kiện người dùng có trạng thái active
+            // Lấy feedback của sản phẩm dựa trên SKU
             $productFeedback = ProductFeedback::with([
                 'user'  // Lấy thông tin người dùng của bình luận
             ])
-                ->where('product_id', $id)  // Lọc theo ID sản phẩm
-                ->whereHas('user', function($query) {
+                ->where('sku_id', $id)  // Lọc theo SKU ID
+                ->whereHas('user', function ($query) {
                     $query->where('status', 'active');  // Chỉ lấy feedback của người dùng có trạng thái active
                 })
                 ->get();
 
-            // Kiểm tra nếu không có feedback nào thỏa mãn
             if ($productFeedback->isEmpty()) {
-                return ResponseError('No active user feedbacks found for this product', null, 404);
+                return ResponseError('No active user feedbacks found for this SKU', null, 404);
             }
 
-            // Trả về tất cả feedbacks của người dùng có trạng thái active
             return ResponseSuccess('Product feedbacks from active users retrieved successfully.', $productFeedback, 200);
         } catch (\Exception $e) {
             return ResponseError($e->getMessage(), null, 500);
         }
     }
+
 
     /*
     |--------------------------------------------------------------------------
