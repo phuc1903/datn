@@ -20,8 +20,8 @@
                                   </div>
                                 <div class="mb-3">
                                     <label for="reason" class="form-label">Lý do hủy đơn</label>
-                                    <textarea class="form-control @error('reason')  @endError" @if($checkStatus) disabled @endif name="reason" id="reason" rows="3">{{ $order->reason }}</textarea>
-                                  </div>
+                                    <textarea class="form-control @error('reason')  @endError" @if($checkStatus || $checkStatusSuccess) disabled @endif name="reason" id="reason" rows="3">{{ $order->reason }}</textarea>
+                                </div>
                             </div>
                             <div class="col-12 col-md-6">
                                 <h5 class="mb-3">Thông tin giao hàng</h5>

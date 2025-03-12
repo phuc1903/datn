@@ -33,7 +33,7 @@
                 <div id="content" class="bg-white-custom">
 
                     <!-- Topbar -->
-                    <nav class="navbar navbar-expand navbar-light bg-white-custom topbar mb-4 static-top shadow">
+                    <nav class="navbar navbar-expand navbar-light bg-white-custom topbar mb-4 static-top shadow px-5 py-1">
 
                         <!-- Sidebar Toggle (Topbar) -->
                         <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
@@ -237,7 +237,7 @@
                 <!-- End of Main Content -->
 
                 <!-- Footer -->
-                <footer class="sticky-footer bg-white-custom">
+                <footer class="sticky-footer bg-white-custom py-3">
                     <div class="container my-auto">
                         <div class="copyright text-center my-auto text-dark-custom">
                             <span>Copyright &copy; ZBeauty</span>

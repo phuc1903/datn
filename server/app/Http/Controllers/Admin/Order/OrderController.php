@@ -33,7 +33,6 @@ class OrderController extends Controller
     {
 
         return redirect()->back()->with('error', 'Bạn không thể tạo đơn hàng');
-
     }
 
     /**
@@ -63,6 +62,7 @@ class OrderController extends Controller
         $orderStatus = OrderStatus::fromValue($orderShow->status);
         $orderPayment = OrderPaymentMethod::fromValue($orderShow->payment_method);
         $checkStastus = $order->status === OrderStatus::Cancel;
+        $checkStatusSuccess = $order->status === OrderStatus::Success;
 
         // dd($orderStatus->value);
 
@@ -96,6 +96,7 @@ class OrderController extends Controller
             'statusActiveValue' => $orderStatus->value,
             'paymentActiveValue' => $orderPayment->value,
             'checkStatus' => $checkStastus,
+            'checkStatusSuccess' => $checkStatusSuccess
         ]);
     }
 
@@ -105,6 +106,16 @@ class OrderController extends Controller
      */
     public function update(OrderRequest $request, Order $order)
     {
+        if ($request->has('status') && $request->status === OrderStatus::Cancel) {
+            if ($order->status === OrderStatus::Success) {
+                return redirect()->back()->with('error', 'Đơn đã hoàn thành! Không thể hủy đơn.');
+            }
+
+            if (!$request->has('reason') || empty($request->reason)) {
+                return redirect()->back()->with('error', 'Vui lòng nhập lý do hủy.');
+            }
+        }
+
         $newStatus = OrderStatus::fromValue($request->status);
 
         if (!$newStatus) {
@@ -121,7 +132,7 @@ class OrderController extends Controller
             "status" => $newStatus,
             "reason" => $request->reason
         ]);
-        
+
 
         return redirect()->back()->with('success', 'Cập nhật trạng thái thành công.');
     }

@@ -39,11 +39,11 @@ Route::middleware('guest:admin')->group(function() {
 });
 
 Route::middleware('auth:admin')->group(function() {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
 Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function () {
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('product', ProductController::class);
     Route::resource('category', CategoryController::class);
     Route::resource('user', UserController::class);
@@ -74,5 +74,5 @@ Route::post('/save-theme', function (Request $request) {
 });
 
 Route::fallback(function() {
-    return redirect()->route('dashboard');
+    return redirect()->route('admin.dashboard');
 });

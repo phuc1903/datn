@@ -4,9 +4,9 @@
         // Dashboard
         [
             'label' => 'Dashboard',
-            'active' => request()->routeIs('dashboard'),
+            'active' => request()->routeIs('admin.dashboard'),
             'type' => 'nav',
-            'path' => route('dashboard'),
+            'path' => route('admin.dashboard'),
             'icon' => "bi-bar-chart-line",
         ],
         // Quản lý đơn hàng
@@ -14,7 +14,7 @@
             'label' => 'Đơn hàng',
             'active' => request()->routeIs('admin.order.index'),
             'type' => 'nav',
-            'icon' => 'bi-cart',
+            'icon' => 'bi bi-receipt',
             'path' => route('admin.order.index'),
         ],
         // Title

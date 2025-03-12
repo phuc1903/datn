@@ -30,4 +30,9 @@ class Sku extends Model
     {
         return $value ? asset($value) : null;
     }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }

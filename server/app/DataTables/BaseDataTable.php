@@ -225,11 +225,11 @@ abstract class BaseDataTable extends DataTable
         $columns = array_merge($columns, $this->extraColumns());
 
         if ($this->includeCreatedAt) {
-            $columns[] = Column::make('created_at')->title('Ngày tạo')->width(150);
+            $columns[] = Column::make('created_at')->title('Ngày tạo')->width(150)->addClass('no-search');
         }
 
         if ($this->includeUpdatedAt) {
-            $columns[] = Column::make('updated_at')->title('Ngày cập nhật')->width(150);
+            $columns[] = Column::make('updated_at')->title('Ngày cập nhật')->width(150)->addClass('no-search');
         }
 
         if ($this->includeAction) {

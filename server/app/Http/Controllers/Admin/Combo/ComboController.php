@@ -21,7 +21,7 @@ class ComboController extends Controller
     public function create()
     {
 
-        $products = Product::with('skus')->get();
+        $products = Product::with('skus', 'skus.variantValues')->limit(10)->get();
 
         $categories = Category::all();
 

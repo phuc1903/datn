@@ -20,7 +20,7 @@
                 aria-labelledby="heading{{ $id }}" data-bs-parent="#accordionSidebar">
                 <div class="accordion-body bg-white py-2 collapse-inner rounded">
                     @foreach ($sidebar['child'] as $item)
-                        <a class="d-block text-decoration-none py-1 px-3 text-body my-2 sidebar-children"
+                        <a class="d-block text-decoration-none py-2 px-3 text-body my-2 sidebar-children"
                             href="{{ $item['path'] ?? '#' }}">
                             {{ $item['label'] }}
                         </a>
