@@ -39,11 +39,15 @@ class Product extends Model
     }
     public function feedbacks()
     {
-        return $this->belongsToMany(User::class, 'product_feedbacks', 'product_id', 'user_id')
-            ->withPivot('rating', 'content')  // Đảm bảo lấy thêm rating và comment
-            ->withTimestamps();  // Lấy timestamps nếu có
+        return $this->hasManyThrough(
+            ProductFeedback::class,  // Model trung gian
+            Sku::class,              // Model liên kết
+            'product_id',            // Khóa ngoại trên bảng `skus` (liên kết với `products`)
+            'sku_id',                // Khóa ngoại trên bảng `product_feedbacks` (liên kết với `skus`)
+            'id',                     // Khóa chính của `products`
+            'id'                      // Khóa chính của `skus`
+        ) ;  // Lấy timestamps nếu có;
     }
-
     public function product()
     {
         return $this->belongsTo(Product::class);
