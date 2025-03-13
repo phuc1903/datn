@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\Order\OrderController;
 use App\Http\Controllers\Api\V1\Voucher\VoucherController;
 use App\Http\Controllers\Api\V1\ProductFeedback\ProductFeedbackController;
 use App\Http\Controllers\Api\V1\Address\AddressController;
+use App\Http\Controllers\Api\V1\Combo\ComboController;
 // Version 1
 Route::prefix('v1')->group(function () {
     /*
@@ -35,7 +36,18 @@ Route::prefix('v1')->group(function () {
         Route::get('/feedback-product/{id}', 'getFeedBackProduct');
         Route::get('/skus/{id}', 'getSkus')->name('api.get.skus.product');
     });
+    /*
+        |--------------------------------------------------------------------------
+        | ProductController
+        |--------------------------------------------------------------------------
+        */
+    Route::prefix('combos')->controller(ComboController::class)->group(function () {
+        Route::get('/', 'getAllCombo');
+        Route::get('/detail/{id}', 'getCombo');
+        Route::get('/nearly-start', 'nearlyStart');
+        Route::get('/nearly-end', 'nearlyEnd');
 
+    });
 
     /*
     |--------------------------------------------------------------------------
