@@ -285,7 +285,7 @@ class UserController extends Controller
 
             $userAddresses = UserAddress::with(['province', 'district', 'ward'])
                 ->where('user_id', $userId)
-                ->select('name', 'address', 'province_code', 'district_code', 'ward_code', 'default')
+                ->select('id','name','phone_number', 'address', 'province_code', 'district_code', 'ward_code', 'default')
                 ->orderByRaw("CASE WHEN `default` = 'default' THEN 1 ELSE 0 END DESC")
                 ->get();
 
