@@ -13,6 +13,8 @@ use Yajra\DataTables\Html\Column;
 
 class ComboDataTable extends BaseDataTable
 {
+    protected bool $includeCreatedAt = false;
+    protected bool $includeUpdatedAt = false;
     protected string $tableId = "combo-table";
     protected string $routeName = "combo";
 

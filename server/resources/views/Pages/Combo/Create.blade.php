@@ -16,7 +16,7 @@
 
                         <div class="row mb-3">
                             <div class="col-12 col-md-2">
-                                <x-form.input_text label="Số lượng" name="quantitty" type="number" />
+                                <x-form.input_text label="Số lượng" name="quantity" type="number" />
                             </div>
                             <div class="col-12 col-md-5">
                                 <x-form.input_text label="Giá" name="price" class="price" />
@@ -162,30 +162,15 @@
                 </div>
                 <div class="card mb-3">
                     <div class="card-header">
-                        <h5 class="title">Hình ảnh chính combo</h5>
+                        <h5 class="title">Hình ảnh sản phẩm</h5>
                     </div>
                     <div class="card-body">
-                        <x-image.index id="image_combo" class="mb-3 img-fluid" :src="config('settings.image_default')"
-                            alt="Hình ảnh danh mục" />
+                        <x-image.index id="image-product" class="mb-3 img-fluid" :src="config('settings.image_default')" alt="Hình ảnh danh mục" />
 
                         <x-button.index label="Tải ảnh" onclick="chooseImage()" />
 
                         <x-form.input_text hidden id="typeFile" onchange="previewImage(this);" type="file"
-                            accept="image/png, image/jpeg, image/jpg" name="image" />
-                    </div>
-                </div>
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h5 class="title">Các hình ảnh phụ</h5>
-                    </div>
-                    <div class="card-body">
-                        <x-image.index id="image_thumbnails" class="mb-3 img-fluid" :src="config('settings.image_default')"
-                            alt="Hình ảnh danh mục" />
-
-                        <x-button.index label="Tải ảnh" onclick="chooseImage()" />
-
-                        <x-form.input_text hidden id="typeFile" onchange="previewImage(this);" type="file"
-                            accept="image/png, image/jpeg, image/jpg" name="image" />
+                            accept="image/png, image/jpeg, image/jpg" name="image_url" />
                     </div>
                 </div>
             </div>
@@ -198,8 +183,7 @@
 @endpush
 
 @push('scripts')
-    <x-script.upload_image idPreview="image_combo" />
-    <x-script.upload_image idPreview="image_thumbnails" />
+    <x-script.upload_image idPreview="image-product" />
     <script>
         CKEDITOR.replace('description', {
             language: 'vi',

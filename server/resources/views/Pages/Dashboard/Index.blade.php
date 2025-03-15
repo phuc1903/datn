@@ -14,7 +14,7 @@
 
 		<div class="statistics-chart mb-5">
 			<div class="row">
-				<div class="col-12 col-md-6 col-lg-8">
+				<div class="col-12 col-md-6 col-lg-8 mb-3 mb-md-0">
 					<div class="chart-item">
 						<x-dashboard.chart.revenue_chart :statisticRevenuesChart="$statisticRevenuesChart" />
 					</div>
@@ -28,44 +28,22 @@
 				</div>
 			</div>
 		</div>
-		@if(isset($productsOutOfStock) && $productsOutOfStock->count() !== 0)
-			<div class="statistic-product-outOfStock">
-				@if(empty($productsOutOfStock))
-					<x-dashboard.product.index title="Thống kê 8 sản phẩm sắp hết hàng" :loading="true" />
-				@else
-					<x-dashboard.product.index title="Thống kê 8 sản phẩm sắp hết hàng" :products="$productsOutOfStock"
-						:loading="false" />
-				@endif
+		
+		<div class="mb-5 tab-dashboard">
+			<ul class="nav nav-tabs" id="tabDashboard" role="tablist">
+				<x-dashboard.tab.nav_item label="Sản phẩm hết hàng" id="productOutOfStock" active />
+				<x-dashboard.tab.nav_item label="Sản phẩm bán chạy" id="productBestSeller"/>
+				<x-dashboard.tab.nav_item label="Combo hết hàng" id="comboOutOfStock"/>
+				<x-dashboard.tab.nav_item label="Combo bán chạy" id="comboBestSeller"/>
+				<x-dashboard.tab.nav_item label="Khách hàng thân thiết" id="loyalCustomer"/>
+			</ul>
+	
+			<div class="tab-content mt-5" id="tabDashboardContent">
+				@include('Pages.Dashboard.tab_content.combo_best_seller', ['id' => 'comboBestSeller'])
+				@include('Pages.Dashboard.tab_content.combo_out_of_stock', ['id' => 'comboOutOfStock'])
+				@include('Pages.Dashboard.tab_content.product_best_seller', ['id' => 'productBestSeller'])
+				@include('Pages.Dashboard.tab_content.product_out_of_stock', ['id' => 'productOutOfStock'])
 			</div>
-		@endif
-		@if(isset($productBestSeller) && $productBestSeller->count() !== 0)
-			<div class="statistic-product-outOfStock">
-				@if(empty($productBestSeller))
-					<x-dashboard.product.index title="Thống kê 8 sản phẩm bán chạy" :loading="true" />
-				@else
-					<x-dashboard.product.index title="Thống kê 8 sản phẩm bán chạy" :products="$productBestSeller"
-						:loading="false" />
-				@endif
-			</div>
-		@endif
-		@if(isset($combosBestSeller) && $combosBestSeller->count() !== 0)
-			<div class="statistic-product-outOfStock">
-				@if(empty($combosBestSeller))
-					<x-dashboard.combo.index title="Thống kê 8 combo bán chạy" :loading="true" />
-				@else
-					<x-dashboard.combo.index title="Thống kê 8 combo bán chạy" :combos="$combosBestSeller" :loading="false" />
-				@endif
-			</div>
-		@endif
-		@if(isset($combosOutOfStock) && $combosOutOfStock->count() !== 0)
-			<div class="statistic-product-outOfStock">
-				@if(empty($combosOutOfStock))
-					<x-dashboard.combo.index title="Thống kê 8 combo bán chạy" :loading="true" />
-				@else
-					<x-dashboard.combo.index title="Thống kê 8 combo bán chạy" :combos="$combosOutOfStock" :loading="false" />
-				@endif
-			</div>
-		@endif
-
+		</div>
 	</div>
 @endsection

@@ -27,10 +27,10 @@
             <!-- End of Sidebar -->
 
             <!-- Content Wrapper -->
-            <div id="content-wrapper" class="d-flex flex-column w-100">
+            <div id="content-wrapper" class="d-flex flex-column w-100 h-100">
 
                 <!-- Main Content -->
-                <div id="content" class="bg-white-custom">
+                <div id="content" class="h-100 mb-5">
 
                     <!-- Topbar -->
                     <nav class="navbar navbar-expand navbar-light bg-white-custom topbar mb-4 static-top shadow px-5 py-1">

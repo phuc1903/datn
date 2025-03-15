@@ -19,6 +19,7 @@
                     timeOut: {{ $details[1] }}
                 });
             });
+
         </script>
 
     @endsession

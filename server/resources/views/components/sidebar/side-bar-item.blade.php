@@ -8,7 +8,7 @@
         'no-button' => !isset($sidebar['child'])
     ])>
         <a href="{{ isset($sidebar['child']) ? '#' : $sidebar['path'] }}" class="accordion-header bg-transparent text-decoration-none color-white" id="heading{{ $id }}">
-            <button class="accordion-button accordion-button-custom bg-transparent text-white" type="button"
+            <button class="accordion-button accordion-button-custom bg-transparent text-white collapsed" type="button"
                 data-bs-toggle="collapse" data-bs-target="#collapse{{ $id }}" aria-expanded="false"
                 aria-controls="collapse{{ $id }}">
                 <i id="accordion-icon" class="bi {{ $sidebar['icon']}} me-2 text-white"></i>

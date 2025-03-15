@@ -10,4 +10,6 @@ class ComboProducts extends Model
     use HasFactory;
 
     protected $table = "combo_products";
+
+    protected $guarded = [];
 }

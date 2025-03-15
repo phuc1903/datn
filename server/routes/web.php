@@ -50,7 +50,6 @@ Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function 
     Route::resource('team', TeamController::class);
     Route::resource('order', OrderController::class);
     Route::resource('feedback-product', FeedbackController::class);
-    Route::resource('setting', SettingController::class);
     Route::resource('blog', BlogController::class);
     Route::resource('tag', TagController::class);
     Route::resource('voucher', VoucherController::class);
@@ -59,6 +58,29 @@ Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function 
     Route::resource('permission', PermissionController::class);
     Route::resource('role', RoleController::class);
     Route::resource('combo', ComboController::class);
+    
+    // Setting
+    Route::prefix('setting')->as('setting.')->controller(SettingController::class)->group(function () {
+        // chung
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name(name: 'store');
+
+
+        Route::post('/support', 'supportStore')->name('support.store');
+
+        // Footer
+        Route::get('/footer', 'footer')->name('footer.index');
+        
+        // Header
+        Route::get('/header', 'header')->name('header.index');
+
+        // About
+        Route::get('/about', 'about')->name('about.index');
+
+        // Contact
+        Route::get('/contact', 'contact')->name('contact.index');
+    });
+
 
     // Loctions
 

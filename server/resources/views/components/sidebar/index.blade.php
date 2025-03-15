@@ -165,6 +165,30 @@
                 ],
             ],
         ],
+        // Title
+        [
+            'label' => 'Admin',
+            'type' => 'header',
+            'path' => '',
+        ],
+        // Quản lý slider
+        [
+            'label' => 'Slider',
+            'active' => request()->routeIs('admin.slider.index'),
+            'type' => 'nav',
+            'icon' => 'bi-images',
+            'path' => route('admin.slider.index'),
+            'child' => [
+                [
+                    'label' => 'Danh sách Slider',
+                    'path' => route('admin.slider.index'),
+                ],
+                [
+                    'label' => 'Thêm Slide',
+                    'path' => route('admin.slider.create'),
+                ],
+            ],
+        ],
         // Quản lý thành viên
         [
             'label' => 'Đội ngũ',
@@ -183,20 +207,21 @@
                 ],
             ],
         ],
+        // Role
         [
-            'label' => 'Slider',
-            'active' => request()->routeIs('admin.slider.index'),
+            'label' => 'Vai trò',
+            'active' => request()->routeIs('admin.role.index'),
             'type' => 'nav',
-            'icon' => 'bi-images',
-            'path' => route('admin.slider.index'),
+            'icon' => 'bi-person',
+            'path' => route('admin.role.index'),
             'child' => [
                 [
-                    'label' => 'Danh sách Slider',
-                    'path' => route('admin.slider.index'),
+                    'label' => 'Danh sách Vai trò',
+                    'path' => route('admin.role.index'),
                 ],
                 [
-                    'label' => 'Thêm Slide',
-                    'path' => route('admin.slider.create'),
+                    'label' => 'Thêm thành viên',
+                    'path' => route('admin.role.create'),
                 ],
             ],
         ],
@@ -205,7 +230,7 @@
             'label' => 'Quyền',
             'active' => request()->routeIs('admin.permission.index'),
             'type' => 'nav',
-            'icon' => 'bi-images',
+            'icon' => 'bi-person-check',
             'path' => route('admin.permission.index'),
             'child' => [
                 [
@@ -218,24 +243,6 @@
                 ],
             ],
         ],
-        // Role
-        [
-            'label' => 'Vai trò',
-            'active' => request()->routeIs('admin.role.index'),
-            'type' => 'nav',
-            'icon' => 'bi-images',
-            'path' => route('admin.role.index'),
-            'child' => [
-                [
-                    'label' => 'Danh sách vai trò',
-                    'path' => route('admin.role.index'),
-                ],
-                [
-                    'label' => 'Thêm vai trò',
-                    'path' => route('admin.role.create'),
-                ],
-            ],
-        ],
         // Cài đặt chung
         [
             'label' => 'Cài đặt chung',
@@ -243,6 +250,28 @@
             'type' => 'nav',
             'icon' => 'bi-gear',
             'path' => route('admin.setting.index'),
+            'child' => [
+                [
+                    'label' => 'Cài đặt chung',
+                    'path' => route('admin.setting.index'),
+                ],
+                [
+                    'label' => 'Cài đặt Footer',
+                    'path' => route('admin.setting.footer.index'),
+                ],
+                [
+                    'label' => 'Cài đặt Header',
+                    'path' => route('admin.setting.header.index'),
+                ],
+                [
+                    'label' => 'Cài đặt About',
+                    'path' => route('admin.setting.about.index'),
+                ],
+                [
+                    'label' => 'Cài đặt Contact',
+                    'path' => route('admin.setting.contact.index'),
+                ],
+            ],
         ],
     ];
 @endphp
