@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Spatie\Permission\Models\Permission as SpatiePermission;
 
-class Permission extends Model
+
+class Permission extends SpatiePermission
 {
     use HasFactory;
 
@@ -15,25 +16,12 @@ class Permission extends Model
 	
 	protected $casts = [];
 	
-
-    /**
-     * Xác định mối quan hệ many-to-many với bảng roles.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function roles()
-    {
-        return $this->belongsToMany(Role::class, 'role_has_permissions');
-    }
 	
-	
-	// Định nghĩa mối quan hệ với bảng Module
     public function module()
     {
         return $this->belongsTo(Module::class);
     }
 
-    // Phương thức để lấy tên của Module
     public function getModuleName()
     {
         if ($this->module) {

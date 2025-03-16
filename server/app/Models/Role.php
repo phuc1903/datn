@@ -3,25 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Spatie\Permission\Models\Role as SpatieRole;
 
-class Role extends Model
+class Role extends SpatieRole
 {
     use HasFactory;
 
     protected $table = 'roles';
 
     protected $guarded = [];
-	
-	protected $casts = [];
-	
-	 /**
-     * Xác định mối quan hệ many-to-many với bảng permissions.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function permissions()
+
+    public function admins()
     {
-        return $this->belongsToMany(Permission::class, 'role_has_permissions');
+        return $this->belongsToMany(Admin::class, 'model_has_roles', 'role_id', 'model_id');
     }
 }

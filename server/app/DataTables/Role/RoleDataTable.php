@@ -9,8 +9,8 @@ use Yajra\DataTables\Html\Column;
 
 class RoleDataTable extends BaseDataTable
 {
-    protected string $tableId = "permission-table";
-    protected string $routeName = "permission";
+    protected string $tableId = "role-table";
+    protected string $routeName = "role";
     protected bool $includeCreatedAt = true;
     protected bool $includeUpdatedAt = true;
 

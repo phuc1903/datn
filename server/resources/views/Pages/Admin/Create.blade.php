@@ -1,12 +1,30 @@
 @extends('layouts.app')
 
 @section('content')
-    <form action="{{ route('admin.team.store') }}" method="post">
+    <form action="{{ route('admin.admin.store') }}" method="post" enctype="multipart/form-data">
         @csrf
         <div class="row card-custom">
             <div class="col-12 col-md-9">
                 <div class="row">
                     <div class="col-12 col-md-5 mb-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="title">Chọn vai trò</h4>
+                            </div>
+                            <div class="card-body">
+                                @foreach ($roles as $role)
+                                    <div class="form-check">
+                                        <input class="form-check-input" name="roles[]" type="checkbox" value="{{ $role->name }}"
+                                            id="admin-role-{{$role->id}}">
+                                        <label class="form-check-label" for="admin-role-{{$role->id}}">
+                                            {{ $role->title}}
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-7 mb-3">
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="title">Thông tin chính</h4>
@@ -21,25 +39,11 @@
                                     <x-form.input_text label="Xác nhận mật khẩu" name="password_confirm" type="password" />
                                     <div class="mb-3">
                                         <label for="sex" class="form-label">Giới tính </label>
-                                        <select class="form-select w-100" aria-label="User Sex" id="sex"
-                                            name="sex">
+                                        <select class="form-select w-100" aria-label="User Sex" id="sex" name="sex">
                                             <x-form.select.option label="Giới tính" :options="$sexList" />
                                         </select>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-7 mb-3">
-                        <div class="card mb-3">
-                            <div class="card-header">
-                                <h4 class="title">Sổ địa chỉ</h4>
-                            </div>
-                            <div class="card-body">
-                                <div id="address-books">
-
-                                </div>
-                                <x-button.index label="Thêm địa chỉ" id="add_address" color="outline" />
                             </div>
                         </div>
                     </div>
@@ -71,14 +75,43 @@
                 </div>
                 <div class="card mb-3">
                     <div class="card-header">
-                        <h4 class="title">Ảnh đại diện</h4>
+                        <h5 class="title">Trạng thái</h5>
                     </div>
                     <div class="card-body">
-                        <x-image.index class="mb-3" />
-                        <x-button.index label="Tải ảnh" />
+                        <select class="form-select selec-custom input-text-custom" aria-label="Default select example"
+                            name="status">
+                            @foreach ($status as $key => $sta)
+                                <option value="{{ $key }}">{{ $sta }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="title">Ảnh đại diện</h5>
+                    </div>
+                    <div class="card-body">
+                        <x-image.index id="admin-avatar" class="mb-3 img-fluid" :src="config('settings.image_default')"
+                            alt="Hình ảnh danh mục" />
+
+                        <x-button.index label="Tải ảnh" onclick="chooseImage()" />
+
+                        <x-form.input_text hidden id="typeFile" onchange="previewImage(this);" type="file"
+                            accept="image/png, image/jpeg, image/jpg" name="image_url" />
                     </div>
                 </div>
             </div>
         </div>
     </form>
 @endsection
+
+
+@push('scripts')
+    <x-script.upload_image idPreview="admin-avatar" />
+    <script>
+        CKEDITOR.replace('description', {
+            language: 'vi',
+            height: 300
+        });
+    </script>
+@endpush

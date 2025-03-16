@@ -1,28 +1,25 @@
 <?php
 
-namespace App\DataTables\User;
+namespace App\DataTables\Admin;
 
 use App\DataTables\BaseDataTable;
-use App\Enums\User\UserStatus;
-use App\Models\User;
+use App\Enums\Admin\AdminStatus;
+use App\Models\Admin;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
-use Yajra\DataTables\Html\Column;
 use Yajra\DataTables\EloquentDataTable;
+use Yajra\DataTables\Html\Column;
 
-class UserDataTable extends BaseDataTable
+class AdminDataTable extends BaseDataTable
 {
-    protected bool $includeCreatedAt = false;
-    protected bool $includeAction = false;
-
-    protected string $routeName = 'user';
-    protected string $tableId = 'user-table';
+    protected string $routeName = 'admin';
+    protected string $tableId = 'admin-table';
 
     /**
      * Get the query source of dataTable.
      */
     public function query(): QueryBuilder
     {
-        return User::query();
+        return Admin::query();
     }
 
     /**
@@ -35,25 +32,19 @@ class UserDataTable extends BaseDataTable
             Column::make('email')->title('Email'),
             Column::make('phone_number')->title('Số điện thoại'),
             Column::make('status')->title('Trạng thái')->addClass("no-search"),
-            Column::make('detail')->title('hành động')->searchable(false)->orderable(false)->width(80)->addClass("no-search"),
         ];
     }
 
     protected function getEditableColumns(): array
     {
-        return ['status', 'detail'];
+        return ['status'];
     }
 
     protected function customizeDataTable(EloquentDataTable $dataTable): EloquentDataTable
     {
         $dataTable
-            ->addColumn('detail', function ($user) {
-                $editUrl = route('admin.user.edit', $user);
-                return '<div class="d-flex gap-2">
-        <a class="btn btn-warning text-white" href="' . $editUrl . '"><i class="bi bi-eye"></i></a>';
-            })
             ->editColumn('status', function ($user) {
-                return UserStatus::fromValue($user->status)->badge();
+                return AdminStatus::fromValue($user->status)->badge();
             });
 
         return $dataTable;

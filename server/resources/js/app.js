@@ -530,6 +530,7 @@ $(document).ready(function () {
     addVariantValue();
     formatPriceMain();
     addSlug();
+    selectedModules();
 
     function addSlug() {
         function createSlug(str) {
@@ -935,5 +936,21 @@ $(document).ready(function () {
             });
     }
 
+    function selectedModules() {
+        $('.form-check-input[id^="module-"]').on('change', function() {
+            let moduleId = $(this).val();
+            let isChecked = $(this).prop('checked'); 
+
+            $('.module-' + moduleId).prop('checked', isChecked);
+        });
+
+        $('.form-check-input[name="permissions[]"]').on('change', function() {
+            let moduleId = $(this).attr('class').match(/module-(\d+)/)[1];
+            let allPermissions = $('.module-' + moduleId); 
+            let allChecked = allPermissions.length === allPermissions.filter(':checked').length; 
+
+            $('#module-' + moduleId).prop('checked', allChecked);
+        });
+    }
     
 });

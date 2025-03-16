@@ -1,5 +1,5 @@
 @php
-// Icon sử dụng icon của bootstrap
+    // Icon sử dụng icon của bootstrap
     $sidebars = [
         // Dashboard
         [
@@ -16,6 +16,16 @@
             'type' => 'nav',
             'icon' => 'bi bi-receipt',
             'path' => route('admin.order.index'),
+            'permission_required' => 'viewOrder',
+        ],
+        // Quản lý khách hàng
+        [
+            'label' => 'Khách hàng',
+            'active' => request()->routeIs('admin.user.index'),
+            'type' => 'nav',
+            'icon' => 'bi-person',
+            'path' => route('admin.user.index'),
+            'permission_required' => 'viewUser',
         ],
         // Title
         [
@@ -30,22 +40,27 @@
             'type' => 'nav',
             'icon' => 'bi-box',
             'path' => route('admin.product.index'),
+            'permission_required' => 'viewProduct',
             'child' => [
                 [
                     'label' => 'Danh sách sản phẩm',
                     'path' => route('admin.product.index'),
+                    'permission_required' => 'viewProduct',
                 ],
                 [
                     'label' => 'Thêm sản phẩm',
                     'path' => route('admin.product.create'),
+                    'permission_required' => 'createProduct',
                 ],
                 [
                     'label' => 'Danh sách thuộc tính',
                     'path' => route('admin.variant.index'),
+                    'permission_required' => 'createProduct',
                 ],
                 [
                     'label' => 'Thêm thuộc tính',
                     'path' => route('admin.variant.create'),
+                    'permission_required' => 'createProduct',
                 ],
             ],
         ],
@@ -56,14 +71,17 @@
             'type' => 'nav',
             'icon' => 'bi-box',
             'path' => route('admin.combo.index'),
+            'permission_required' => 'viewProduct',
             'child' => [
                 [
                     'label' => 'Danh sách combo',
                     'path' => route('admin.combo.index'),
+                    'permission_required' => 'createProduct',
                 ],
                 [
                     'label' => 'Thêm combo',
                     'path' => route('admin.combo.create'),
+                    'permission_required' => 'createProduct',
                 ],
             ],
         ],
@@ -74,14 +92,17 @@
             'type' => 'nav',
             'icon' => 'bi-list',
             'path' => route('admin.category.index'),
+            'permission_required' => 'viewProduct',
             'child' => [
                 [
                     'label' => 'Danh sách danh mục',
                     'path' => route('admin.category.index'),
+                    'permission_required' => 'viewProduct',
                 ],
                 [
                     'label' => 'Thêm danh mục',
                     'path' => route('admin.category.create'),
+                    'permission_required' => 'createProduct',
                 ],
             ],
         ],
@@ -110,14 +131,17 @@
             'type' => 'nav',
             'icon' => 'bi-file-earmark-post',
             'path' => route('admin.blog.index'),
+            'permission_required' => 'viewPost',
             'child' => [
                 [
                     'label' => 'Danh bài viết',
-                    'path' => route('admin.blog.index')
+                    'path' => route('admin.blog.index'),
+                    'permission_required' => 'viewPost',
                 ],
                 [
                     'label' => 'Thêm bài viết',
-                    'path' => route('admin.blog.create')
+                    'path' => route('admin.blog.create'),
+                    'permission_required' => 'createPost',
                 ],
                 [
                     'label' => 'DS danh mục bài viết',
@@ -125,7 +149,7 @@
                 ],
                 [
                     'label' => 'Thêm danh mục',
-                    'path' => route('admin.tag.create')
+                    'path' => route('admin.tag.create'),
                 ],
             ],
         ],
@@ -147,24 +171,6 @@
                 ],
             ],
         ],
-        // Quản lý khách hàng
-        [
-            'label' => 'Khách hàng',
-            'active' => request()->routeIs('admin.user.index'),
-            'type' => 'nav',
-            'icon' => 'bi-person',
-            'path' => route('admin.user.index'),
-            'child' => [
-                [
-                    'label' => 'Danh sách khách hàng',
-                    'path' => route('admin.user.index'),
-                ],
-                [
-                    'label' => 'Thêm khách hàng',
-                    'path' => route('admin.user.create'),
-                ],
-            ],
-        ],
         // Title
         [
             'label' => 'Admin',
@@ -178,32 +184,35 @@
             'type' => 'nav',
             'icon' => 'bi-images',
             'path' => route('admin.slider.index'),
+            'permission_required' => 'viewSlide',
             'child' => [
                 [
                     'label' => 'Danh sách Slider',
                     'path' => route('admin.slider.index'),
+                    'permission_required' => 'viewSlide',
                 ],
                 [
                     'label' => 'Thêm Slide',
                     'path' => route('admin.slider.create'),
+                    'permission_required' => 'createSlide',
                 ],
             ],
         ],
         // Quản lý thành viên
         [
-            'label' => 'Đội ngũ',
-            'active' => request()->routeIs('admin.team.index'),
+            'label' => 'Admin',
+            'active' => request()->routeIs('admin.admin.index'),
             'type' => 'nav',
             'icon' => 'bi-person-lines-fill',
-            'path' => route('admin.team.index'),
+            'path' => route('admin.admin.index'),
             'child' => [
                 [
-                    'label' => 'Danh sách đội ngũ',
-                    'path' => route('admin.team.index'),
+                    'label' => 'Danh sách Admin',
+                    'path' => route('admin.admin.index'),
                 ],
                 [
                     'label' => 'Thêm thành viên',
-                    'path' => route('admin.team.create'),
+                    'path' => route('admin.admin.create'),
                 ],
             ],
         ],
@@ -240,6 +249,23 @@
                 [
                     'label' => 'Thêm Quyền',
                     'path' => route('admin.permission.create'),
+                ],
+            ],
+        ],
+        [
+            'label' => 'Module',
+            'active' => request()->routeIs('admin.module.index'),
+            'type' => 'nav',
+            'icon' => 'bi-code',
+            'path' => route('admin.module.index'),
+            'child' => [
+                [
+                    'label' => 'Danh sách Module',
+                    'path' => route('admin.module.index'),
+                ],
+                [
+                    'label' => 'Thêm Module',
+                    'path' => route('admin.module.create'),
                 ],
             ],
         ],
@@ -282,11 +308,12 @@
     <!-- Sidebar - Brand -->
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html" style="height: auto">
         {{-- <div class="sidebar-brand-icon rotate-n-15"> --}}
-        <div class="sidebar-brand-icon" style="width: 100%; height: 100px;">
-            {{-- <i class="fas fa-laugh-wink"></i> --}}
-            <image src="{{ asset('logo/image-removebg-preview.png') }}" class="logo-sideBar" style="object-fit: cover;" />
-        </div>
-        {{-- <div class="sidebar-brand-text mx-3">SB Admin <sup>2</sup></div> --}}
+            <div class="sidebar-brand-icon" style="width: 100%; height: 100px;">
+                {{-- <i class="fas fa-laugh-wink"></i> --}}
+                <image src="{{ asset('logo/image-removebg-preview.png') }}" class="logo-sideBar"
+                    style="object-fit: cover;" />
+            </div>
+            {{-- <div class="sidebar-brand-text mx-3">SB Admin <sup>2</sup></div> --}}
     </a>
 
     <!-- Divider -->
@@ -297,7 +324,9 @@
 
     <div class="accordion" id="sidebar">
         @foreach ($sidebars as $index => $item)
-            <x-sidebar.side-bar-item id="{{ $index }}" :sidebar="$item"/>
+            @if(!isset($item['permission_required']) || auth()->user()->can($item['permission_required']))
+                <x-sidebar.side-bar-item id="{{ $index }}" :sidebar="$item" />
+            @endif
         @endforeach
     </div>
 

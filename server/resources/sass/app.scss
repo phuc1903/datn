@@ -72,6 +72,13 @@
     line-height: normal;
 }
 
+.form-check-input {
+    &:checked {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+}
+
 
 #wrapper #content-wrapper {
     background-color: var(--background-main);
@@ -357,6 +364,10 @@ a {
     }
 
     &:disabled {
+        color: var(--muted-foreground);
+    }
+
+    &::placeholder {
         color: var(--muted-foreground);
     }
 }

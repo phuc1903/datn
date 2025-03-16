@@ -10,8 +10,15 @@
                         <h3 class="title">Thêm danh mục</h3>
                     </div>
                     <div class="card-body">
-                        <x-form.input_text label="Tên danh mục" name="title" />
-                        <x-form.input_text label="Vai trò của (Guad name)" name="guard_name" />
+                        <x-form.input_text label="Tên danh mục" name="title" placeholder="Ví dụ Quản lý bài viết, hoặc quản lý sản phẩm" />
+                        <x-form.input_text label="Slug" name="name" placeholder="Ví dụ managerBlog, hoặc managerProduct" />
+                        <div class="mb-3">
+                            <label for="guard_name" class="form-label fw-bold text-dark-custom">Chọn Guard Name</label>
+                            <select class="form-select input-text-custom" name="guard_name" id="guard_name">
+                                <option value="admin">Admin</option>
+                                <option value="website">Website người dùng</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="card card-custom mb-3">
@@ -24,15 +31,15 @@
                                 <div class="col-4 mb-4">
                                     <div class="modules p-3">
                                         <div class="form-check mb-3">
-                                            <input class="form-check-input" type="checkbox" value="{{$module->id}}" id="flexCheckDefault">
-                                            <label class="form-check-label" for="flexCheckDefault">
+                                            <input class="form-check-input" type="checkbox" value="{{$module->id}}" id="module-{{$module->id}}">
+                                            <label class="form-check-label text-dark-custom" for="module-{{$module->id}}">
                                             {{ $module->name}}
                                             </label>
                                         </div>
                                         @foreach ($module->permissions as $permission)
                                             <div class="form-check">
-                                                <input class="form-check-input" name="permission[]" type="checkbox" value="{{$permission->id}}" id="flexCheckChecked">
-                                                <label class="form-check-label" for="flexCheckChecked">
+                                                <input class="form-check-input module-{{$module->id}}" name="permissions[]" type="checkbox" value="{{$permission->name}}" id="permission-{{$permission->id}}">
+                                                <label class="form-check-label text-dark-custom" for="permission-{{$permission->id}}">
                                                 {{ $permission->title }}
                                                 </label>
                                             </div>
@@ -53,32 +60,6 @@
                         <div class="d-flex justify-content-between">
                             <x-button.index type="submit" label="Thêm" />
                         </div>
-                    </div>
-                </div>
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h5 class="title">Trạng thái</h5>
-                    </div>
-                    <div class="card-body">
-                        <select class="form-select selec-custom input-text-custom" aria-label="Default select example"
-                            name="status">
-                            {{-- @foreach ($status as $key => $sta)
-                                <option value="{{ $key }}">{{ $sta }}</option>
-                            @endforeach --}}
-                        </select>
-                    </div>
-                </div>
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h5 class="title">Hình ảnh danh mục</h5>
-                    </div>
-                    <div class="card-body">
-                        <x-image.index id="imagePreview" class="mb-3 img-fluid" :src="config('settings.image_default')" alt="Hình ảnh danh mục" />
-
-                        <x-button.index label="Tải ảnh" onclick="chooseImage()" />
-
-                        <x-form.input_text hidden id="typeFile" onchange="previewImage(this);" type="file"
-                            accept="image/png, image/jpeg, image/jpg" name="image" />
                     </div>
                 </div>
             </div>
