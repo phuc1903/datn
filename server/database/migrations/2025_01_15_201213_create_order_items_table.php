@@ -21,6 +21,7 @@ return new class extends Migration
             $table->enum('status',OrderItemStatus::getValues())->default(OrderItemStatus::Pending);
             $table->foreign('order_id')->references('id')->on('orders');
             $table->foreign('sku_id')->references('id')->on('skus');
+            $table->foreign('combo_id')->references('id')->on('combos');
             $table->timestamps();
         });
     }

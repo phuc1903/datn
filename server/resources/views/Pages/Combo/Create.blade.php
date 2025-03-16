@@ -10,13 +10,13 @@
                         <h3 class="title">Thêm Combo</h3>
                     </div>
                     <div class="card-body">
-                        <x-form.input_text label="Tên Combo" name="name" />
+                        <x-form.input_text label="Tên Combo" name="name" id="name" />
 
-                        <x-form.input_text label="Slug" name="slug" />
+                        <x-form.input_text label="Slug" name="slug" id="slug" />
 
                         <div class="row mb-3">
                             <div class="col-12 col-md-2">
-                                <x-form.input_text label="Số lượng" name="quantitty" type="number" />
+                                <x-form.input_text label="Số lượng" name="quantity" type="number" />
                             </div>
                             <div class="col-12 col-md-5">
                                 <x-form.input_text label="Giá" name="price" class="price" />
@@ -50,7 +50,7 @@
                         <textarea id="description" class="input-text-custom" name="description"></textarea>
                     </div>
                 </div>
-                <div class="card card-custom mb-3">
+                <div class="card card-product mb-3">
                     <div class="card-header">
                         <h5 class="title">Chọn sản phẩm vào combo</h5>
                     </div>
@@ -62,11 +62,11 @@
                                         <button class="accordion-button" type="button" data-bs-toggle="collapse"
                                             aria-expanded="false" data-bs-target="#collapse-{{ $product->id }}"
                                             aria-controls="collapse-{{ $product->id }}">
-                                            <div class="d-flex gap-3">
+                                            <div class="d-flex gap-3 align-items-center">
                                                 <x-image.index class="image-product-combo" />
                                                 <div>
-                                                    <p>{{ $product->name }}</p>
-                                                    <span>{{ $product->short_description }}</span>
+                                                    <p class="product-title">{{ $product->name }}</p>
+                                                    <span class="product-description">{{ $product->short_description }}</span>
                                                 </div>
                                             </div>
                                         </button>
@@ -74,21 +74,22 @@
                                     <div id="collapse-{{ $product->id }}" class="accordion-collapse collapse"
                                         aria-labelledby="header-{{ $product->id }}" data-bs-parent="#addproduct">
                                         @foreach ($product->skus as $sku)
-                                            <div class="row">
+                                            <div class="row mb-3">
                                                 <div class="col-1">
-                                                    <div class="input-group mb-3">
-                                                        <input class="form-check-input mt-0" type="checkbox"
-                                                            value="{{ $sku->id }}" name="skus[]"
-                                                            aria-label="Checkbox for following text input">
+                                                    <div class="input-group">
+                                                        <input class="form-check-input mt-0" type="checkbox" value="{{ $sku->id }}"
+                                                            name="skus[]" aria-label="Checkbox for following text input">
                                                     </div>
                                                 </div>
-                                                <div class="col-11 d-flex gap-3 mb-3">
-                                                    <x-image.index class="image-product-combo"
-                                                        src="{{ $sku->image_url }}" />
+                                                <div class="col-11 d-flex gap-3 align-items-center">
+                                                    <x-image.index class="image-product-combo" src="{{ $sku->image_url }}" />
                                                     <div>
-                                                        <span>{{ $sku->price }}</span>
-                                                        <span>{{ $sku->promoton_price }}</span>
-                                                        <span>{{ $sku->quantity }}</span>
+                                                        <span class="badge bg-secondary">
+                                                            {{ implode(' - ',$sku->variantValues->pluck('value')->toArray())}}
+                                                        </span>
+                                                        <span class="sku-price">{{ $sku->price }}</span>
+                                                        <span class="sku-promotion-price">{{ $sku->promoton_price }}</span>
+                                                        <span class="sku-quantity">{{ $sku->quantity }}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -99,6 +100,7 @@
                         </div>
                     </div>
                 </div>
+                
             </div>
             <div class="col-12 col-md-3">
                 <div class="card mb-3">
@@ -160,30 +162,15 @@
                 </div>
                 <div class="card mb-3">
                     <div class="card-header">
-                        <h5 class="title">Hình ảnh chính combo</h5>
+                        <h5 class="title">Hình ảnh sản phẩm</h5>
                     </div>
                     <div class="card-body">
-                        <x-image.index id="image_combo" class="mb-3 img-fluid" :src="config('settings.image_default')"
-                            alt="Hình ảnh danh mục" />
+                        <x-image.index id="image-product" class="mb-3 img-fluid" :src="config('settings.image_default')" alt="Hình ảnh danh mục" />
 
                         <x-button.index label="Tải ảnh" onclick="chooseImage()" />
 
                         <x-form.input_text hidden id="typeFile" onchange="previewImage(this);" type="file"
-                            accept="image/png, image/jpeg, image/jpg" name="image" />
-                    </div>
-                </div>
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h5 class="title">Các hình ảnh phụ</h5>
-                    </div>
-                    <div class="card-body">
-                        <x-image.index id="image_thumbnails" class="mb-3 img-fluid" :src="config('settings.image_default')"
-                            alt="Hình ảnh danh mục" />
-
-                        <x-button.index label="Tải ảnh" onclick="chooseImage()" />
-
-                        <x-form.input_text hidden id="typeFile" onchange="previewImage(this);" type="file"
-                            accept="image/png, image/jpeg, image/jpg" name="image" />
+                            accept="image/png, image/jpeg, image/jpg" name="image_url" />
                     </div>
                 </div>
             </div>
@@ -196,8 +183,7 @@
 @endpush
 
 @push('scripts')
-    <x-script.upload_image idPreview="image_combo" />
-    <x-script.upload_image idPreview="image_thumbnails" />
+    <x-script.upload_image idPreview="image-product" />
     <script>
         CKEDITOR.replace('description', {
             language: 'vi',

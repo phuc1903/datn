@@ -31,4 +31,21 @@ final class AdminStatus extends Enum
             default => "<span class='badge text-bg-info text-white'> Không xác định</span>",
         };
     }
+
+    public static function getKeyValuePairs(): array
+    {
+        return [
+            self::Active => self::getLabel(self::Active),
+            self::Banned => self::getLabel(self::Banned),
+        ];
+    }
+
+    public static function getLabel(string $value): string
+    {
+        return match ($value) {
+            self::Active => 'Đang hoạt động',
+            self::Banned => 'Đang bị khóa',
+            default => 'Không xác định',
+        };
+    }
 }

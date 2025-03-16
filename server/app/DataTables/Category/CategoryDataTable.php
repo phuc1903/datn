@@ -29,9 +29,9 @@ class CategoryDataTable extends BaseDataTable
     public function extraColumns(): array
     {
         return [
-            Column::make('image')->title('Ảnh')->orderable(false)->searchable(false),
+            Column::make('image')->title('Ảnh')->orderable(false)->searchable(false)->addClass("no-search"),
             Column::make('name')->title('Tên danh mục'),
-            Column::make('status')->title('Trạng thái'),
+            Column::make('status')->title('Trạng thái')->addClass("no-search"),
         ];
     }
 

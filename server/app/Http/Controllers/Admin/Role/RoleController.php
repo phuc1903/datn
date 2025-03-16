@@ -25,7 +25,7 @@ class RoleController extends Controller
     public function create()
     {
         $modules = Module::with('permissions')->get();
-        return view('Pages.Role.Create', ['modules' => $modules]);
+        return view('Pages.Role.Create', compact('modules'));
     }
 
     /**
@@ -33,20 +33,19 @@ class RoleController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request);
+        try {
+            $role = Role::create([
+                'title' => $request->title,
+                'name' => $request->name,
+                'guard_name' => 'admin',
+            ]);
 
-        $role = Role::create([
-            'title' => $request->title,
-            'name' => $request->title,
-            'guard_name' => $request->title,
-            // 'guard_name' => $request->guard_name
-        ]);
+            $role->givePermissionTo($request->permissions);
 
-        foreach($request->permission as $item) {
-            $role->givePermissionTo($item);
+            return redirect()->route('admin.role.index')->with('success', 'Thêm vai trò thành công');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
         }
-
-        return redirect()->route('admin.role.index')->with('success', 'Thêm vai trò thành công');
     }
 
     /**
@@ -62,7 +61,8 @@ class RoleController extends Controller
      */
     public function edit(Role $role)
     {
-        dd($role);
+        $modules = Module::with('permissions')->get();
+        return view('Pages.Role.Edit', compact('role', 'modules'));
     }
 
     /**
@@ -70,14 +70,36 @@ class RoleController extends Controller
      */
     public function update(Request $request, Role $role)
     {
-        //
+        try {
+            $role->update([
+                'title' => $request->title,
+                'name' => strtolower(str_replace(' ', '_', $request->title)),
+                'guard_name' => $request->guard_name,
+            ]);
+
+            $role->syncPermissions($request->permissions);
+            return redirect()->back()->with('success', 'Cập nhật vai trò thành cong');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Role $role)
+    public function destroy(Request $request, Role $role)
     {
-        //
+        try {
+
+            $role->delete();
+
+            if ($request->ajax()) {
+                return response()->json(['type' => 'success', 'redirect' => route('admin.role.index')]);
+            }
+
+            return redirect()->route('admin.role.index')->with('success', 'Xóa vai trò thành công');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 }

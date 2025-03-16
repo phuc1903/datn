@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <form action="{{ route('admin.user.store') }}" method="post">
+    <form action="{{ route('admin.team.store') }}" method="post">
         @csrf
         <div class="row card-custom">
             <div class="col-12 col-md-9">

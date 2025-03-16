@@ -69,9 +69,9 @@ class DatabaseSeeder extends Seeder
         |--------------------
          */
          $this->call([
-        //     AdminSeeder::class,
-        //     UserSeeder::class,
-        //     WalletSeeder::class,
+            AdminSeeder::class,
+            UserSeeder::class,
+            WalletSeeder::class,
              CategorySeeder::class,
              TagSeeder::class,
 
@@ -81,21 +81,21 @@ class DatabaseSeeder extends Seeder
              ProductTagSeeder::class,
              ProductCategorySeeder::class,
 
-        //     OrderSeeder::class,
-        //     ProductFeedbackSeeder::class,
+            OrderSeeder::class,
+            ProductFeedbackSeeder::class,
              VoucherSeeder::class,
              UserVoucherSeeder::class,
-        //     OrderVoucherSeeder::class,
+            OrderVoucherSeeder::class,
 
-        //     UserAddressSeeder::class,
-        //     UserFavoriteSeeder::class,
-        //     UserCartSeeder::class,
+            UserAddressSeeder::class,
+            UserFavoriteSeeder::class,
+            UserCartSeeder::class,
 
-        //     BlogSeeder::class,
-        //     BlogTagSeeder::class,
-        //     BlogProductSeeder::class,
+            BlogSeeder::class,
+            BlogTagSeeder::class,
+            BlogProductSeeder::class,
 
-        //     SliderSeeder::class,
+            SliderSeeder::class,
          ]);
     }
 }

@@ -13,7 +13,8 @@ class SettingController extends Controller
      */
     public function index()
     {
-        return view('Pages.Setting.Index');
+        $setting = Setting::all();
+        return view('Pages.Setting.Index', compact('setting'));
     }
 
     /**
@@ -29,38 +30,38 @@ class SettingController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $name = $request->name;
+    
+            $value = $request->value;
+    
+            if (!empty($value) && is_array($value)) {
+                $value = json_encode($value);
+            }
+
+            if($request->hasFile('value') && $request->file('value')->isValid()) {
+
+                $existingImage = Setting::where('name', $name)->first();
+                if ($existingImage && !empty($existingImage->value)) {
+                    deleteImage($existingImage->value)  ; 
+                }
+
+                $value = putImage('config_images', $request->file('value'));
+            }
+    
+            Setting::updateOrCreate(
+                ['name' => $name],
+                ['value' => $value],
+            );
+            
+            return redirect()->back()->with('success', 'Cập nhật thành công');
+        }catch(\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Setting $setting)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Setting $setting)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Setting $setting)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Setting $setting)
-    {
-        //
+    public function footer(){
+        $footer = Setting::where('name', 'footer')->first();
+        return view('Pages.Setting.Footer', compact('footer'));
     }
 }

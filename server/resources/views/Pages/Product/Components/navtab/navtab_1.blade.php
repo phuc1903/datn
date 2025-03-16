@@ -22,8 +22,8 @@
             {{-- Nội dung Giá sản phẩm --}}
             <div class="tab-pane fade show active" id="price-pane" role="tabpanel"
                 aria-labelledby="price-tab" tabindex="0">
-                <x-form.input_text label="Giá bán thường" name="price" />
-                <x-form.input_text label="Giá khuyến mãi" name="promotion_price" />
+                <x-form.input_text label="Giá bán thường" name="price" class="price" />
+                <x-form.input_text label="Giá khuyến mãi" name="promotion_price" class="price" />
             </div>
             {{-- Nội dung Kiểm kê kho hàng --}}
             <div class="tab-pane fade" id="warehouse-pane-simple" role="tabpanel"

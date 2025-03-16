@@ -1,5 +1,5 @@
 // 🌐 Import Google Fonts
-@import url("https://fonts.bunny.net/css?family=Nunito");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 
 @import "bootstrap/scss/functions";
 @import "bootstrap/scss/variables";
@@ -19,6 +19,7 @@
 // 🎨 Custom CSS
 
 :root {
+    --bs-body-font-family: "Roboto", sans-serif;
     --white: #ffffff;
     --black: #{$neuture-950};
     --success: #{$success-500};
@@ -27,7 +28,7 @@
     --background: var(--white);
     --foreground: #{$neuture-950};
     --muted: #{$neuture-100};
-    --muted-foreground: #{$neuture};
+    --muted-foreground: #{$neuture-500};
     --card: var(--white);
     --card-foreground: #{$neuture-950};
     --popver: var(--white);
@@ -36,9 +37,10 @@
     --input: #{$neuture-200};
     --primary: #{$primary-500};
     --primary-foreground: #{$primary-50};
-    --secondary: #{$secondary};
+    --secondary: #{$secondary-500};
     --secondary-foreground: #{$secondary-50};
     --cat-depth: 0;
+    --background-main: #{$neuture-50};
 }
 
 [data-theme="dark"] {
@@ -58,15 +60,182 @@
     --primary-foreground: #{$primary-50};
     --secondary: #{$secondary};
     --secondary-foreground: #{$secondary-50};
+    --background-main: #{$neuture-950};
 }
 
-// *,
-// *::after,
-// *::before {
-//     padding: 0;
-//     margin: 0;
-//     box-sizing: border-box;
-// }
+*,
+*::after,
+*::before {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    line-height: normal;
+}
+
+.form-check-input {
+    &:checked {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+}
+
+
+#wrapper #content-wrapper {
+    background-color: var(--background-main);
+    width: 100%;
+    overflow-x: hidden
+}
+
+#wrapper #content-wrapper #content {
+    flex: 1 0 auto
+}
+
+a {
+    text-decoration: none;
+}
+
+.dashboard {
+    background-color: var(--background);
+
+    .statistics-card {
+        .card-list {
+            .card-item {
+                .item {
+                    background-color: var(--muted);
+                    padding: 24px;
+                    border-radius: 8px;
+                    cursor: pointer;
+
+                    &:hover {
+                        transform: translateY(-10px);
+                        transition: all 0.1s linear;
+                    }
+
+                    .title {
+                        font-size: 14px;
+                        color: var(--muted-foreground);
+                    }
+
+                    .value {
+                        font-size: 28px;
+                        display: block;
+                        color: var(--foreground);
+                        margin-bottom: 6px;
+                    }
+
+                    .icon {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        width: 60px;
+                        height: 60px;
+                        padding: 0;
+                        border-radius: 50%;
+                    }
+
+                    .icon {
+                        background-color: #{$primary-500};
+                        flex-shrink: 0;
+                        svg {
+                            width: 24px;
+                            height: 24px;
+                            color: var(--white);
+                        }
+                    }
+
+                    .content {
+                        flex-grow: 1;
+                        min-width: 0;
+
+                        @media screen and (min-width: 768px) and (max-width: 991px) {
+                            .value {
+                                font-size: 20px;
+                            }
+
+                            .title {
+                                font-size: 12px;
+                            }
+                        }
+                    }
+
+                    &.primary {
+                        .icon {
+                            background-color: #{$primary-500};
+                        }
+                    }
+                    &.secondary {
+                        .icon {
+                            background-color: #{$secondary-500};
+                        }
+                    }
+
+                    &.success {
+                        .icon {
+                            background-color: #{$success-500};
+                        }
+                    }
+
+                    &.danger {
+                        .icon {
+                            background-color: #{$danger-500};
+                        }
+                    }
+
+                    &.warning {
+                        .icon {
+                            background-color: #{$warning-500};
+                        }
+                    }
+
+                    &.neuture {
+                        .icon {
+                            background-color: #{$neuture-500};
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .statistics-chart {
+        .chart-item {
+            background-color: var(--muted);
+            padding: 24px;
+            border-radius: 8px;
+        }
+    }
+
+    .statistics-products {
+        .title {
+
+        }
+        .product {
+            background-color: var(--muted);
+            padding: 24px;
+            min-height: 210px;
+
+            &.combo {
+                height: 120px;
+            }
+
+
+            .card-body {
+                padding: 0;
+
+                .quantity {
+                    color: var(--danger);
+                }
+            }
+
+        }
+    }
+}
+
+.selectLocation {
+    .ts-control {
+        border: none !important;
+    }
+}
 
 .variant-warning {
     background-color: orange;
@@ -82,6 +251,22 @@
     border-radius: 16px;
 }
 
+.tab-dashboard {
+    
+    .nav-tabs {
+
+        .nav-item {
+
+            .nav-link {
+                color: var(--secondary);
+
+                &.active {
+                    color: var(--primary);
+                }
+            }
+        }
+    }
+}
 
 #attributes-pane {
     .accordion-item {
@@ -164,7 +349,6 @@
     border-color: var(--border);
 }
 
-
 // component
 
 .cke_1,
@@ -180,6 +364,10 @@
     }
 
     &:disabled {
+        color: var(--muted-foreground);
+    }
+
+    &::placeholder {
         color: var(--muted-foreground);
     }
 }
@@ -517,4 +705,8 @@ a.sidebar-children {
 
 .sortable {
     cursor: grab;
+}
+
+.card-setting {
+    border-radius: 16px;
 }

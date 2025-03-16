@@ -12,28 +12,23 @@ import "laravel-datatables-vite";
 import TomSelect from "tom-select";
 import "tom-select/dist/css/tom-select.css";
 
+import Chart from "chart.js/auto";
+
 window.Swal = Swal;
+window.TomSelect = TomSelect;
 window.toastr = toastr;
+window.Chart = Chart;
 
-document.addEventListener("DOMContentLoaded", function () {
-    new TomSelect("#attribute", {
-        persist: false,
-        createOnBlur: true,
-        create: true,
-    });
-});
-
-$('.accordion-header').on('click', function(e) {
-    if(this.getAttribute('href') === '#') {
+$(".accordion-header").on("click", function (e) {
+    if (this.getAttribute("href") === "#") {
         e.preventDefault();
     }
-})
-
+});
 
 // variants
 
 $(document).ready(function () {
-    const routeApi = $('#product-attributes').data('route-api'); 
+    const routeApi = $("#product-attributes").data("route-api");
     let existingSkus = null;
     let attributes = {};
 
@@ -49,7 +44,7 @@ $(document).ready(function () {
                 },
                 error: function (error) {
                     reject(error);
-                }
+                },
             });
         });
     }
@@ -58,15 +53,11 @@ $(document).ready(function () {
         try {
             existingSkus = await fetchSkus();
 
-            console.log(existingSkus);
-            
-
             if (existingSkus) {
                 parseExistingSkus(existingSkus);
                 loadExistingAttributes();
-                if(existingSkus[0].variant_values.length > 1) {
+                if (existingSkus[0].variant_values.length === 0) {
                     generateVariants();
-
                 }
             }
         } catch (error) {
@@ -85,19 +76,24 @@ $(document).ready(function () {
                             price: sku.price || 0,
                             promotion_price: sku.promotion_price || 0,
                             quantity: sku.quantity || 1,
-                            image_url: sku.image_url || ""
+                            image_url: sku.image_url || "",
                         },
-                        variant_values: []
+                        variant_values: [],
                     };
                 }
 
                 let variantValueStr = variant.id.toString();
-                if (!attributes[variant.variant_id].variant_values.includes(variantValueStr)) {
-                    attributes[variant.variant_id].variant_values.push(variantValueStr);
+                if (
+                    !attributes[variant.variant_id].variant_values.includes(
+                        variantValueStr
+                    )
+                ) {
+                    attributes[variant.variant_id].variant_values.push(
+                        variantValueStr
+                    );
                 }
             });
         });
-
     }
 
     loadSkusData();
@@ -106,7 +102,9 @@ $(document).ready(function () {
         $("#attribute-list").empty();
 
         Object.keys(attributes).forEach((attributeId) => {
-            let selectedAttribute = $(`#product-attributes option[value='${attributeId}']`);
+            let selectedAttribute = $(
+                `#product-attributes option[value='${attributeId}']`
+            );
             let attributeName = selectedAttribute.text();
             let attributeData = selectedAttribute.data("vari");
 
@@ -137,9 +135,9 @@ $(document).ready(function () {
                 price: 0,
                 promotion_price: 0,
                 quantity: 1,
-                image_url: ""
+                image_url: "",
             },
-            variant_values: []
+            variant_values: [],
         };
 
         renderAttributeHtml(attributeId, attributeName, attributeData);
@@ -147,12 +145,19 @@ $(document).ready(function () {
 
     function renderAttributeHtml(attributeId, attributeName, attributeData) {
         let selectId = `attribute-values-${attributeId}`;
-        let selectedVariantValues = attributes[attributeId]?.variant_values || [];
+        let selectedVariantValues =
+            attributes[attributeId]?.variant_values || [];
 
         let variantOptions = attributeData.values
-            .map(value => 
-                `<option value="${value.id}" ${selectedVariantValues.includes(value.id.toString()) ? "selected" : ""}>${value.value}</option>`
-            ).join("");
+            .map(
+                (value) =>
+                    `<option value="${value.id}" ${
+                        selectedVariantValues.includes(value.id.toString())
+                            ? "selected"
+                            : ""
+                    }>${value.value}</option>`
+            )
+            .join("");
 
         let newAttribute = `
             <div class="accordion-item" id="attribute-${attributeId}">
@@ -193,7 +198,9 @@ $(document).ready(function () {
 
     function saveAttributes() {
         $(".attribute-values").each(function () {
-            let attributeId = $(this).attr("id")?.replace("attribute-values-", "");
+            let attributeId = $(this)
+                .attr("id")
+                ?.replace("attribute-values-", "");
             let tomSelectInstance = $(this).data("tomselectInstance");
 
             if (tomSelectInstance) {
@@ -207,44 +214,60 @@ $(document).ready(function () {
 
     function generateVariants() {
         $("#variant-list").empty();
-    
-        let attributeValues = Object.values(attributes).map(attr => attr.variant_values);
-    
-        if (attributeValues.length === 0 || attributeValues.every(val => val.length === 0)) {
+
+        let attributeValues = Object.values(attributes).map(
+            (attr) => attr.variant_values
+        );
+
+        if (
+            attributeValues.length === 0 ||
+            attributeValues.every((val) => val.length === 0)
+        ) {
             toastr.error("Bạn cần chọn ít nhất 1 biến thể!", "Lỗi");
             return;
         }
-    
+
         let combinations = generateCombinations(attributeValues);
         let variantHtml = "";
-    
+
         combinations.forEach((variant, index) => {
-            let variantLabels = variant.map(valueId => {
-                let attributeId = Object.keys(attributes).find(id => attributes[id].variant_values.includes(valueId));
-                return $(`#attribute-values-${attributeId} option[value='${valueId}']`).text();
+            let variantLabels = variant.map((valueId) => {
+                let attributeId = Object.keys(attributes).find((id) =>
+                    attributes[id].variant_values.includes(valueId)
+                );
+                return $(
+                    `#attribute-values-${attributeId} option[value='${valueId}']`
+                ).text();
             });
-    
-            let existingData = existingSkus?.find(sku => {
-                let skuVariantIds = sku.variant_values.map(v => v.id.toString());
-                return JSON.stringify(skuVariantIds.sort()) === JSON.stringify(variant.sort());
+
+            let existingData = existingSkus?.find((sku) => {
+                let skuVariantIds = sku.variant_values.map((v) =>
+                    v.id.toString()
+                );
+                return (
+                    JSON.stringify(skuVariantIds.sort()) ===
+                    JSON.stringify(variant.sort())
+                );
             });
-    
+
             let price = existingData ? existingData.price : 0;
-            let promotion_price = existingData ? existingData.promotion_price : 0;
+            let promotion_price = existingData
+                ? existingData.promotion_price
+                : 0;
             let quantity = existingData ? existingData.quantity : 1;
             let image_url = existingData ? existingData.image_url : "";
-    
+
             let hiddenInputs = `
                 <input type="hidden" class="hidden-price" name="variants[${index}][price]" value="${price}">
                 <input type="hidden" class="hidden-promotion-price" name="variants[${index}][promotion_price]" value="${promotion_price}">
                 <input type="hidden" class="hidden-quantity" name="variants[${index}][quantity]" value="${quantity}">
                 <input type="hidden" class="hidden-image-url" name="variants[${index}][image_url]" value="${image_url}">
             `;
-    
+
             variant.forEach((value, idx) => {
                 hiddenInputs += `<input type="hidden" name="variants[${index}][variant_values][${idx}]" value="${value}">`;
             });
-    
+
             let variantInputs = `
                 <div class="accordion-item" id="variant-${index}">
                     <h2 class="accordion-header" id="heading-${index}">
@@ -256,22 +279,26 @@ $(document).ready(function () {
                     <div id="collapse-${index}" class="accordion-collapse collapse" aria-labelledby="heading-${index}" data-bs-parent="#variant-list">
                         <div class="accordion-body d-flex gap-3">
                           <div class="mb-3">
-                                <img id="preview-image-${index}" src="${image_url ? image_url : '#'}" alt="Ảnh biến thể" style="max-width: 100px; ${image_url ? 'display: block;' : 'display: none;'}"/>
+                                <img id="preview-image-${index}" src="${
+                image_url ? image_url : "#"
+            }" alt="Ảnh biến thể" style="max-width: 100px; ${
+                image_url ? "display: block;" : "display: none;"
+            }"/>
                                 <label class="form-label text-dark-custom">Hình ảnh biến thể</label>
                                 <input type="file" class="form-control variant-image" name="variants[${index}][image]" id="variant-image-${index}"  style="max-width: 100px;">
                             </div>
                             <div class="w-100"> 
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Giá bán (đ)</label>
-                                    <input type="number" class="form-control variant-price" data-index="${index}" value="${price}" min="0" required>
+                                    <input class="form-control variant-price" data-index="${index}" value="${price}" min="0" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Giá khuyến mãi (đ)</label>
-                                    <input type="number" class="form-control variant-promotion-price" data-index="${index}" value="${promotion_price}" min="0">
+                                    <input class="form-control variant-promotion-price" data-index="${index}" value="${promotion_price}" min="0">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Số lượng</label>
-                                    <input type="number" class="form-control variant-quantity" data-index="${index}" value="${quantity}" min="1" required>
+                                    <input class="form-control variant-quantity" data-index="${index}" value="${quantity}" min="1" required>
                                 </div>   
                                 <button type="button" class="btn btn-danger remove-variant" data-variant-index="${index}">Xóa biến thể này</button>
                             </div>
@@ -279,43 +306,62 @@ $(document).ready(function () {
                     </div>
                     ${hiddenInputs}
                 </div>`;
-    
+
             variantHtml += variantInputs;
         });
-    
+
         $("#variant-list").html(variantHtml);
-    
-        $(".variant-price, .variant-promotion-price, .variant-quantity").on("input", function () {
-            let index = $(this).data("index");
-            let price = $(`.variant-price[data-index="${index}"]`).val();
-            let promotion_price = $(`.variant-promotion-price[data-index="${index}"]`).val();
-            let quantity = $(`.variant-quantity[data-index="${index}"]`).val();
-    
-            $(`.hidden-price[name="variants[${index}][price]"]`).val(price);
-            $(`.hidden-promotion-price[name="variants[${index}][promotion_price]"]`).val(promotion_price);
-            $(`.hidden-quantity[name="variants[${index}][quantity]"]`).val(quantity);
-        });
-    
+
+        $(".variant-price, .variant-promotion-price, .variant-quantity").on(
+            "input",
+            function () {
+                let index = $(this).data("index");
+                let price = $(`.variant-price[data-index="${index}"]`).val();
+                let promotion_price = $(
+                    `.variant-promotion-price[data-index="${index}"]`
+                ).val();
+                let quantity = $(
+                    `.variant-quantity[data-index="${index}"]`
+                ).val();
+
+                $(`.hidden-price[name="variants[${index}][price]"]`).val(price);
+                $(
+                    `.hidden-promotion-price[name="variants[${index}][promotion_price]"]`
+                ).val(promotion_price);
+                $(`.hidden-quantity[name="variants[${index}][quantity]"]`).val(
+                    quantity
+                );
+            }
+        );
+
         $(".variant-image").change(function (event) {
             let index = $(this).attr("id").split("-").pop();
             let file = event.target.files[0];
-    
+
             if (file) {
                 let reader = new FileReader();
                 reader.onload = function (e) {
-                    $(`#preview-image-${index}`).attr("src", e.target.result).show();
-                    $(`#variant-image-${index}`).attr("data-image-url", e.target.result);
-                    $(`.hidden-image-url[name="variants[${index}][image_url]"]`).val(e.target.result);
+                    $(`#preview-image-${index}`)
+                        .attr("src", e.target.result)
+                        .show();
+                    $(`#variant-image-${index}`).attr(
+                        "data-image-url",
+                        e.target.result
+                    );
+                    $(
+                        `.hidden-image-url[name="variants[${index}][image_url]"]`
+                    ).val(e.target.result);
                 };
                 reader.readAsDataURL(file);
             }
         });
     }
-    
-    
-    
+
     function generateCombinations(arrays) {
-        return arrays.reduce((acc, curr) => acc.flatMap(a => curr.map(b => [].concat(a, b))), [[]]);
+        return arrays.reduce(
+            (acc, curr) => acc.flatMap((a) => curr.map((b) => [].concat(a, b))),
+            [[]]
+        );
     }
 
     $("#generate-variants").click(generateVariants);
@@ -337,7 +383,7 @@ $(document).ready(function () {
             if (result.isConfirmed) {
                 attributeElement.remove();
                 delete attributes[attributeId];
-                generateVariants(); 
+                generateVariants();
                 toastr.success("Xóa thuộc tính thành công!", "Thành công");
             }
         });
@@ -360,10 +406,7 @@ $(document).ready(function () {
                 toastr.success("Xóa biến thể thành công!", "Thành công");
             }
         });
-  
     });
-
-
 });
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -485,26 +528,97 @@ $(document).ready(function () {
     deleteUser();
     deleteItem();
     addVariantValue();
-    choseAttribute();
-    formatPriceMain()
+    formatPriceMain();
+    addSlug();
+    selectedModules();
 
-    function formatPriceMain() {
-        function formatPrice(number) {
-            number = number.replace(/\D/g, '');
-            return new Intl.NumberFormat('vi-VN').format(number) + ' VNĐ';
+    function addSlug() {
+        function createSlug(str) {
+            return str
+                .toLowerCase()
+                .replace(/á|à|ả|ã|ạ|ă|ắ|ằ|ẳ|ẵ|ặ|â|ấ|ầ|ẩ|ẫ|ậ|ä|æ/g, 'a')
+                .replace(/é|è|ẻ|ẽ|ẹ|ê|ế|ề|ể|ễ|ệ|ë/g, 'e')
+                .replace(/i|í|ì|ỉ|ĩ|ị|ï/g, 'i')
+                .replace(/ó|ò|ỏ|õ|ọ|ô|ố|ồ|ổ|ỗ|ộ|ơ|ớ|ờ|ở|ỡ|ợ|ö/g, 'o')
+                .replace(/ú|ù|ủ|ũ|ụ|ư|ứ|ừ|ử|ữ|ự|ü/g, 'u')
+                .replace(/ý|ỳ|ỷ|ỹ|ỵ|ÿ/g, 'y')
+                .replace(/đ/g, 'd')
+                .replace(/[^a-z0-9\- ]/g, '') 
+                .replace(/ +/g, '-') 
+                .replace(/--+/g, '-')
+                .replace(/^-+|-+$/g, '');
         }
-        $('.price').on('keyup', function () {
-            let input = $(this).val();
-            $(this).val(formatPrice(input));
+
+        $('#name').on('keyup', function () {
+            const valueName = $(this).val();
+            const slug = createSlug(valueName);
+            $('#slug').val(slug);
         });
     }
 
+    function formatPriceMain() {
+        function formatPrice(number) {
+            number = number.replace(/\D/g, "");
+            return new Intl.NumberFormat("vi-VN").format(number) + " VNĐ";
+        }
 
-    function choseAttribute() {
-        let selectedAttributes = [1, 2, 3, 4, 5];
-        const getAttribute = document.getElementById("getAttributes");
-        const buttonGetAttribute = document.getElementById("addAttribute");
-        const attributeList = document.getElementById("attributeList");
+        function formatPercent(number) {
+            number = number.replace(/\D/g, "");
+            return number + " %";
+        }
+
+        $("#type").change(function () {
+            var type = $(this).val();
+            var discountField = $('input[name="discount_value"]');
+
+            if (type == "percent") {
+                discountField.removeClass("price").addClass("percent");
+                discountField.val(discountField.val().replace("VNĐ", ""));
+            } else {
+                discountField.removeClass("percent").addClass("price");
+                discountField.val(discountField.val().replace("%", ""));
+            }
+        });
+
+        $(".price").on("keyup", function () {
+            let input = $(this).val();
+            $(this).val(formatPrice(input));
+        });
+
+        $('.price').each(function () {
+            let input = $(this).val();
+            if (input) {
+                $(this).val(formatPrice(input));
+            }
+        })
+
+        $('.percent').each(function () {
+            let input = $(this).val();
+            if (input) {
+                $(this).val(formatPercent(input));
+            }
+        })
+
+        $('input[name="discount_value"]').on("keyup", function () {
+            var input = $(this).val();
+            if ($(this).hasClass("price")) {
+                $(this).val(formatPrice(input));
+            }
+            if ($(this).hasClass("percent")) {
+                $(this).val(formatPercent(input));
+            }
+        });
+
+        $("form").on("submit", function () {
+            $(".price").each(function () {
+                let rawPrice = $(this).val().replace(/\D/g, "");
+                $(this).val(rawPrice);
+            });
+            $(".percent").each(function () {
+                let rawPercent = $(this).val().replace("%", "");
+                $(this).val(rawPercent);
+            });
+        });
     }
 
     function addAddress() {
@@ -652,7 +766,6 @@ $(document).ready(function () {
                             ),
                         },
                         success: function (response) {
-
                             if (response.type === "success") {
                                 Swal.fire({
                                     title: "Xóa thành công",
@@ -663,8 +776,7 @@ $(document).ready(function () {
                                 });
                             }
                         },
-                        error: function (error) {
-                        },
+                        error: function (error) {},
                     });
                 }
             });
@@ -672,7 +784,7 @@ $(document).ready(function () {
     }
 
     function deleteItem() {
-        $(document).on("click",".deleteItem" ,function (e) {
+        $(document).on("click", ".deleteItem", function (e) {
             e.preventDefault();
 
             const button = $(this);
@@ -699,18 +811,17 @@ $(document).ready(function () {
                         },
                         success: function (response) {
                             if (response.type === "success") {
-                                let table = $("#"+idTable).DataTable(); 
-                                let row = button.closest("tr"); 
+                                let table = $("#" + idTable).DataTable();
+                                let row = button.closest("tr");
                                 table.row(row).remove().draw(false);
                                 Swal.fire({
                                     title: "Xóa thành công",
                                     icon: "success",
                                     confirmButtonText: "Đồng ý",
-                                })
+                                });
                             }
                         },
-                        error: function (error) {
-                        },
+                        error: function (error) {},
                     });
                 }
             });
@@ -719,41 +830,41 @@ $(document).ready(function () {
 
     function addVariantValue() {
         const variantContainer = $("#VariantValue");
-        const routeApi = variantContainer.data('route');
-        let variantsDatabase = []; 
-    
+        const routeApi = variantContainer.data("route");
+        let variantsDatabase = [];
+
         const variantTemplate = () => ({
             value: "",
             name: "value",
         });
-    
+
         function getVariants(variantsDatabase) {
-            return Array.isArray(variantsDatabase) && variantsDatabase.length > 0
+            return Array.isArray(variantsDatabase) &&
+                variantsDatabase.length > 0
                 ? variantsDatabase.map((variant) => ({
                       name: "value",
                       value: variant.value || "",
                   }))
                 : [variantTemplate()];
         }
-    
-        let variants = []; 
-    
+
+        let variants = [];
+
         $.ajax({
             url: routeApi,
             method: "GET",
             dataType: "json",
             cache: false,
             success: function (data) {
-                variantsDatabase = data['values'] || [];
-    
+                variantsDatabase = data["values"] || [];
+
                 variants = getVariants(variantsDatabase);
-    
+
                 render();
             },
-            error: function (error) {
-            }
+            error: function (error) {},
         });
-    
+
         function saveCurrentValues() {
             $(".variant").each(function () {
                 const index = $(this).data("index");
@@ -767,7 +878,7 @@ $(document).ready(function () {
                     });
             });
         }
-    
+
         function Html(variant, index) {
             return `<div class="variant mb-4 border-bottom border-primary" data-index="${index}">
                         <h5 class="title">Biến thể ${index + 1}</h5>
@@ -783,38 +894,38 @@ $(document).ready(function () {
                         <button type="button" class="btn btn-danger text-white mb-3 d-flex ms-auto delete_value" data-index="${index}">Xóa biến thể này</button>
                     </div>`;
         }
-    
+
         function render() {
             $("#VariantValue").html(
                 variants.map((variant, index) => Html(variant, index)).join("")
             );
-    
+
             $("#VariantValue .variant").each(function (newIndex) {
                 $(this).attr("data-index", newIndex);
                 $(this).find(".delete_value").attr("data-index", newIndex);
             });
-    
+
             $(".delete_value")
                 .off("click")
                 .on("click", function (e) {
                     e.preventDefault();
-    
+
                     saveCurrentValues();
-    
+
                     const index = $(this).data("index");
-    
+
                     if (index >= 0 && index < variants.length) {
                         variants.splice(index, 1);
                     }
-    
+
                     if (variants.length === 0) {
                         variants.push(variantTemplate());
                     }
-    
+
                     render();
                 });
         }
-    
+
         $("#add_variant_value")
             .off("click")
             .on("click", function (e) {
@@ -824,6 +935,22 @@ $(document).ready(function () {
                 render();
             });
     }
-    
+
+    function selectedModules() {
+        $('.form-check-input[id^="module-"]').on('change', function() {
+            let moduleId = $(this).val();
+            let isChecked = $(this).prop('checked'); 
+
+            $('.module-' + moduleId).prop('checked', isChecked);
+        });
+
+        $('.form-check-input[name="permissions[]"]').on('change', function() {
+            let moduleId = $(this).attr('class').match(/module-(\d+)/)[1];
+            let allPermissions = $('.module-' + moduleId); 
+            let allChecked = allPermissions.length === allPermissions.filter(':checked').length; 
+
+            $('#module-' + moduleId).prop('checked', allChecked);
+        });
+    }
     
 });

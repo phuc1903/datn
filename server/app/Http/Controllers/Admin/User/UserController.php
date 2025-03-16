@@ -27,6 +27,7 @@ class UserController extends Controller
      */
     public function create()
     {
+        return redirect()->back()->with('error','Bạn không thể thêm khách hàng');
         $sexList = collect(UserSex::getValues())
             ->map(fn($value) => [
                 'label' => UserSex::fromValue($value)->label(),
@@ -44,7 +45,7 @@ class UserController extends Controller
      */
     public function store(UserRequest $request)
     {
-
+        return redirect()->back()->with('error','Bạn không thể sử dụng chức năng này');
         try {
             $sex = UserSex::fromValue($request->sex);
 
@@ -89,6 +90,8 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
+        dd($user);
+        return redirect()->back()->with('error','Bạn không thể sử dụng chức năng này');
         $userShow = $user->load('addresses');
 
         $orderStatus = UserStatus::fromValue($userShow->status);
@@ -130,18 +133,13 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        return redirect()->back()->with('error','Bạn không thể sử dụng chức năng này');
         try {
             $status = UserStatus::fromValue($request->status) ?? UserStatus::fromLabel($request->status);
             $sex = UserSex::fromValue($request->sex) ?? UserSex::fromLabel($request->sex);
 
             $user->update([
-                'first_name'   => $request->first_name,
-                'last_name'    => $request->last_name,
-                'phone_number' => $request->phone_number,
-                'password'     => Hash::make($request->password),
-                'email'        => $request->email,
                 'status'       => $status->value,
-                'sex'          => $sex->value,
             ]);
 
             UserAddress::where('user_id', $user->id)->delete();
@@ -170,10 +168,6 @@ class UserController extends Controller
      */
     public function destroy(Request $request, User $user)
     {
-        $user->delete();
-        if ($request->ajax()) {
-            return response()->json(['type' => 'success', 'redirect' => route('admin.user.index')]);
-        }
-        return redirect()->route('admin.user.index')->with('success', 'Xóa tài khoản khách hàng thành công');
+        return redirect()->back()->with('warning', 'Bạn không thể xóa tài khoản người dùng');
     }
 }

@@ -9,19 +9,14 @@ use App\Models\Combo;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
 use Yajra\DataTables\EloquentDataTable;
-use Yajra\DataTables\Html\Builder as HtmlBuilder;
-use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
-use Yajra\DataTables\Html\Editor\Editor;
-use Yajra\DataTables\Html\Editor\Fields;
-use Yajra\DataTables\Services\DataTable;
 
 class ComboDataTable extends BaseDataTable
 {
+    protected bool $includeCreatedAt = false;
+    protected bool $includeUpdatedAt = false;
     protected string $tableId = "combo-table";
     protected string $routeName = "combo";
-    protected bool $includeCreatedAt = true;
-    protected bool $includeUpdatedAt = true;
 
     protected int $orderBy = 4;
 
@@ -36,7 +31,7 @@ class ComboDataTable extends BaseDataTable
     public function extraColumns(): array
     {
         return [
-            Column::make('image_url')->title('Ảnh')->orderable(false)->searchable(false),
+            Column::make('image_url')->title('Ảnh')->orderable(false)->searchable(false)->addClass("no-search"),
             Column::make('name')->title('Tên combo'),
             Column::make('quantity')->title('Số lượng'),
             Column::make('price')->title('Giá'),
@@ -44,7 +39,7 @@ class ComboDataTable extends BaseDataTable
             Column::make('date_start')->title('Ngày bắt đầu'),
             Column::make('date_end')->title('Ngày kết thúc'),
             Column::make('is_hot')->title('Hot'),
-            Column::make('status')->title('Trạng thái'),
+            Column::make('status')->title('Trạng thái')->addClass("no-search"),
         ];
     }
 

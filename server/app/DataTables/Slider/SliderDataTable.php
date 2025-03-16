@@ -33,10 +33,10 @@ class SliderDataTable extends BaseDataTable
     public function extraColumns(): array
     {
         return [
-            Column::make('image_url')->title('Ảnh')->orderable(false)->searchable(false),
+            Column::make('image_url')->title('Ảnh')->orderable(false)->searchable(false)->addClass("no-search"),
             Column::make('name')->title('Tên danh mục'),
             Column::make('priority')->title('Ưu tiên'),
-            Column::make('status')->title('Trạng thái'),
+            Column::make('status')->title('Trạng thái')->addClass("no-search"),
         ];
     }
 

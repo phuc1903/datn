@@ -30,6 +30,7 @@ class VoucherFactory extends Factory
         // Giảm giá tối đa, phần trăm (10.000 hoặc 30.000 hoặc 50.000), cố định bằng với $discount
         $max_discount_value = ($type == 'percent') ? $this->faker->randomElement([10000, 30000, 50000]) : $discount;
 
+        
         return [
             'admin_id' => Admin::inRandomOrder()->first()->id,
             'title' => $this->faker->sentence(2, true),
