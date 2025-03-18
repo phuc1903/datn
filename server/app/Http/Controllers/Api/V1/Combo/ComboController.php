@@ -16,8 +16,7 @@ class ComboController extends Controller
         try {
             $combo = Combo::with([
                 'skus'
-            ])
-                ->find($id);
+            ])->find($id);
 
             if (!$combo) {
                 return ResponseError('Combo not found', null, 404);
