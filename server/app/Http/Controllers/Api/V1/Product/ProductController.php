@@ -6,14 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductFeedback;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 class ProductController extends Controller
 {
-    private $product;
-    public function __construct(Product $product)
-    {
-        $this->product = $product;
-    }
 
     /*
     |--------------------------------------------------------------------------
@@ -22,15 +18,15 @@ class ProductController extends Controller
     |--------------------------------------------------------------------------
     */
 
-
     public function getAllProduct(): JsonResponse
     {
         try {
             $products = Product::with([
                 'images',
                 'categories',
-                'skus.variantValues.variant'
-            ])
+                'skus.variantValues.variant',
+                'tags'
+            ])->whereIn('status',['active','out_of_stock'])
                 ->withCount('feedbacks') // Đếm số lượt đánh giá dựa trên SKU
                 ->withAvg('feedbacks', 'rating') // Lấy số sao trung bình từ feedbacks
                 ->get();
@@ -46,7 +42,6 @@ class ProductController extends Controller
         }
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Lấy thông tin toàn bộ Products không có SKU
@@ -58,9 +53,12 @@ class ProductController extends Controller
         try {
             $products = Product::with([
                 'images',
-                'categories'
+                'categories',
+                'tags'
             ])
-                ->whereDoesntHave('skus') // Lọc ra sản phẩm không có SKU
+                ->whereIn('status',['active','out_of_stock'])
+                ->withCount('feedbacks') // Đếm số lượt đánh giá dựa trên SKU
+                ->withAvg('feedbacks', 'rating') // Lấy số sao trung bình từ feedbacks
                 ->get();
 
             if ($products->isEmpty()) {
@@ -86,11 +84,15 @@ class ProductController extends Controller
             $product = Product::with([
                 'images',
                 'categories',
-                'skus.variantValues.variant'
+                'skus.variantValues.variant',
+                'tags'
             ])
                 ->withCount('feedbacks') // Đếm số feedback qua SKU
                 ->find($id);
 
+            if ($product->status == 'archived') {
+                return ResponseError('Product archived', null, 400);
+            }
             if (!$product) {
                 return ResponseError('Product not found', null, 404);
             }
@@ -105,8 +107,6 @@ class ProductController extends Controller
             return ResponseError($e->getMessage(), null, 500);
         }
     }
-
-
 
     public function getFeedBackProduct($id): JsonResponse
     {
@@ -131,7 +131,6 @@ class ProductController extends Controller
         }
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Lấy thông tin toàn bộ Products theo Category
@@ -144,7 +143,8 @@ class ProductController extends Controller
             $products = Product::with([
                 'images',
                 'categories',
-                'skus.variantValues.variant'
+                'skus.variantValues.variant',
+                'tags'
             ])->whereHas('categories', function ($query) use ($category_id) {
                 $query->where('categories.id', $category_id);
             })->get();
@@ -171,7 +171,6 @@ class ProductController extends Controller
 
     public function getMostFavoritedProducts(): JsonResponse
     {
-
         try {
             $products = Product::with([
                 'images',
@@ -192,8 +191,6 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return ResponseError($e->getMessage(), null, 500);
         }
-
-
     }
 
     public function getSkus($id) {
@@ -204,4 +201,140 @@ class ProductController extends Controller
             return response()->json($e->getMessage());
         }
     }
+    /*
+        |--------------------------------------------------------------------------
+        | Lấy thông tin Products theo tag sản phẩm
+        |--------------------------------------------------------------------------
+    */
+    public function getProductByTag($tag_id): JsonResponse
+    {
+        try {
+            $products = Product::with([
+                'images',
+                'categories',
+                'skus.variantValues.variant',
+                'tags'
+            ])->whereHas('tags', function ($query) use ($tag_id) {
+                $query->where('tags.id', $tag_id);
+            })->get();
+
+            if ($products) {
+                return ResponseSuccess('Products retrieved successfully.',$products,200);
+            } else {
+                return ResponseError('Dont have any products',null,404);
+            }
+        }
+        catch (\Exception $e) {
+            return ResponseError($e->getMessage(),null,500);
+        }
+
+    }
+    /*
+        |--------------------------------------------------------------------------
+        | Lấy thông tin Products liên quan dựa trên categories
+        |--------------------------------------------------------------------------
+    */
+    public function getProductRelated($id): JsonResponse
+    {
+        try {
+            // Tìm sản phẩm gốc
+            $product = Product::with('categories')->find($id);
+            if ($product->categories->isEmpty()) {
+                return ResponseError('Product not has related products', null, 404);
+            }
+            if (!$product) {
+                return ResponseError('Product not found', null, 404);
+            }
+
+            // Lấy danh sách category_id của sản phẩm đó
+            $categoryIds = $product->categories->pluck('id');
+
+            // Truy vấn các sản phẩm liên quan (cùng category nhưng không phải chính nó)
+            $relatedProducts = Product::with([
+                'images',
+                'categories',
+                'skus.variantValues.variant',
+                'tags'
+            ])
+                ->whereHas('categories', function ($query) use ($categoryIds) {
+                    $query->whereIn('categories.id', $categoryIds);
+                })
+                ->where('id', '!=', $id) // Loại bỏ sản phẩm hiện tại
+                ->limit(7)
+                ->get();
+
+            return ResponseSuccess('Related products retrieved successfully.', $relatedProducts, 200);
+        }
+        catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
+        }
+    }
+
+    /*
+       |--------------------------------------------------------------------------
+       | Lấy thông tin Products liên có thể bạn sẽ thích
+       |--------------------------------------------------------------------------
+   */
+    public function getProductAlsoLike(): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+
+            // Kiểm tra nếu user chưa đăng nhập
+            if (!$user) {
+                return ResponseError('User not authenticated', null, 401);
+            }
+
+            // Lấy tối đa 5 sản phẩm mà user đã thích
+            $likedProducts = $user->favorites()->with('tags')->limit(5)->get();
+
+            // Lấy danh sách tag_id từ các sản phẩm đã thích
+            $tagIds = $likedProducts->pluck('tags')->flatten()->pluck('id')->unique();
+
+            // Nếu không có tag hoặc không tìm được sản phẩm liên quan, lấy sản phẩm active ngẫu nhiên
+            $relatedProducts = Product::with([
+                'images',
+                'categories',
+                'skus.variantValues.variant',
+                'tags'
+            ])
+                ->whereHas('tags', function ($query) use ($tagIds) {
+                    $query->whereIn('tags.id', $tagIds);
+                })
+                ->whereNotIn('id', $likedProducts->pluck('id')) // Không lấy sản phẩm đã thích
+                ->where('status', 'active') // Chỉ lấy sản phẩm đang hoạt động
+                ->withCount('feedbacks') // Đếm số lượt đánh giá
+                ->withAvg('feedbacks', 'rating') // Lấy trung bình rating
+                ->orderByDesc('feedbacks_avg_rating') // Ưu tiên rating cao
+                ->orderByDesc('feedbacks_count') // Nếu rating bằng nhau, ưu tiên nhiều đánh giá hơn
+                ->limit(2) // Giới hạn tối đa 2 sản phẩm liên quan
+                ->get();
+
+            // Nếu không tìm thấy sản phẩm liên quan, lấy sản phẩm active ngẫu nhiên
+            if ($relatedProducts->isEmpty()) {
+                $relatedProducts = Product::with([
+                    'images',
+                    'categories',
+                    'skus.variantValues.variant',
+                    'tags'
+                ])
+                    ->where('status', 'active') // Chỉ lấy sản phẩm đang hoạt động
+                    ->withCount('feedbacks') // Đếm số lượt đánh giá
+                    ->withAvg('feedbacks', 'rating') // Lấy trung bình rating
+                    ->orderByDesc('feedbacks_avg_rating') // Ưu tiên rating cao
+                    ->orderByDesc('feedbacks_count') // Nếu rating bằng nhau, ưu tiên nhiều đánh giá hơn
+                    ->limit(2) // Giới hạn 2 sản phẩm
+                    ->get();
+            }
+
+            return ResponseSuccess('Related high-rated active products retrieved successfully.', $relatedProducts, 200);
+        }
+        catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
+        }
+    }
+
+
+
+
 }

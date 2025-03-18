@@ -140,7 +140,6 @@ class UserController extends Controller
         }
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Lấy danh sách giỏ hàng User
@@ -171,7 +170,7 @@ class UserController extends Controller
     /*
     |--------------------------------------------------------------------------
     | Lấy danh sách yêu thích sản phẩm User
-    | Path: /api/users/{{userId}}/favorites
+    | Path: /api/users/favorites
     |--------------------------------------------------------------------------
     */
     public function favorites()
@@ -268,7 +267,6 @@ class UserController extends Controller
         }
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | function address
@@ -296,7 +294,6 @@ class UserController extends Controller
             return ResponseError($e->getMessage(),null,500);
         }
     }
-
     public function addAddressUser(AddAddressRequest $request)
     {
         try {

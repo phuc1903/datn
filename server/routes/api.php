@@ -32,9 +32,15 @@ Route::prefix('v1')->group(function () {
         Route::get('/', 'getAllProduct');
         Route::get('/detail/{id}', 'getProduct');
         Route::get('/category/{id}', 'getProductByCategory');
+        Route::get('/tag/{id}', 'getProductByTag');
         Route::get('/most-favorites','getMostFavoritedProducts');
         Route::get('/feedback-product/{id}', 'getFeedBackProduct');
+        Route::get('/product-related/{id}', 'getProductRelated');
         Route::get('/skus/{id}', 'getSkus')->name('api.get.skus.product');
+
+        Route::middleware(['auth:sanctum','auth.active'])->group(function () {
+            Route::get('/also-like/', 'getProductAlsoLike');
+        });
     });
     /*
         |--------------------------------------------------------------------------
@@ -72,7 +78,7 @@ Route::prefix('v1')->group(function () {
         |--------------------------------------------------------------------------
         */
     Route::prefix('orders')->controller(OrderController::class)->group(function () {
-        Route::middleware('auth:sanctum')->group(function () {
+        Route::middleware(['auth:sanctum','auth.active'])->group(function () {
             Route::post('/create', 'createOrder');
             Route::get('/{id}', 'orderUserDetail');
         });

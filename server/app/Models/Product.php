@@ -40,13 +40,13 @@ class Product extends Model
     public function feedbacks()
     {
         return $this->hasManyThrough(
-            ProductFeedback::class,  // Model trung gian
-            Sku::class,              // Model liên kết
-            'product_id',            // Khóa ngoại trên bảng `skus` (liên kết với `products`)
-            'sku_id',                // Khóa ngoại trên bảng `product_feedbacks` (liên kết với `skus`)
-            'id',                     // Khóa chính của `products`
-            'id'                      // Khóa chính của `skus`
-        ) ;  // Lấy timestamps nếu có;
+            ProductFeedback::class,      // Model trung gian
+            Sku::class,                // Model liên kết
+            'product_id',             // Khóa ngoại trên bảng `skus` (liên kết với `products`)
+            'sku_id',              // Khóa ngoại trên bảng `product_feedbacks` (liên kết với `skus`)
+            'id',                   // Khóa chính của `products`
+            'id'             // Khóa chính của `skus`
+        );
     }
     public function product()
     {
