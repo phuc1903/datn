@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Models\Voucher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Collection;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
@@ -62,8 +63,8 @@ class OrderController extends Controller
             'lang' => 'vi',
         ];
 
-        \Log::info('MoMo Payment Request Payload: ' . json_encode($payload));
-        \Log::info('MoMo Raw Hash for Signature: ' . $rawHash);
+        Log::info('MoMo Payment Request Payload: ' . json_encode($payload));
+        Log::info('MoMo Raw Hash for Signature: ' . $rawHash);
 
         $client = new Client();
         try {
@@ -75,7 +76,7 @@ class OrderController extends Controller
             ]);
             $result = json_decode($response->getBody(), true);
 
-            \Log::info('MoMo Payment Response: ' . json_encode($result));
+            Log::info('MoMo Payment Response: ' . json_encode($result));
 
             if ($result['resultCode'] == 0) {
                 return ['paymentUrl' => $result['payUrl']];
@@ -84,7 +85,7 @@ class OrderController extends Controller
             throw new \Exception($result['message'] . ' (Result Code: ' . $result['resultCode'] . ')');
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             $errorResponse = json_decode($e->getResponse()->getBody()->getContents(), true);
-            \Log::error('MoMo Payment Error: ' . json_encode($errorResponse));
+            Log::error('MoMo Payment Error: ' . json_encode($errorResponse));
             throw new \Exception($errorResponse['message'] ?? 'Unknown error from MoMo');
         }
     }
@@ -116,8 +117,8 @@ class OrderController extends Controller
             'lang' => 'vi',
         ];
 
-        \Log::info('MoMo Card Payment Request Payload: ' . json_encode($payload));
-        \Log::info('MoMo Card Raw Hash for Signature: ' . $rawHash);
+        Log::info('MoMo Card Payment Request Payload: ' . json_encode($payload));
+        Log::info('MoMo Card Raw Hash for Signature: ' . $rawHash);
 
         $client = new Client();
         try {
@@ -129,7 +130,7 @@ class OrderController extends Controller
             ]);
             $result = json_decode($response->getBody(), true);
 
-            \Log::info('MoMo Card Payment Response: ' . json_encode($result));
+            Log::info('MoMo Card Payment Response: ' . json_encode($result));
 
             if ($result['resultCode'] == 0) {
                 return ['paymentUrl' => $result['payUrl']]; // MoMo trả về URL để nhập thẻ
@@ -138,7 +139,7 @@ class OrderController extends Controller
             throw new \Exception($result['message'] . ' (Result Code: ' . $result['resultCode'] . ')');
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             $errorResponse = json_decode($e->getResponse()->getBody()->getContents(), true);
-            \Log::error('MoMo Card Payment Error: ' . json_encode($errorResponse));
+            Log::error('MoMo Card Payment Error: ' . json_encode($errorResponse));
             throw new \Exception($errorResponse['message'] ?? 'Unknown error from MoMo');
         }
     }
@@ -373,10 +374,33 @@ class OrderController extends Controller
 
                 $orderItems = $this->createOrderItems($order, $orderData['orders'], $skus,$combos);
 
-                return [
+                // Initialize response with order data
+                $response = [
                     'order' => $order,
                     'order_items' => $orderItems,
                 ];
+                
+                // If payment method is bank, use Momo payment
+                if ($orderData['payment_method'] == 'bank') {
+                    try {
+                        // Determine which Momo payment method to use based on configuration
+                        $momoRequestType = config('momo.requestType');
+                        if ($momoRequestType == 'payWithCC') {
+                            $paymentResult = $this->createMomoCardPayment($order);
+                        } else {
+                            $paymentResult = $this->createMomoPayment($order);
+                        }
+                        
+                        // Add payment URL to response
+                        $response['payment_url'] = $paymentResult['paymentUrl'];
+                    } catch (\Exception $e) {
+                        // Log payment error but still create order
+                        Log::error('Failed to create Momo payment for order #' . $order->id . ': ' . $e->getMessage());
+                        $response['payment_error'] = $e->getMessage();
+                    }
+                }
+
+                return $response;
             });
 
             return ResponseSuccess('Order created successfully!', $result, 201);
