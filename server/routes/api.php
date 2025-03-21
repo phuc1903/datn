@@ -109,6 +109,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/forgot-password', 'forgotPassword');
         Route::post('/reset-password', 'resetPassword');
 
+        // Google
+        Route::post('/login/google', 'loginGoogle');
+        Route::get('/google/callback', 'handleGoogleCallback');
+
         Route::middleware(['auth:sanctum', 'auth.active'])->group(function () {
             Route::post('/logout', 'logout');
             Route::post('/change-password', 'changePassword');
