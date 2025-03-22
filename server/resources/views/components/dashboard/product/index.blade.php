@@ -31,7 +31,7 @@
                 <a class="col d-block" href="{{ route('admin.product.edit', $product->product) }}">
                     <div class="mb-3">
                         <div class="card product mb-3">
-                            <x-image.index src="{{ $product->image_url }}" />
+                            <x-image.index class="mb-3" src="{{ $product->image_url }}" />
                             <div class="card-body">
                                 <h5 class="card-title line-champ-3 text-dark-custom">{{ $product->product->name }}</h5>
                                 <div class="variant_values mb-3">

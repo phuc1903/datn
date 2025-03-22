@@ -7,7 +7,9 @@ use App\Enums\Blog\BlogStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Blog\BlogRequest;
 use App\Models\Blog;
+use App\Models\BlogProduct;
 use App\Models\BlogTag;
+use App\Models\Product;
 use App\Models\Tag;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -30,7 +32,8 @@ class BlogController extends Controller
     {
         $status = BlogStatus::getKeyValuePairs();
         $tags = Tag::all();
-        return view('Pages.Blog.Create', ['status' => $status, 'tags' => $tags]);
+        $products = Product::with('skus')->paginate(8);
+        return view('Pages.Blog.Create', compact('status', 'tags', 'products'));
     }
 
     /**
@@ -64,13 +67,22 @@ class BlogController extends Controller
             }
 
             // dd($data['image_url']);
-            
+
             $blog = Blog::create($data);
-            
+
             // dd($blog->image_url);
             if (isset($request->tags) && !empty($request->tags)) {
                 foreach ($request->tags as $tag) {
                     BlogTag::create(['blog_id' => $blog->id, 'tag_id' => $tag]);
+                }
+            }
+
+            if (isset($request->products) && !empty($request->products)) {
+                foreach ($request->products as $product) {
+                    BlogProduct::create([
+                        'product_id' => $product,
+                        'blog_id' => $blog->id,
+                    ]);
                 }
             }
 
@@ -101,7 +113,11 @@ class BlogController extends Controller
         ];
 
         $status = mapEnumToArray(BlogStatus::class, $blog->status);
-        return view('Pages.Blog.Edit', ['blog' => $blog, 'status' => $status, 'sta' => $sta]);
+
+        $blog->load('products');
+        $products = Product::with('skus')->paginate(8);
+
+        return view('Pages.Blog.Edit', compact('blog', 'status', 'sta', 'products'));
     }
 
     /**
@@ -110,13 +126,6 @@ class BlogController extends Controller
     public function update(BlogRequest $request, Blog $blog)
     {
         try {
-
-            $dataCheck = ['title', 'short_description', 'description', 'slug', 'status', 'image_url'];
-            $check = checkDataUpdate($request->only($dataCheck), $blog->only($dataCheck));
-
-            if ($check) {
-                return redirect()->back()->with('info', 'Có vẻ dữ liệu không thay đổi');
-            }
 
             $data = [
                 'title' => $request->title,
@@ -146,8 +155,31 @@ class BlogController extends Controller
 
             $blog->update($data);
 
+            if (isset($request->products)) {
+                $currentProductIds = BlogProduct::where('blog_id', $blog->id)->pluck('product_id')->toArray();
+            
+                if (!empty(array_diff($request->products, $currentProductIds)) || !empty(array_diff($currentProductIds, $request->products))) {
+                    
+                    BlogProduct::where('blog_id', $blog->id)->whereNotIn('product_id', $request->products)->delete();
+            
+                    $newProducts = array_diff($request->products, $currentProductIds);
+                    $insertData = [];
+                    
+                    foreach ($newProducts as $productId) {
+                        $insertData[] = [
+                            'blog_id' => $blog->id,
+                            'product_id' => $productId,
+                        ];
+                    }
+            
+                    if (!empty($insertData)) {
+                        BlogProduct::insert($insertData);
+                    }
+                }
+            }
+            
 
-            return redirect()->route('admin.blog.index')->with('success', 'Thêm bài viết thành công');
+            return redirect()->back()->with('success', 'Cập nhật bài viết thành công');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
@@ -157,22 +189,21 @@ class BlogController extends Controller
      * Remove the specified resource from storage.
      */
     public function destroy(Request $request, Blog $blog)
-{
-    try {
+    {
+        try {
 
-        deleteImage($blog->image_url);
+            deleteImage($blog->image_url);
 
-        $blog->delete();
+            $blog->delete();
 
-        if ($request->ajax()) {
-            return response()->json(['type' => 'success', 'redirect' => route('admin.blog.index')]);
+            if ($request->ajax()) {
+                return response()->json(['type' => 'success', 'redirect' => route('admin.blog.index')]);
+            }
+
+            return redirect()->route('admin.blog.index')->with('success', 'Xóa blog thành công');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
         }
-
-        return redirect()->route('admin.blog.index')->with('success', 'Xóa blog thành công');
-        
-    } catch (\Exception $e) {
-        return redirect()->back()->with('error', $e->getMessage());
     }
-}
 
 }

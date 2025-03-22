@@ -27,4 +27,9 @@ class ProductFeedback extends Model
         return $this->belongsTo(User::class)->where('status', 'active');
     }
 
+    public function sku()
+    {
+        return $this->belongsTo(Sku::class, 'sku_id');
+    }
+
 }

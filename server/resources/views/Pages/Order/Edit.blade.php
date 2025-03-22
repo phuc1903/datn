@@ -20,7 +20,12 @@
                                   </div>
                                 <div class="mb-3">
                                     <label for="reason" class="form-label">Lý do hủy đơn</label>
-                                    <textarea class="form-control @error('reason')  @endError" @if($checkStatus || $checkStatusSuccess) disabled @endif name="reason" id="reason" rows="3">{{ $order->reason }}</textarea>
+                                    <textarea class="form-control @error('reason') is-invalid @endError" @if($checkStatus || $checkStatusSuccess) disabled @endif name="reason" id="reason" rows="3">{{ $order->reason }}</textarea>
+                                    @error('reason')
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">

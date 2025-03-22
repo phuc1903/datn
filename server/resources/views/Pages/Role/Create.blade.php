@@ -7,10 +7,10 @@
             <div class="col-12 col-md-9">
                 <div class="card card-custom mb-3">
                     <div class="card-header card-header-custom">
-                        <h3 class="title">Thêm danh mục</h3>
+                        <h3 class="title">Thêm vai trò</h3>
                     </div>
                     <div class="card-body">
-                        <x-form.input_text label="Tên danh mục" name="title" placeholder="Ví dụ Quản lý bài viết, hoặc quản lý sản phẩm" />
+                        <x-form.input_text label="Tên vai trò" name="title" placeholder="Ví dụ Quản lý bài viết, hoặc quản lý sản phẩm" />
                         <x-form.input_text label="Slug" name="name" placeholder="Ví dụ managerBlog, hoặc managerProduct" />
                         <div class="mb-3">
                             <label for="guard_name" class="form-label fw-bold text-dark-custom">Chọn Guard Name</label>
@@ -66,7 +66,3 @@
         </div>
     </form>
 @endsection
-
-@push('scripts')
-    <x-script.upload_image idPreview="imagePreview" />
-@endpush

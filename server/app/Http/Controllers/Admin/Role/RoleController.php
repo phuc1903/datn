@@ -62,7 +62,9 @@ class RoleController extends Controller
     public function edit(Role $role)
     {
         $modules = Module::with('permissions')->get();
-        return view('Pages.Role.Edit', compact('role', 'modules'));
+        $rolePermissions = $role->permissions->pluck('name')->toArray();
+
+        return view('Pages.Role.Edit', compact('role', 'modules', 'rolePermissions'));
     }
 
     /**
@@ -73,7 +75,7 @@ class RoleController extends Controller
         try {
             $role->update([
                 'title' => $request->title,
-                'name' => strtolower(str_replace(' ', '_', $request->title)),
+                'name' => $request->name,
                 'guard_name' => $request->guard_name,
             ]);
 

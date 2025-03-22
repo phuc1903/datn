@@ -36,8 +36,8 @@
                             <div class="col-12 col-md-4">
                                 <x-form.input_text label="Giá trị giảm" name="discount_value" class="price" />
                             </div>
-                            <div class="col-12 col-md-4">
-                                <x-form.input_text label="Giảm tối đa" name="max_discount_value" class="price" />
+                            <div id="max_discount_value" class="col-12 col-md-4">
+                                <x-form.input_text label="Giảm tối đa" name="max_discount_value" class="price value"/>
                             </div>
                             <div class="col-12 col-md-4">
                                 <x-form.input_text label="Đơn hàng tối thiểu" name="min_order_value" class="price" />

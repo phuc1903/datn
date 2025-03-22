@@ -56,7 +56,7 @@ $(document).ready(function () {
             if (existingSkus) {
                 parseExistingSkus(existingSkus);
                 loadExistingAttributes();
-                if (existingSkus[0].variant_values.length === 0) {
+                if (Array.isArray(existingSkus[0].variant_values) && existingSkus[0].variant_values.length > 0) {
                     generateVariants();
                 }
             }
@@ -531,6 +531,7 @@ $(document).ready(function () {
     formatPriceMain();
     addSlug();
     selectedModules();
+    checkSkusCombo();
 
     function addSlug() {
         function createSlug(str) {
@@ -567,18 +568,35 @@ $(document).ready(function () {
             return number + " %";
         }
 
+        var type = $("#type").val();
+        var discountField = $('input[name="discount_value"]');
+
+        if (type !== "percent") {
+            $('#max_discount_value').hide();
+            $('#max_discount_value').find('.value').val(null);
+        } else {
+            $('#max_discount_value').show();
+        }
+
         $("#type").change(function () {
             var type = $(this).val();
-            var discountField = $('input[name="discount_value"]');
+
+            discountField.val(0);
 
             if (type == "percent") {
                 discountField.removeClass("price").addClass("percent");
                 discountField.val(discountField.val().replace("VNĐ", ""));
+
+                $('#max_discount_value').show();
             } else {
                 discountField.removeClass("percent").addClass("price");
                 discountField.val(discountField.val().replace("%", ""));
+
+                $('#max_discount_value').hide();
+                $('#max_discount_value').find('.value').val(null);
             }
         });
+        
 
         $(".price").on("keyup", function () {
             let input = $(this).val();
@@ -950,6 +968,28 @@ $(document).ready(function () {
             let allChecked = allPermissions.length === allPermissions.filter(':checked').length; 
 
             $('#module-' + moduleId).prop('checked', allChecked);
+        });
+    }
+
+    function checkSkusCombo() {
+        $('.sku-combo').on("click", function (e) {
+            if ($(e.target).is(".check-skus")) {
+                return;
+            }
+    
+            var checkbox = $(this).find(".check-skus");
+
+
+            checkbox.prop("checked", !checkbox.prop("checked"));
+
+            var parentProductBlog = $(e.target).closest('.product-blog');
+            if (parentProductBlog.length) {
+                if (checkbox.prop("checked")) {
+                    parentProductBlog.addClass('active');
+                } else {
+                    parentProductBlog.removeClass('active');
+                }
+            }
         });
     }
     

@@ -363,4 +363,5 @@ class ProductController extends Controller
 
         return $flattened;
     }
+
 }

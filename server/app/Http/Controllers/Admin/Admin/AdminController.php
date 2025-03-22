@@ -157,11 +157,15 @@ class AdminController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(admin $admin)
+    public function destroy(admin $admin, Request $request)
     {
         try {
 
             $admin->delete();
+
+            if ($request->ajax()) {
+                return response()->json(['type' => 'success', 'redirect' => route('admin.blog.index')]);
+            }
 
             return redirect()->route('admin.admin.index')->with('success', 'Xóa thành viên thành công');
         } catch (\Exception $e) {

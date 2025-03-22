@@ -11,7 +11,17 @@
                     </div>
                     <div class="card-body">
                         <x-form.input_text label="Tên Module" name="name" />
-                        <textarea id="description" class="input-text-custom" name="description"></textarea>
+                        <div class="mb-3">
+                            <label for="description" class="form-label fw-bold text-dark-custom">Nhập mô tả</label>
+                            <textarea class="form-control @error('description') is-invalid @enderror" id="description"
+                                name="description" rows="3"></textarea>
+                            @error('description')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -37,18 +47,14 @@
                                 <option value="{{ $key }}">{{ $sta }}</option>
                             @endforeach
                         </select>
+                        @error('status')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
                     </div>
                 </div>
             </div>
         </div>
     </form>
 @endsection
-
-@push('scripts')
-    <script>
-        CKEDITOR.replace('description', {
-            language: 'vi',
-            height: 300
-        });
-    </script>
-@endpush

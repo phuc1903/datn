@@ -3,7 +3,7 @@
 @section('content')
     <div class="card">
         <div class="card-header d-flex justify-content-between bg-white py-3 align-items-center">
-            <h2 class="mb-0">Quản lý thành viên</h2>
+            <h2 class="mb-0">Quản lý Thành viên</h2>
             <div class="d-block">
                 <x-button type="href" href="{{ route('admin.admin.create') }}" label="Thêm thành viên" icon="bi bi-plus" />
             </div>
