@@ -1,62 +1,186 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, X, ChevronRight, CreditCard } from "lucide-react";
+import { API_BASE_URL } from "@/config/config";
+import Cookies from "js-cookie";
+import Swal from "sweetalert2";
+import { useRouter } from "next/navigation";
+
+// Định nghĩa kiểu cho variant_values
+interface VariantValue {
+  value: string;
+}
+
+// Định nghĩa kiểu cho SKU
+interface Sku {
+  product_id: string;
+  price: number;
+  image_url: string;
+  product: {
+    name: string;
+  };
+  variant_values: VariantValue[];
+}
+
+// Định nghĩa kiểu cho item trong cart
+interface CartItem {
+  id: string;
+  sku: Sku;
+  quantity: number;
+}
+
+// Định nghĩa kiểu cho dữ liệu người dùng
+interface UserData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  role?: string;
+  address?: string;
+  carts: CartItem[];
+}
 
 export default function CartPage() {
-  const [cart, setCart] = useState([]);
-  const [variantOptions, setVariantOptions] = useState({});
+  const [cart, setCart] = useState<CartItem[]>([]); // Khai báo kiểu cho cart
+  const [variantOptions, setVariantOptions] = useState<{}>({}); // Có thể định nghĩa kiểu cụ thể hơn nếu cần
+  const [loading, setLoading] = useState<boolean>(true);
+  const router = useRouter();
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-      console.log("Cart Data from Storage:", storedCart);
-      setCart(storedCart);
+    const fetchUserCart = async () => {
+      const userToken = Cookies.get("accessToken");
+      const email = Cookies.get("userEmail");
 
-      // Tạo danh sách các biến thể duy nhất
-      const options = {};
-      storedCart.forEach((item) => {
-        if (item.variants) {
-          item.variants.forEach((variant) => {
-            if (!options[variant.name]) {
-              options[variant.name] = new Set();
-            }
-            options[variant.name].add(variant.value);
-          });
+      if (!userToken || !email) {
+        console.warn("No token or email found, redirecting to login.");
+        Cookies.remove("accessToken");
+        Cookies.remove("userEmail");
+        router.push("/login");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/carts`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${userToken}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Lỗi lấy giỏ hàng: ${response.status} - ${response.statusText}`);
         }
-      });
 
-      // Chuyển Set thành Array để dễ hiển thị
-      const formattedOptions = {};
-      Object.keys(options).forEach((key) => {
-        formattedOptions[key] = Array.from(options[key]);
-      });
+        const result = await response.json();
+        if (result.data?.email === email) {
+          setCart(result.data.carts || []);
+        } else {
+          setCart([]);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy giỏ hàng:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Lỗi!",
+          text: "Không thể tải giỏ hàng. Vui lòng thử lại sau.",
+        });
+        setCart([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      setVariantOptions(formattedOptions);
-    }
-  }, []);
+    fetchUserCart();
+  }, [router]);
 
-  const handleRemove = (sku_id) => {
-    const updatedCart = cart.filter((item) => item.sku_id !== sku_id);
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-  };
-
-  const handleQuantityChange = (sku_id, quantity) => {
+  const handleQuantityChange = async (product_id: string, quantity: number) => {
     if (quantity < 1) return;
-    const updatedCart = cart.map((item) =>
-      item.sku_id === sku_id ? { ...item, quantity } : item
-    );
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
+
+    try {
+      const userToken = Cookies.get("accessToken");
+      if (!userToken) return;
+
+      const response = await fetch(`${API_BASE_URL}/carts/${product_id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userToken}`,
+        },
+        body: JSON.stringify({ quantity }),
+      });
+
+      if (!response.ok) throw new Error("Lỗi cập nhật số lượng");
+
+      setCart((prevCart) =>
+        prevCart.map((item) =>
+          item.sku.product_id === product_id ? { ...item, quantity } : item
+        )
+      );
+    } catch (error) {
+      console.error("Lỗi khi cập nhật số lượng sản phẩm:", error);
+    }
   };
 
-  const formatPrice = (price) => `${price.toLocaleString()} VND`;
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const handleRemove = async (product_id: string) => {
+    try {
+      const userToken = Cookies.get("accessToken");
+      if (!userToken) return;
+
+      await fetch(`${API_BASE_URL}/carts/${product_id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userToken}`,
+        },
+      });
+
+      setCart((prevCart) => prevCart.filter((item) => item.sku.product_id !== product_id));
+    } catch (error) {
+      console.error("Lỗi khi xóa sản phẩm:", error);
+    }
+  };
+
+  const formatPrice = (price: number) => `${price.toLocaleString()} VND`;
+  const subtotal = useMemo(
+    () => cart.reduce((sum, item) => sum + item.sku.price * item.quantity, 0),
+    [cart]
+  );
   const shipping = subtotal > 0 ? 30000 : 0;
-  const total = subtotal + shipping;
+  // const total = subtotal + 0;
+
+  const handleCheckout = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+
+    const userToken = Cookies.get("accessToken");
+
+    if (!userToken) {
+      Swal.fire({
+        icon: "warning",
+        title: "Bạn cần đăng nhập!",
+        text: "Vui lòng đăng nhập để đặt hàng.",
+        confirmButtonText: "Đăng nhập",
+      }).then(() => {
+        router.push("/login");
+      });
+      return;
+    }
+
+    if (cart.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Giỏ hàng trống!",
+        text: "Hãy thêm sản phẩm vào giỏ trước khi thanh toán.",
+        confirmButtonText: "Tiếp tục mua sắm",
+      });
+      return;
+    }
+
+    router.push("/checkout");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -68,11 +192,11 @@ export default function CartPage() {
               {cart.length > 0 ? (
                 <div className="divide-y divide-gray-200">
                   {cart.map((item) => (
-                    <div key={item.sku_id} className="p-6 flex gap-6">
+                    <div key={item.id} className="p-6 flex gap-6">
                       <div className="w-24 h-24 flex-shrink-0">
                         <Image
-                          src={item.image_url}
-                          alt={item.name}
+                          src={item.sku.image_url}
+                          alt={item.sku.product.name}
                           width={96}
                           height={96}
                           className="object-cover rounded-md"
@@ -81,15 +205,15 @@ export default function CartPage() {
                       <div className="flex-1">
                         <div className="flex justify-between">
                           <div>
-                            <h3 className="text-base font-medium text-gray-900">{item.name}</h3>
+                            <h3 className="text-base font-medium text-gray-900">{item.sku.product.name}</h3>
                             <div className="text-sm text-gray-600">
-                              {item.variants && item.variants.length > 0
-                                ? item.variants.map((v) => `${v.name}: ${v.value}`).join(", ")
+                              {item?.sku?.variant_values && item.sku.variant_values.length > 0
+                                ? item.sku.variant_values.map((v: VariantValue) => v.value).join(", ")
                                 : "Không có biến thể"}
                             </div>
                           </div>
                           <button
-                            onClick={() => handleRemove(item.sku_id)}
+                            onClick={() => handleRemove(item.sku.product_id)}
                             className="text-gray-400 hover:text-gray-500"
                           >
                             <X className="w-5 h-5" />
@@ -99,20 +223,20 @@ export default function CartPage() {
                           <div className="flex items-center border rounded-lg">
                             <button
                               className="p-2 hover:bg-gray-50 text-pink-600"
-                              onClick={() => handleQuantityChange(item.sku_id, item.quantity - 1)}
+                              onClick={() => handleQuantityChange(item.sku.product_id, item.quantity - 1)}
                             >
                               <Minus className="w-4 h-4" />
                             </button>
                             <span className="px-4 py-2 text-pink-600">{item.quantity}</span>
                             <button
                               className="p-2 hover:bg-gray-50 text-pink-600"
-                              onClick={() => handleQuantityChange(item.sku_id, item.quantity + 1)}
+                              onClick={() => handleQuantityChange(item.sku.product_id, item.quantity + 1)}
                             >
                               <Plus className="w-4 h-4" />
                             </button>
                           </div>
                           <div className="text-lg font-medium text-gray-900">
-                            {formatPrice(item.price * item.quantity)}
+                            {formatPrice(item.sku.price * item.quantity)}
                           </div>
                         </div>
                       </div>
@@ -128,32 +252,31 @@ export default function CartPage() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-6">Tóm Tắt Đơn Hàng</h2>
               <div className="space-y-4">
-                <div className="flex justify-between text-base text-gray-600">
+                {/* <div className="flex justify-between text-base text-gray-600">
                   <span>Tạm Tính</span>
                   <span>{formatPrice(subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-base text-gray-600">
+                </div> */}
+                {/* <div className="flex justify-between text-base text-gray-600">
                   <span>Phí Vận Chuyển</span>
                   <span>{formatPrice(shipping)}</span>
-                </div>
+                </div> */}
                 <div className="border-t pt-4">
                   <div className="flex justify-between text-lg font-medium text-gray-900">
                     <span>Tổng Cộng</span>
-                    <span>{formatPrice(total)}</span>
+                    <span>{formatPrice(subtotal)}</span>
                   </div>
                 </div>
               </div>
               <Link
-  href={cart.length > 0 ? "/checkout" : "#"}
-  className={`w-full mt-6 ${
-    cart.length > 0 ? "bg-pink-600 hover:bg-purple-500" : "bg-gray-400 cursor-not-allowed"
-  } text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center gap-2`}
-  onClick={(e) => cart.length === 0 && e.preventDefault()}
->
-  <CreditCard className="w-5 h-5" />
-  Tiến Hành Thanh Toán
-</Link>
-
+                href="#"
+                className={`w-full mt-6 ${
+                  cart.length > 0 ? "bg-pink-600 hover:bg-purple-500" : "bg-gray-400 cursor-not-allowed"
+                } text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center gap-2`}
+                onClick={handleCheckout}
+              >
+                <CreditCard className="w-5 h-5" />
+                Tiến Hành Thanh Toán
+              </Link>
               <Link
                 href="/"
                 className="w-full mt-4 text-pink-600 hover:text-purple-500 py-3 px-6 rounded-lg font-medium flex items-center justify-center gap-2"
