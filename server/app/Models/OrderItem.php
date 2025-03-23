@@ -21,4 +21,8 @@ class OrderItem extends Model
     {
         return $this->belongsTo(\App\Models\Order::class, 'order_id');
     }
+    public function combo()
+    {
+        return $this->belongsTo(Combo::class, 'combo_id');
+    }
 }

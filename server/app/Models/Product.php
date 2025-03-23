@@ -18,7 +18,7 @@ class Product extends Model
 
     public function skus()
     {
-        return $this->hasMany(Sku::class)->select('id', 'sku_code', 'product_id', 'price', 'promotion_price', 'quantity', 'image_url');
+        return $this->hasMany(Sku::class ,'product_id')->select('id', 'sku_code', 'product_id', 'price', 'promotion_price', 'quantity', 'image_url');
     }
 
     // Quan hệ với ảnh sản phẩm
