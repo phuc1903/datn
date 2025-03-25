@@ -42,6 +42,7 @@ class ProductController extends Controller
         }
     }
 
+
     /*
     |--------------------------------------------------------------------------
     | Lấy thông tin toàn bộ Products không có SKU
@@ -72,6 +73,7 @@ class ProductController extends Controller
         }
     }
 
+
     /*
     |--------------------------------------------------------------------------
     | Lấy thông tin 1 Product
@@ -101,6 +103,10 @@ class ProductController extends Controller
             $averageRating = $product->feedbacks()->avg('rating');
 
             $product->rating_avg = $averageRating ? round($averageRating, 1) : null;
+            // Lấy trung bình số sao từ feedbacks của SKU
+            $averageRating = $product->feedbacks()->avg('rating');
+
+            $product->rating_avg = $averageRating ? round($averageRating, 1) : null;
 
             return ResponseSuccess('Product retrieved successfully.', $product, 200);
         } catch (\Exception $e) {
@@ -111,6 +117,7 @@ class ProductController extends Controller
     public function getFeedBackProduct($id): JsonResponse
     {
         try {
+            // Lấy feedback của sản phẩm dựa trên SKU
             // Lấy feedback của sản phẩm dựa trên SKU
             $productFeedback = ProductFeedback::with([
                 'user'  // Lấy thông tin người dùng của bình luận
@@ -130,6 +137,7 @@ class ProductController extends Controller
             return ResponseError($e->getMessage(), null, 500);
         }
     }
+
 
     /*
     |--------------------------------------------------------------------------

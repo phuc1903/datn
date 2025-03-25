@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\Voucher\VoucherController;
 use App\Http\Controllers\Api\V1\ProductFeedback\ProductFeedbackController;
 use App\Http\Controllers\Api\V1\Address\AddressController;
 use App\Http\Controllers\Api\V1\Combo\ComboController;
+use App\Http\Controllers\Api\V1\Combo\ComboController;
 // Version 1
 Route::prefix('v1')->group(function () {
     /*

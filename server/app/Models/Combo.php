@@ -7,10 +7,12 @@ use App\Enums\Combo\ComboStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Combo extends Model
 {
     use HasFactory;
+    use SoftDeletes;
     use SoftDeletes;
 
     protected $casts = [
@@ -25,6 +27,7 @@ class Combo extends Model
     {
         return $this->belongsToMany(Sku::class, 'combo_products')->select('skus.id','sku_code','product_id','image_url');
     }
+    public function categories()
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'product_categories');
