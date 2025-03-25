@@ -100,7 +100,7 @@ class UserController extends Controller
     {
         try {
             $user = auth()->user(); // Lấy người dùng đang đăng nhập
-            $orders = $user->orders()
+            $orders = $user->orders()->with()
                 ->orderBy('created_at', 'desc') // Sắp xếp theo thời gian tạo mới nhất
                 ->get();
             if ($orders) {
