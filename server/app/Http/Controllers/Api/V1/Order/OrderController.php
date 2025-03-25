@@ -422,8 +422,18 @@ class OrderController extends Controller
     public function orderUserDetail($id): JsonResponse
     {
         try {
-            $order = Order::with('items')
-                ->find($id); // Load các sản phẩm trong đơn hàng;
+            $order = Order::with([
+                'items.sku' => function ($query) {
+                    $query->select('id', 'product_id', 'price');
+                },
+                'items.sku.product' => function ($query) {
+                    $query->select('id', 'name', 'description');
+                },
+                'items.combo' => function ($query) {
+                    $query->select('id', 'name', 'description');
+                }
+            ])->find($id);
+
             if ($order) {
                 return ResponseSuccess('Order retrieved successfully.', $order, 200);
             } else {
