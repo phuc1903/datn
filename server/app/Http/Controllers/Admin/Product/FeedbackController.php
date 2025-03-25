@@ -38,8 +38,20 @@ class FeedbackController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, ProductFeedback $productFeedback)
+    public function update(Request $request, $id)
     {
-        
+        try {
+            if($request->status === ProductFeedbackStatus::Pending) {
+                return redirect()->back()->with('info', 'Bạn không thể đổi sang trạng thái này');
+            }
+            $productFeedback = ProductFeedback::findOrFail($id);
+            $productFeedback->update([
+                'status' => $request->status,
+            ]);
+
+            return redirect()->back()->with('success', 'Cập nhật trạng thái thành công');
+        }catch(\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 }

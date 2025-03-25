@@ -28,11 +28,9 @@ class Order extends Model
         return $this->hasMany(OrderItem::class, 'order_id');
     }
 
-    public function vouchers()
+    public function voucher()
     {
-        return $this->belongsToMany(Voucher::class, 'order_vouchers')
-            ->withPivot('discount', 'created_at', 'updated_at')
-            ->withTimestamps();
+        return $this->belongsTo(Voucher::class, 'voucher_id');
     }
 
     public function province()

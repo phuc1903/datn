@@ -70,7 +70,7 @@
     line-height: normal;
 }
 
-table.table.dataTable>:not(caption)>*>* {
+table.table.dataTable > :not(caption) > * > * {
     background-color: var(--background);
     color: var(--foreground);
 }
@@ -788,8 +788,53 @@ a.sidebar-children {
 }
 
 .product-blog {
-
     &.active {
         background-color: var(--primary);
+    }
+}
+
+.email-layout {
+    #outlook a {
+        padding: 0;
+    }
+
+    body {
+        width: 100% !important;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: Helvetica, arial, sans-serif;
+    }
+
+    .ExternalClass {
+        width: 100%;
+    }
+
+    .ExternalClass,
+    .ExternalClass p,
+    .ExternalClass span,
+    .ExternalClass font,
+    .ExternalClass td,
+    .ExternalClass div {
+        line-height: 100%;
+    }
+
+    .backgroundTable {
+        margin: 0;
+        padding: 0;
+        width: 100% !important;
+        line-height: 100% !important;
+    }
+
+    .main-temp table {
+        border-collapse: collapse;
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+        font-family: Helvetica, arial, sans-serif;
+    }
+
+    .main-temp table td {
+        border-collapse: collapse;
     }
 }

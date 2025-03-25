@@ -6,55 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
-    <style type="text/css">
-        #outlook a {
-            padding: 0;
-        }
-
-        body {
-            width: 100% !important;
-            -webkit-text-size-adjust: 100%;
-            -ms-text-size-adjust: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: Helvetica, arial, sans-serif;
-        }
-
-        .ExternalClass {
-            width: 100%;
-        }
-
-        .ExternalClass,
-        .ExternalClass p,
-        .ExternalClass span,
-        .ExternalClass font,
-        .ExternalClass td,
-        .ExternalClass div {
-            line-height: 100%;
-        }
-
-        .backgroundTable {
-            margin: 0;
-            padding: 0;
-            width: 100% !important;
-            line-height: 100% !important;
-        }
-
-        .main-temp table {
-            border-collapse: collapse;
-            mso-table-lspace: 0pt;
-            mso-table-rspace: 0pt;
-            font-family: Helvetica, arial, sans-serif;
-        }
-
-        .main-temp table td {
-            border-collapse: collapse;
-        }
-    </style>
 </head>
 
 <body>
-
+<div class="email-layout">
     <table width="100%" cellpadding="0" cellspacing="0" border="0" class="backgroundTable main-temp my-5"
         style="background-color: #d5d5d5;">
         <tbody>
@@ -72,7 +27,7 @@
                                         <tbody>
                                             <tr>
                                                 <td style="padding-bottom: 10px;">
-                                                    <a href="https://htmlcodex.com">
+                                                    <a href="{{ config('app.frontend_url')}}">
                                                         <!-- Nhúng logo vào layout email qua cid -->
                                                         <img style="height: 200px;" src="cid:logo.png" alt="Logo ZBeauty" />
                                                     </a>
@@ -80,12 +35,12 @@
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666;">
-                                                    ZBeauty Sản phẩm làm đẹp
+                                                    {{ config('app.name')}}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666;">
-                                                   Việt Name
+                                                   Việt Nam
                                                 </td>
                                             </tr>
                                             <tr>
@@ -114,6 +69,7 @@
             </tr>
         </tbody>
     </table>
+</div>
 
 </body>
 

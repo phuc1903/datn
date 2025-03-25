@@ -88,7 +88,6 @@ class OrderController extends Controller
             ->values()
             ->toArray();
 
-        // dd($paymentList);
 
         return view('Pages.Order.Edit', [
             'order' => $orderShow,
@@ -134,10 +133,14 @@ class OrderController extends Controller
 
             $order->update([
                 "status" => $newStatus,
-                "reason" => $request->reason
+                "reason" => $request->reason,
             ]);
 
-            dispatch(new SendChangeStatusOrderJob(['email' => $order->email, 'full_name' => $order->full_name, 'status' => $newStatus->label()]));
+            $reason = $request->status === OrderStatus::Cancel ? $request->reason : null;
+
+            $orderSendMail = $order->load('items', 'voucher');
+
+            dispatch(new SendChangeStatusOrderJob(['order' => $orderSendMail, 'status' => $newStatus->label(), 'reason' => $reason] ));
 
             return redirect()->back()->with('success', 'Cập nhật trạng thái thành công.');
         }catch(\Exception $e) {

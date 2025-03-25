@@ -35,7 +35,6 @@
 				<x-dashboard.tab.nav_item label="Sản phẩm bán chạy" id="productBestSeller"/>
 				<x-dashboard.tab.nav_item label="Combo hết hàng" id="comboOutOfStock"/>
 				<x-dashboard.tab.nav_item label="Combo bán chạy" id="comboBestSeller"/>
-				<x-dashboard.tab.nav_item label="Khách hàng thân thiết" id="loyalCustomer"/>
 			</ul>
 	
 			<div class="tab-content mt-5" id="tabDashboardContent">

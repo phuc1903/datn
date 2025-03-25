@@ -9,7 +9,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class ChangeStatusOrder extends Mailable
+class CreateOrder extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -29,7 +29,7 @@ class ChangeStatusOrder extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Cập nhật trạng thái đơn hàng',
+            subject: 'Đặt hàng thành công',
         );
     }
 
@@ -39,12 +39,7 @@ class ChangeStatusOrder extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'email.order.change_status_order',
-            with: [
-                'order' => $this->data['order'],
-                'status' => $this->data['status'],
-                'reason' => $this->data['reason']
-            ]
+            view: 'email.order.create_order',
         );
     }
 
