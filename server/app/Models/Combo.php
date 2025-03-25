@@ -27,7 +27,7 @@ class Combo extends Model
     {
         return $this->belongsToMany(Sku::class, 'combo_products')->select('skus.id','sku_code','product_id','image_url');
     }
-    public function categories()
+    
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'product_categories');

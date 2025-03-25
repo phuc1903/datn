@@ -71,17 +71,17 @@
             'type' => 'nav',
             'icon' => 'bi-box',
             'path' => route('admin.combo.index'),
-            'permission_required' => 'viewProduct',
+            'permission_required' => 'viewCombo',
             'child' => [
                 [
                     'label' => 'Danh sách combo',
                     'path' => route('admin.combo.index'),
-                    'permission_required' => 'createProduct',
+                    'permission_required' => 'viewCombo',
                 ],
                 [
                     'label' => 'Thêm combo',
                     'path' => route('admin.combo.create'),
-                    'permission_required' => 'createProduct',
+                    'permission_required' => 'createCombo',
                 ],
             ],
         ],
@@ -92,17 +92,17 @@
             'type' => 'nav',
             'icon' => 'bi-list',
             'path' => route('admin.category.index'),
-            'permission_required' => 'viewProduct',
+            'permission_required' => 'viewProductCategory',
             'child' => [
                 [
                     'label' => 'Danh sách danh mục',
                     'path' => route('admin.category.index'),
-                    'permission_required' => 'viewProduct',
+                    'permission_required' => 'viewProductCategory',
                 ],
                 [
                     'label' => 'Thêm danh mục',
                     'path' => route('admin.category.create'),
-                    'permission_required' => 'createProduct',
+                    'permission_required' => 'createProductCategory',
                 ],
             ],
         ],
@@ -113,14 +113,12 @@
             'type' => 'nav',
             'icon' => 'bi-star',
             'path' => route('admin.feedback-product.index'),
+            'permission_required' => 'viewProductFeedback',
             'child' => [
                 [
                     'label' => 'Danh sách đánh giá',
-                    'path' => route('admin.feedback-product.index')
-                ],
-                [
-                    'label' => 'Thêm đánh giá',
-                    'path' => route('admin.feedback-product.create')
+                    'path' => route('admin.feedback-product.index'),
+                    'permission_required' => 'viewProductFeedback',
                 ],
             ],
         ],
@@ -145,11 +143,13 @@
                 ],
                 [
                     'label' => 'DS danh mục bài viết',
-                    'path' => route('admin.tag.index')
+                    'path' => route('admin.tag.index'),
+                    'permission_required' => 'viewPostCategory',
                 ],
                 [
                     'label' => 'Thêm danh mục',
                     'path' => route('admin.tag.create'),
+                    'permission_required' => 'createPostCategory',
                 ],
             ],
         ],
@@ -160,14 +160,17 @@
             'type' => 'nav',
             'icon' => 'bi-gift',
             'path' => route('admin.voucher.index'),
+            'permission_required' => 'viewVoucher',
             'child' => [
                 [
                     'label' => 'Danh sách voucher',
-                    'path' => route('admin.voucher.index')
+                    'path' => route('admin.voucher.index'),
+                    'permission_required' => 'viewVoucher',
                 ],
                 [
                     'label' => 'Thêm voucher',
-                    'path' => route('admin.voucher.create')
+                    'path' => route('admin.voucher.create'),
+                    'permission_required' => 'createVoucher',
                 ],
             ],
         ],
@@ -205,14 +208,17 @@
             'type' => 'nav',
             'icon' => 'bi-person-lines-fill',
             'path' => route('admin.admin.index'),
+            'permission_required' => 'viewAdmin',
             'child' => [
                 [
                     'label' => 'Danh sách Admin',
                     'path' => route('admin.admin.index'),
+                    'permission_required' => 'viewAdmin',
                 ],
                 [
                     'label' => 'Thêm thành viên',
                     'path' => route('admin.admin.create'),
+                    'permission_required' => 'createAdmin',
                 ],
             ],
         ],
@@ -223,14 +229,17 @@
             'type' => 'nav',
             'icon' => 'bi-person',
             'path' => route('admin.role.index'),
+            'permission_required' => 'viewRole',
             'child' => [
                 [
                     'label' => 'Danh sách Vai trò',
                     'path' => route('admin.role.index'),
+                    'permission_required' => 'viewRole',
                 ],
                 [
-                    'label' => 'Thêm thành viên',
+                    'label' => 'Thêm vai trò',
                     'path' => route('admin.role.create'),
+                    'permission_required' => 'createRole',
                 ],
             ],
         ],
@@ -241,14 +250,17 @@
             'type' => 'nav',
             'icon' => 'bi-person-check',
             'path' => route('admin.permission.index'),
+            'permission_required' => 'viewPermission',
             'child' => [
                 [
                     'label' => 'Danh sách Quyền',
                     'path' => route('admin.permission.index'),
+                    'permission_required' => 'viewPermission',
                 ],
                 [
                     'label' => 'Thêm Quyền',
                     'path' => route('admin.permission.create'),
+                    'permission_required' => 'createPermission',
                 ],
             ],
         ],
@@ -258,44 +270,58 @@
             'type' => 'nav',
             'icon' => 'bi-code',
             'path' => route('admin.module.index'),
+            'permission_required' => 'viewPermission',
             'child' => [
                 [
                     'label' => 'Danh sách Module',
                     'path' => route('admin.module.index'),
+                    'permission_required' => 'viewPermission',
                 ],
                 [
                     'label' => 'Thêm Module',
                     'path' => route('admin.module.create'),
+                    'permission_required' => 'createPermission',
                 ],
             ],
         ],
         // Cài đặt chung
         [
-            'label' => 'Cài đặt chung',
+            'label' => 'Cài đặt',
             'active' => request()->routeIs('admin.setting.index'),
             'type' => 'nav',
             'icon' => 'bi-gear',
             'path' => route('admin.setting.index'),
+            'permission_required' => 'viewSetting',
             'child' => [
                 [
                     'label' => 'Cài đặt chung',
                     'path' => route('admin.setting.index'),
+                    'permission_required' => 'viewSetting',
+                ],
+                [
+                    'label' => 'Cài đặt Logo',
+                    'path' => route('admin.setting.logo'),
+                    'permission_required' => 'viewSetting',
                 ],
                 [
                     'label' => 'Cài đặt Footer',
-                    'path' => route('admin.setting.footer.index'),
+                    'path' => route('admin.setting.footer'),
+                    'permission_required' => 'viewSetting',
                 ],
                 [
                     'label' => 'Cài đặt Header',
-                    'path' => route('admin.setting.header.index'),
+                    'path' => route('admin.setting.header'),
+                    'permission_required' => 'viewSetting',
                 ],
                 [
                     'label' => 'Cài đặt About',
-                    'path' => route('admin.setting.about.index'),
+                    'path' => route('admin.setting.about'),
+                    'permission_required' => 'viewSetting',
                 ],
                 [
                     'label' => 'Cài đặt Contact',
-                    'path' => route('admin.setting.contact.index'),
+                    'path' => route('admin.setting.contact'),
+                    'permission_required' => 'viewSetting',
                 ],
             ],
         ],

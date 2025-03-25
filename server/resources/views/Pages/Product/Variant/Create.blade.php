@@ -22,6 +22,12 @@
                         <div class="card mb-3">
                             <div class="card-header">
                                 <h4 class="title">Danh sách biến thể</h4>
+
+                                @error('variants')
+                                    <div class="text-danger mt-2">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
                             </div>
                             <div class="card-body">
                                 <div id="VariantValue">
@@ -51,6 +57,6 @@
 
 @push('scripts')
     <script>
-        
+
     </script>
 @endpush

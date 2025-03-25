@@ -6,7 +6,7 @@
     </select>
 </div>
 
-<canvas id="orderChart" style="width:100%; height:400px;"></canvas>
+<canvas id="orderChart"></canvas>
 
 @push('scripts')
     <script>

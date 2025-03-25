@@ -42,8 +42,8 @@
                                 <x-form.input_text label="Giá trị giảm" name="discount_value" class="{{$class}}"
                                     value="{{ old('discount_value', $voucher->discount_value) }}" />
                             </div>
-                            <div class="col-12 col-md-4">
-                                <x-form.input_text label="Giảm tối đa" name="max_discount_value" class="price"
+                            <div id="max_discount_value" class="col-12 col-md-4">
+                                <x-form.input_text label="Giảm tối đa" name="max_discount_value" class="price value"
                                     value="{{$voucher->max_discount_value}}" />
                             </div>
                             <div class="col-12 col-md-4">

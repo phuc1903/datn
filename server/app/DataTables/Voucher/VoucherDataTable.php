@@ -18,7 +18,7 @@ class VoucherDataTable extends BaseDataTable
     protected string $routeName = "voucher";
     protected bool $includeUpdatedAt = false;
 
-    protected int $orderBy = 7;
+    protected int $orderBy = 8;
 
     /**
      * Get the query source of dataTable.

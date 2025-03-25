@@ -17,14 +17,20 @@ class ProductFeedback extends Model
         'product_feedback_status' => ProductFeedbackStatus::class,
     ];
 
-    public function product()
-    {
-        return $this->beLongsTo(Product::class, 'product_id');
-    }
     // Quan hệ giữa ProductFeedback và User
     public function user()
     {
         return $this->belongsTo(User::class)->where('status', 'active');
+    }
+
+    public function sku()
+    {
+        return $this->belongsTo(Sku::class, 'sku_id');
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id');
     }
 
 }

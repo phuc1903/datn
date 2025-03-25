@@ -29,4 +29,5 @@ class Voucher extends Model
     {
         return $this->hasMany(ProductVoucher::class, 'voucher_id');
     }
+
 }

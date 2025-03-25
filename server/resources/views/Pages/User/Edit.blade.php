@@ -14,33 +14,66 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <x-form.input_text label="Họ" name="last_name" value="{{$user->last_name}}"/>
-                                    <x-form.input_text label="Tên" value="{{$user->first_name}}" name="first_name"/>
-                                    <x-form.input_text label="Email" value="{{$user->email}}" name="email" type="email"/>
-                                    <x-form.input_text label="Số điện thoại" value="{{$user->phone_number}}" name="phone_number"/>
-                                    <x-form.input_text label="Mật khẩu" value="" name="password" type="password"/>
-                                    <x-form.input_text label="Xác nhận mật khẩu" value="" name="password_confirm" type="password" />
+                                    <x-form.input_text label="Họ" disabled name="last_name" value="{{$user->last_name}}" />
+                                    <x-form.input_text label="Tên" disabled value="{{$user->first_name}}"
+                                        name="first_name" />
+                                    <x-form.input_text label="Email" disabled value="{{$user->email}}" name="email"
+                                        type="email" />
+                                    <x-form.input_text label="Số điện thoại" disabled value="{{$user->phone_number}}"
+                                        name="phone_number" />
                                     <div class="mb-3">
                                         <label for="sex" class="form-label">Giới tính </label>
-                                        <select class="form-select w-100" aria-label="User Sex" id="sex"
+                                        <select class="form-select w-100" disabled aria-label="User Sex" id="sex"
                                             name="sex">
-                                            <x-form.select.option :options="$sexList" />
+                                            <option value="{{ $sexActiveValue }}" selected>{{ $sexActive }}</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-7 mb-3">
+                    <div class="col-12 col-md-7 mb-3 user-feedback">
                         <div class="card mb-3">
                             <div class="card-header">
-                                <h4 class="title">Sổ địa chỉ</h4>
+                                <h4 class="title">Đánh giá gần đây</h4>
                             </div>
                             <div class="card-body">
-                                <div id="address-books" data-addresses="{{$user->addresses}}">
-
+                                <div class="user-rating d-flex flex-column gap-5">
+                                    @foreach ($user->productFeedbacks as $feedback)
+                                        <div class="rating-item p-3">
+                                            <div class="top mb-3">
+                                                <div class="d-flex justify-content-between gap-5">
+                                                    <div class="d-flex gap-1">
+                                                        <x-image.index class="image-user-product-fb"
+                                                            src="{{$feedback->sku->image_url}}" />
+                                                        <div class="d-flex flex-column gap-2">
+                                                            <p class="text-dark-custom m-0">{{ $feedback->sku->product->name }}</p>
+                                                            @if (isset($feedback->sku->variantValues) && $feedback->sku->variantValues->count() > 0)
+                                                                <span class="badge bg-secondary w-">
+                                                                    @foreach ($feedback->sku->variantValues as $value)
+                                                                        {{$value->value}}
+                                                                    @endforeach
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex gap-1 stars">
+                                                        @for ($i = 1; $i <= 5; $i++)
+                                                            <i
+                                                                class="bi bg bi-star{{ $i <= intval($feedback->rating) ? '-fill' : '' }}"></i>
+                                                        @endfor
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="bottom">
+                                                <span>Nội dung: {{ $feedback->comment}}</span>
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
-                                <x-button.index label="Thêm địa chỉ" id="add_address" color="outline" />
+                                {{-- <div id="address-books" data-addresses="{{$user->addresses}}">
+                                </div>
+                                <x-button.index label="Thêm địa chỉ" id="add_address" color="outline" /> --}}
                             </div>
                         </div>
                     </div>
@@ -52,15 +85,7 @@
                         <h4 class="title">Đăng</h4>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <x-button.index type="submit" label="Cập nhật" />
-                            @php
-
-                                $route = route("admin.user.destroy", $user)
-
-                            @endphp
-                            <x-button.index  type="button" label="Xóa" id="delete-user" color="danger" data-route-delete="{{ $route }}"/>
-                        </div>
+                        <x-button.index type="submit" label="Cập nhật trạng thái" />
                     </div>
                 </div>
                 <div class="card mb-3">
@@ -71,26 +96,9 @@
                         <div class="mb-3">
                             <select class="form-select w-100" aria-label="User Sex" id="status" name="status">
                                 <option value="{{ $statusActiveValue }}" selected>{{ $statusActive }}</option>
-                                <x-form.select.option label="Giới tính" :options="$statusList" />
+                                <x-form.select.option :options="$statusList" />
                             </select>
                         </div>
-                    </div>
-                </div>
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h4 class="title">Xác thực tài khoản</h4>
-                    </div>
-                    <div class="card-body">
-                        <x-form.toggle.index label="Đã xác thực email?" name="VerificationEmail" />
-                    </div>
-                </div>
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h4 class="title">Ảnh đại diện</h4>
-                    </div>
-                    <div class="card-body">
-                        <x-image.index class="mb-3" />
-                        <x-button.index label="Tải ảnh" />
                     </div>
                 </div>
             </div>

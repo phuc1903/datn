@@ -32,7 +32,7 @@ class VariantController extends Controller
      */
     public function store(VariantRequest $request)
     {
-        // dd($request);
+        dd($request);
         try {
             $variant = Variant::create(['name' => $request->name]);
 

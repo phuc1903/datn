@@ -43,7 +43,7 @@ final class ModuleStatus extends Enum
         ];
     }
 
-    public static function getLabel(string $value): string
+    public static function getLabel(int $value): string
     {
         return match ($value) {
             self::Pending => 'Đang chờ',

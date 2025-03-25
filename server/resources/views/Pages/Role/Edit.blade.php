@@ -8,10 +8,10 @@
             <div class="col-12 col-md-9">
                 <div class="card card-custom mb-3">
                     <div class="card-header card-header-custom">
-                        <h3 class="title">Thêm danh mục</h3>
+                        <h3 class="title">Cập nhật vai trò</h3>
                     </div>
                     <div class="card-body">
-                        <x-form.input_text label="Tên danh mục" name="title" value="{{ $role->title}}" placeholder="Ví dụ Quản lý bài viết, hoặc quản lý sản phẩm" />
+                        <x-form.input_text label="Tên vai trò" name="title" value="{{ $role->title}}" placeholder="Ví dụ Quản lý bài viết, hoặc quản lý sản phẩm" />
                         <x-form.input_text label="Slug" name="name" value="{{ $role->name}}" placeholder="Ví dụ managerBlog, hoặc managerProduct" />
                         <x-form.input_text label="Vai trò của (Guad name)" name="guard_name" value="{{ $role->guard_name}}" />
                     </div>
@@ -26,16 +26,17 @@
                                 <div class="col-4 mb-4">
                                     <div class="modules p-3">
                                         <div class="form-check mb-3">
-                                            <input class="form-check-input" type="checkbox" value="{{$module->id}}" id="flexCheckDefault">
-                                            <label class="form-check-label" for="flexCheckDefault">
-                                            {{ $module->name}}
+                                            <input class="form-check-input" type="checkbox" value="{{$module->id}}" id="module-{{$module->id}}">
+                                            <label class="form-check-label" for="module-{{$module->id}}">
+                                                {{ $module->name }}
                                             </label>
                                         </div>
                                         @foreach ($module->permissions as $permission)
                                             <div class="form-check">
-                                                <input class="form-check-input" name="permissions[]" type="checkbox" value="{{$permission->name}}" id="permission-{{$permission->id}}">
+                                                <input class="form-check-input module-{{$module->id}}" name="permissions[]" type="checkbox" value="{{$permission->name}}" id="permission-{{$permission->id}}"
+                                                    @if(in_array($permission->name, $rolePermissions)) checked @endif>
                                                 <label class="form-check-label" for="permission-{{$permission->id}}">
-                                                {{ $permission->title }}
+                                                    {{ $permission->title }}
                                                 </label>
                                             </div>
                                         @endforeach

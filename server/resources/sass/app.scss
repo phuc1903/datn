@@ -44,9 +44,7 @@
 }
 
 [data-theme="dark"] {
-    --white: #{$neuture-950};
-    --black: #ffffff;
-    --background: var(--white);
+    --background: #{$neuture-900};
     --foreground: #{$neuture-50};
     --muted: #{$neuture-800};
     --muted-foreground: #{$neuture-400};
@@ -72,6 +70,11 @@
     line-height: normal;
 }
 
+table.table.dataTable > :not(caption) > * > * {
+    background-color: var(--background);
+    color: var(--foreground);
+}
+
 .form-check-input {
     &:checked {
         background-color: var(--primary);
@@ -79,15 +82,14 @@
     }
 }
 
-
 #wrapper #content-wrapper {
     background-color: var(--background-main);
     width: 100%;
-    overflow-x: hidden
+    overflow-x: hidden;
 }
 
 #wrapper #content-wrapper #content {
-    flex: 1 0 auto
+    flex: 1 0 auto;
 }
 
 a {
@@ -95,15 +97,15 @@ a {
 }
 
 .dashboard {
-    background-color: var(--background);
-
     .statistics-card {
         .card-list {
             .card-item {
                 .item {
-                    background-color: var(--muted);
+                    background-color: var(--background);
                     padding: 24px;
                     border-radius: 8px;
+
+                    border: 1px solid var(--muted) !important;
                     cursor: pointer;
 
                     &:hover {
@@ -199,7 +201,7 @@ a {
 
     .statistics-chart {
         .chart-item {
-            background-color: var(--muted);
+            background-color: var(--background);
             padding: 24px;
             border-radius: 8px;
         }
@@ -207,17 +209,16 @@ a {
 
     .statistics-products {
         .title {
-
         }
         .product {
-            background-color: var(--muted);
+            background-color: var(--background);
             padding: 24px;
             min-height: 210px;
+            border: 1px solid var(--muted) !important;
 
             &.combo {
                 height: 120px;
             }
-
 
             .card-body {
                 padding: 0;
@@ -226,7 +227,39 @@ a {
                     color: var(--danger);
                 }
             }
+        }
+    }
+}
 
+.user-feedback {
+    .rating-item {
+        border-bottom: 1px solid var(--muted);
+
+        .top {
+            .image-user-product-fb {
+                width: 50px;
+                height: 50px;
+            }
+
+            .badge {
+                width: fit-content;
+            }
+
+            .stars {
+                .bi-star {
+                    color: var(--primary);
+                }
+                .bi-star-fill {
+                    color: var(--primary);
+                }
+            }
+        }
+
+        .bottom {
+            span {
+                font-size: 1.2rem;
+                color: var(--muted-foreground);
+            }
         }
     }
 }
@@ -251,12 +284,59 @@ a {
     border-radius: 16px;
 }
 
+.combo {
+    .accordion {
+        .accordion-item {
+            border-bottom: 1px solid var(--muted) !important;
+        }
+
+        .accordion-header {
+            .accordion-button {
+                &:not(.collapsed) {
+                    color: var(--foreground);
+                    background-color: var(--background);
+                    box-shadow: none;
+                }
+                .image-product-combo {
+                    height: 80px;
+                    width: 80px;
+                }
+            }
+        }
+
+        .products {
+            padding: 24px;
+            .col {
+                .card {
+                    .image-skus {
+                        width: 100%;
+                        height: 150px;
+                    }
+                    .card-body {
+                        .card-title {
+                            color: var(--primary);
+                            font-size: 1.4rem;
+                        }
+
+                        .card-text {
+                            color: var(--muted-foreground);
+                            font-size: 0.8rem;
+                            text-decoration: line-through;
+                        }
+
+                        .card-quantity {
+                            color: var(--secondary);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 .tab-dashboard {
-    
     .nav-tabs {
-
         .nav-item {
-
             .nav-link {
                 color: var(--secondary);
 
@@ -387,10 +467,6 @@ a {
     object-fit: cover;
 }
 
-.image-product-combo {
-    width: 80px;
-    height: 80px;
-}
 .button-custom {
     width: fit-content;
 
@@ -709,4 +785,56 @@ a.sidebar-children {
 
 .card-setting {
     border-radius: 16px;
+}
+
+.product-blog {
+    &.active {
+        background-color: var(--primary);
+    }
+}
+
+.email-layout {
+    #outlook a {
+        padding: 0;
+    }
+
+    body {
+        width: 100% !important;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: Helvetica, arial, sans-serif;
+    }
+
+    .ExternalClass {
+        width: 100%;
+    }
+
+    .ExternalClass,
+    .ExternalClass p,
+    .ExternalClass span,
+    .ExternalClass font,
+    .ExternalClass td,
+    .ExternalClass div {
+        line-height: 100%;
+    }
+
+    .backgroundTable {
+        margin: 0;
+        padding: 0;
+        width: 100% !important;
+        line-height: 100% !important;
+    }
+
+    .main-temp table {
+        border-collapse: collapse;
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+        font-family: Helvetica, arial, sans-serif;
+    }
+
+    .main-temp table td {
+        border-collapse: collapse;
+    }
 }

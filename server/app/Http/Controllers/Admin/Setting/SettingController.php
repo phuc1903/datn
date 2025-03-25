@@ -9,20 +9,25 @@ use Illuminate\Http\Request;
 class SettingController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Fetch a specific setting by its name, and decode if necessary.
      */
-    public function index()
+    protected function getSettingByKey($key)
     {
-        $setting = Setting::all();
-        return view('Pages.Setting.Index', compact('setting'));
+        $rawSettings = Setting::pluck('value', 'name');
+        
+        $settingValue = $rawSettings->get($key);
+
+        return $settingValue ? (isJson($settingValue) ? json_decode($settingValue, true) : $settingValue) : null;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function index()
     {
-        //
+        // Example: Get a specific setting by key
+        $imageActionSignUpHome = $this->getSettingByKey('imageActionSignUpHome');
+        $announcementBar = $this->getSettingByKey('AnnouncementBar');
+
+        // Pass these settings to your view
+        return view('Pages.Setting.Index', compact('imageActionSignUpHome', 'announcementBar'));
     }
 
     /**
@@ -30,37 +35,55 @@ class SettingController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request);
         try {
-            $name = $request->name;
-    
-            $value = $request->value;
-    
-            if (!empty($value) && is_array($value)) {
-                $value = json_encode($value);
-            }
+            $validated = $request->validate([
+                'supports' => 'array',
+                'supports.*.title' => 'nullable|string|max:255',
+                'supports.*.description' => 'nullable|string|max:255',
+                'AnnouncementBar' => 'nullable|string|max:255',
+            ]);
 
-            if($request->hasFile('value') && $request->file('value')->isValid()) {
-
-                $existingImage = Setting::where('name', $name)->first();
-                if ($existingImage && !empty($existingImage->value)) {
-                    deleteImage($existingImage->value)  ; 
+            foreach ($request->except('_token') as $key => $value) {
+                if ($request->hasFile($key)) {
+                    $existingImage = Setting::where('name', $key)->first();
+                    if ($existingImage && !empty($existingImage->value)) {
+                        deleteImage($existingImage->value);
+                    }
+                    $value = putImage('config_images', $request->file($key));
+                } elseif (is_array($value)) {
+                    $value = json_encode($value);
                 }
 
-                $value = putImage('config_images', $request->file('value'));
+                Setting::updateOrCreate(
+                    ['name' => $key],
+                    ['value' => $value]
+                );
             }
-    
-            Setting::updateOrCreate(
-                ['name' => $name],
-                ['value' => $value],
-            );
-            
+
             return redirect()->back()->with('success', 'Cập nhật thành công');
-        }catch(\Exception $e) {
+        } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
-    public function footer(){
+    /**
+     * Handle logo-specific settings.
+     */
+    public function logo()
+    {
+        $logoHeaderLightMode = $this->getSettingByKey('logoHeaderLightMode');
+        $logoHeaderDarkMode = $this->getSettingByKey('logoHeaderDarkMode');
+        $logoFooterLightMode = $this->getSettingByKey('logoFooterLightMode');
+        $logoFooterDarkMode = $this->getSettingByKey('logoFooterDarkMode');
+        return view('Pages.Setting.Logo', compact('logoHeaderLightMode', 'logoHeaderDarkMode', 'logoFooterLightMode', 'logoFooterDarkMode'));
+    }
+
+    /**
+     * Handle footer-specific settings.
+     */
+    public function footer()
+    {
         $footer = Setting::where('name', 'footer')->first();
         return view('Pages.Setting.Footer', compact('footer'));
     }
