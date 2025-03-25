@@ -7,11 +7,14 @@ use App\Enums\Order\OrderPaymentMethod;
 use App\Enums\Order\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Order\OrderRequest;
+use App\Jobs\SendChangeStatusOrderJob;
+use App\Mail\Order\ChangeStatusOrder;
 use App\Models\District;
 use App\Models\order;
 use App\Models\Province;
 use App\Models\Ward;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -106,35 +109,40 @@ class OrderController extends Controller
      */
     public function update(OrderRequest $request, Order $order)
     {
-        if ($request->has('status') && $request->status === OrderStatus::Cancel) {
-            if ($order->status === OrderStatus::Success) {
-                return redirect()->back()->with('error', 'Đơn đã hoàn thành! Không thể hủy đơn.');
+        try {
+            if ($request->has('status') && $request->status === OrderStatus::Cancel) {
+                if ($order->status === OrderStatus::Success) {
+                    return redirect()->back()->with('error', 'Đơn đã hoàn thành! Không thể hủy đơn.');
+                }
+
+                if (!$request->has('reason') || empty($request->reason)) {
+                    return redirect()->back()->with('error', 'Vui lòng nhập lý do hủy.');
+                }
             }
 
-            if (!$request->has('reason') || empty($request->reason)) {
-                return redirect()->back()->with('error', 'Vui lòng nhập lý do hủy.');
+            $newStatus = OrderStatus::fromValue($request->status);
+
+            if (!$newStatus) {
+                return redirect()->back()->with('error', 'Trạng thái không hợp lệ.');
             }
+
+            $currentStatus = OrderStatus::fromValue($order->status);
+
+            if (!$currentStatus->canTransitionTo($newStatus)) {
+                return redirect()->back()->with('error', 'Không thể chuyển trạng thái này.');
+            }
+
+            $order->update([
+                "status" => $newStatus,
+                "reason" => $request->reason
+            ]);
+
+            dispatch(new SendChangeStatusOrderJob(['email' => $order->email, 'full_name' => $order->full_name, 'status' => $newStatus->label()]));
+
+            return redirect()->back()->with('success', 'Cập nhật trạng thái thành công.');
+        }catch(\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
         }
-
-        $newStatus = OrderStatus::fromValue($request->status);
-
-        if (!$newStatus) {
-            return redirect()->back()->with('error', 'Trạng thái không hợp lệ.');
-        }
-
-        $currentStatus = OrderStatus::fromValue($order->status);
-
-        if (!$currentStatus->canTransitionTo($newStatus)) {
-            return redirect()->back()->with('error', 'Không thể chuyển trạng thái này.');
-        }
-
-        $order->update([
-            "status" => $newStatus,
-            "reason" => $request->reason
-        ]);
-
-
-        return redirect()->back()->with('success', 'Cập nhật trạng thái thành công.');
     }
 
     /**

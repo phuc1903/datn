@@ -93,8 +93,8 @@ Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function 
     // Đánh giá sản phẩm
     Route::prefix('feedback-product')->as('feedback-product.')->controller(FeedbackController::class)->group(function () {
         Route::get('/', 'index')->middleware('permission:viewProductFeedback')->name('index');
-        Route::get('{feedback}/edit', 'edit')->middleware('permission:updateProductFeedback')->name('edit');
-        Route::put('{feedback}', 'update')->middleware('permission:updateProductFeedback')->name('update');
+        Route::get('{product_feedbacks}/edit', 'edit')->middleware('permission:updateProductFeedback')->name('edit');
+        Route::put('{product_feedbacks}', 'update')->middleware('permission:updateProductFeedback')->name('update');
     });
 
     // Thuộc tính sản phẩm
@@ -105,6 +105,7 @@ Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function 
         Route::get('{variant}/edit', 'edit')->middleware('permission:updateProductAttribute')->name('edit');
         Route::put('{variant}', 'update')->middleware('permission:updateProductAttribute')->name('update');
         Route::delete('{variant}', 'destroy')->middleware('permission:deleteProductAttribute')->name('destroy');
+        Route::get('{variant}', 'show')->middleware('permission:viewProductAttribute')->name('show');
     });
 
     // Combo
@@ -189,21 +190,22 @@ Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function 
     Route::prefix('setting')->as('setting.')->controller(SettingController::class)->group(function () {
         // chung
         Route::get('/', 'index')->middleware('permission:viewSetting')->name('index');
-        Route::post('/', 'store')->middleware('permission:createSetting')->name(name: 'store');
+        Route::post('/', 'store')->middleware('permission:createSetting')->name('store');
 
-        Route::post('/support', 'supportStore')->middleware('permission:viewSetting')->name('support.store');
+        // Logo
+        Route::get('/logo', 'logo')->middleware('permission:viewSetting')->name('logo');
 
         // Footer
-        Route::get('/footer', 'footer')->middleware('permission:viewSetting')->name('footer.index');
+        Route::get('/footer', 'footer')->middleware('permission:viewSetting')->name('footer');
 
         // Header
-        Route::get('/header', 'header')->middleware('permission:viewSetting')->name('header.index');
+        Route::get('/header', 'header')->middleware('permission:viewSetting')->name('header');
 
         // About
-        Route::get('/about', 'about')->middleware('permission:viewSetting')->name('about.index');
+        Route::get('/about', 'about')->middleware('permission:viewSetting')->name('about');
 
         // Contact
-        Route::get('/contact', 'contact')->middleware('permission:viewSetting')->name('contact.index');
+        Route::get('/contact', 'contact')->middleware('permission:viewSetting')->name('contact');
     });
 
 

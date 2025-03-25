@@ -13,13 +13,23 @@
                     <div class="card-body">
                         <x-form.input_text label="Tên sản phẩm" name="name" value="{{ $product->name }}" />
                         <div class="form-floating mb-3">
-                            <textarea class="form-control input-text-custom" name="short_description" placeholder="Leave a comment here"
+                            <textarea class="form-control input-text-custom @error('short_description') is-invalid @enderror" name="short_description" placeholder="Leave a comment here"
                                 id="floatingTextarea" style="height: 100px">{{ $product->short_description }}</textarea>
                             <label for="floatingTextarea" class="text-dark-custom">Mô tả ngắn</label>
+                            @error('short_description')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
                         </div>
                         <textarea id="description" class="input-text-custom" name="description">
                             {{ $product->description }}
                         </textarea>
+                        @error('description')
+                            <div class="text-danger mt-2">
+                                {{ $message }}
+                            </div>
+                        @enderror
                     </div>
                 </div>
                 <div class="card card-custom mb-3">
@@ -31,14 +41,12 @@
                                 <option value="variable">Sản phẩm có biến thể</option>
                             </select>
                         </div>
+                        @error('variants')
+                            <div class="text-danger mt-2">
+                                {{ $message }}
+                            </div>
+                        @enderror
                     </div>
-                    {{-- @php
-                        $statusWarehouse = [
-                            ['value' => 'in_stock', 'label' => 'Còn hàng'],
-                            ['value' => 'out_of_stock', 'label' => 'Hết hàng'],
-                        ];
-                    @endphp --}}
-
                     <div class="card-body padding-0 card-type-product">
                         <div id="simple-product" class="h-100">
                             @include('Pages.Product.Components.navtab.edit_navtab_1')

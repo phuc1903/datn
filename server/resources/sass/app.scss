@@ -44,9 +44,7 @@
 }
 
 [data-theme="dark"] {
-    --white: #{$neuture-950};
-    --black: #ffffff;
-    --background: var(--white);
+    --background: #{$neuture-900};
     --foreground: #{$neuture-50};
     --muted: #{$neuture-800};
     --muted-foreground: #{$neuture-400};
@@ -70,6 +68,11 @@
     margin: 0;
     box-sizing: border-box;
     line-height: normal;
+}
+
+table.table.dataTable>:not(caption)>*>* {
+    background-color: var(--background);
+    color: var(--foreground);
 }
 
 .form-check-input {

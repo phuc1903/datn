@@ -220,8 +220,9 @@
                             </li>
 
                         </ul>
+                     
+                        <x-button.index id="toggle-theme" icon="bi bi-sun" />
 
-                        <button id="toggle-theme" class="btn btn-primary">Chuyển chế độ</button>
 
                     </nav>
                     <!-- End of Topbar -->

@@ -66,7 +66,7 @@
                                                 </div>
                                             </div>
                                             <div class="bottom">
-                                                <span>{{ $feedback->comment}}</span>
+                                                <span>Nội dung: {{ $feedback->comment}}</span>
                                             </div>
                                         </div>
                                     @endforeach

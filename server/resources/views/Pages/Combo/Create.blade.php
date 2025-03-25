@@ -48,11 +48,21 @@
                         </div>
 
                         <textarea id="description" class="input-text-custom" name="description"></textarea>
+                        @error('description')
+                            <div class="text-danger mt-2">
+                                {{ $message }}
+                            </div>
+                        @enderror
                     </div>
                 </div>
                 <div class="card card-product mb-3">
                     <div class="card-header">
                         <h5 class="title">Chọn sản phẩm vào combo</h5>
+                        @error('skus')
+                                <div class="text-danger mt-2">
+                                    {{ $message }}
+                                </div>
+                            @enderror
                     </div>
                     <div class="card-body">
                         <div class="accordion" id="addproduct">

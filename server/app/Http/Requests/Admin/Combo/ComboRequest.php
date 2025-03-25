@@ -9,10 +9,10 @@ use BenSampo\Enum\Rules\EnumValue;
 class ComboRequest extends BaseRequest
 {
     protected $customMessage = [
-        'title.required' => 'Vui lòng nhập Tiêu đề.',
-        'title.string' => 'Tiêu đề phải là một chuỗi.',
-        'title.max' => 'Tiêu đề không được vượt quá 255 ký tự.',
-        'title.min' => 'Tiêu đề ít nhất 10 ký tự',
+        'name.required' => 'Vui lòng nhập Tên combo.',
+        'name.string' => 'Tên combo phải là một chuỗi.',
+        'name.max' => 'Tên combo không được vượt quá 255 ký tự.',
+        'name.min' => 'Tên combo ít nhất 10 ký tự',
 
         'short_description.required' => 'Vui lòng nhập Mô tả ngắn.',
         'short_description.string' => 'Mô tả ngắn phải là một chuỗi.',
@@ -30,6 +30,29 @@ class ComboRequest extends BaseRequest
         'slug.string' => 'Slug phải là chuỗi',
 
         'status.required' => 'Vui lòng chọn trạng thái',
+        'is_hot.required' => "Vui lòng chọn độ hot của combo",
+
+        'quantity.required' => "Vui lòng nhập số lượng",
+        'quantity.numeric' => "Số lượng phải là số",
+        'quantity.max' => "Số lượng chỉ được dưới 1000",
+
+        'price.required' => "Vui lòng nhập giá",
+        'price.numeric' => "Giá phải là số",
+
+        'promotion_price.required' => "Vui lòng nhập giá khuyến mãi",
+        'promotion_price.numeric' => "Giá khuyến mãi phải là số",
+
+        'date_start.required' => 'Ngày bắt đầu là bắt buộc.',
+        'date_start.date' => 'Ngày bắt đầu phải có định dạng ngày hợp lệ.',
+        'date_start.before' => 'Ngày bắt đầu phải trước ngày kết thúc.',
+
+        'date_end.required' => 'Ngày kết thúc là bắt buộc.',
+        'date_end.date' => 'Ngày kết thúc phải có định dạng ngày hợp lệ.',
+        'date_end.after' => 'Ngày kết thúc phải sau ngày bắt đầu.',
+
+        'skus.required' => "Vui lòng chọn sản phẩm",
+        'skus.array' => "Sản phẩm phải là mảng",
+        'skus.min' => "Chọn ít nhất 2 sản phẩm",
     ];
     /**
      * Get the validation rules that apply to the request.
@@ -39,24 +62,38 @@ class ComboRequest extends BaseRequest
     protected function methodPost(): array
     {
         return [
-            'title' => ['required', 'string', 'min:10', 'max:255'],
+            'name' => ['required', 'string', 'min:10', 'max:255'],
             'slug' => ['nullable', 'string'],
             'short_description' => ['required', 'string', 'min:10', 'max:500'],
             'description' => ['required', 'string', 'min:20'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'status' => ['required', new EnumValue(BlogStatus::class)],
+            'is_hot' => ['required'],
+            'quantity' => ['required', 'numeric', 'max:4'],
+            'price' => ['required', 'numeric'],
+            'promotion_price' => ['required', 'numeric'],
+            'date_start' => ['required', 'date', 'before:date_end'],
+            'date_end' => ['required', 'date', 'after:date_start'],
+            'skus' => ['required', 'array', 'min:1'],
         ];
     }
 
     protected function methodPut(): array
     {
         return [
-            'title' => ['required', 'string', 'min:10', 'max:255'],
+            'name' => ['required', 'string', 'min:10', 'max:255'],
             'slug' => ['nullable', 'string'],
             'short_description' => ['required', 'string', 'min:10', 'max:500'],
             'description' => ['required', 'string', 'min:20'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'status' => ['required', new EnumValue(BlogStatus::class)],
+            'is_hot' => ['required'],
+            'quantity' => ['required', 'numeric', 'max:4'],
+            'price' => ['required', 'numeric'],
+            'promotion_price' => ['required', 'numeric'],
+            'date_start' => ['required', 'date', 'before_or_equal:date_end'],
+            'date_end' => ['required', 'date', 'after_or_equal:date_start'],
+            'skus' => ['required', 'array', 'min:1'],
         ];
     }
 }

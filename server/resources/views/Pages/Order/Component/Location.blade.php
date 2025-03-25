@@ -1,6 +1,6 @@
 
 <div class="selectLocation">
-    <h5 class="mb-3">Lọc theo địa chỉ</h5>
+    <h5 class="mb-3 text-dark-custom">Lọc theo địa chỉ</h5>
     <div class="mb-3 d-block d-md-flex gap-3">
         <select id="provinces" class="form-select mb-3">
             <option value="" selected>Chọn Tỉnh/Thành Phố</option>

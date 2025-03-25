@@ -13,9 +13,9 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-12 col-md-6">
-                                <h5 class="mb-3">Thông tin chung</h5>
+                                <h5 class="mb-3 text-dark-custom">Thông tin chung</h5>
                                 <div class="mb-3">
-                                    <label for="note" class="form-label">Ghi chú đơn hàng của khách hàng</label>
+                                    <label for="note" class="form-label text-dark-custom">Ghi chú đơn hàng của khách hàng</label>
                                     <textarea class="form-control" name="note" disabled id="note" rows="3">{{ $order->note }}</textarea>
                                   </div>
                                 <div class="mb-3">
@@ -29,7 +29,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
-                                <h5 class="mb-3">Thông tin giao hàng</h5>
+                                <h5 class="mb-3 text-dark-custom">Thông tin giao hàng</h5>
                                 <x-form.input_text label="Họ và tên" value="{{ $order->full_name }}" name="full_name"
                                     disabled />
                                 <x-form.input_text label="Email" value="{{ $order->email }}" name="email" disabled />

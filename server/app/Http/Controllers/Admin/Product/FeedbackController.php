@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin\Product;
 
+use App\DataTables\Product\FeedbackDataTable;
+use App\Enums\Product\ProductFeedbackStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ProductFeedback;
 use Illuminate\Http\Request;
@@ -11,41 +13,26 @@ class FeedbackController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(FeedbackDataTable $dataTable)
     {
-        return view('Pages.Product.Feedback.Index');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(ProductFeedback $productFeedback)
-    {
-        //
+        return $dataTable->render('Pages.Product.Feedback.Index');
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(ProductFeedback $productFeedback)
+    public function edit($id)
     {
-        //
+        $feedback = ProductFeedback::with('user', 'sku', 'sku.product', 'sku.variantValues', 'order')->find($id);
+
+        $statusEnum = ProductFeedbackStatus::fromValue($feedback->status);
+        $sta = [
+            'value' => $statusEnum->value,
+            'label' =>  $statusEnum->label()
+        ];
+
+        $status = mapEnumToArray(ProductFeedbackStatus::class, $feedback->status);
+        return view('Pages.Product.Feedback.Edit', compact('feedback', 'status', 'sta'));
     }
 
     /**
@@ -53,14 +40,6 @@ class FeedbackController extends Controller
      */
     public function update(Request $request, ProductFeedback $productFeedback)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(ProductFeedback $productFeedback)
-    {
-        //
+        
     }
 }

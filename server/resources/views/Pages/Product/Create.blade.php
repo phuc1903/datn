@@ -12,30 +12,40 @@
                     <div class="card-body">
                         <x-form.input_text label="Tên sản phẩm" name="name" />
                         <div class="form-floating mb-3">
-                            <textarea class="form-control input-text-custom" name="short_description" placeholder="Leave a comment here"
+                            <textarea class="form-control input-text-custom @error('short_description') is-invalid @enderror"
+                                value="{{ old('short_description') }}" name="short_description" placeholder="Leave a comment here"
                                 id="floatingTextarea" style="height: 100px"></textarea>
                             <label for="floatingTextarea" class="text-dark-custom">Mô tả ngắn</label>
+                            @error('short_description')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
                         </div>
+
                         <textarea id="description" class="input-text-custom" name="description"></textarea>
+                        @error('description')
+                            <div class="text-danger mt-2">
+                                {{ $message }}
+                            </div>
+                        @enderror
                     </div>
                 </div>
                 <div class="card card-custom mb-3">
                     <div class="card-header">
                         <div class="mb-3 d-flex gap-3 align-items-center">
                             <label for="product-type" class="form-label text-dark-custom mb-0">Dữ liệu sản phẩm</label>
-                            <select id="product-type" class="form-select input-text-custom select-type-data-product">
+                            <select id="product-type" name="type" class="form-select input-text-custom select-type-data-product">
                                 <option value="simple">Sản phẩm đơn giản</option>
                                 <option value="variable">Sản phẩm có biến thể</option>
                             </select>
                         </div>
+                        @error('variants')
+                            <div class="text-danger mt-2">
+                                {{ $message }}
+                            </div>
+                        @enderror
                     </div>
-                    {{-- @php
-                        $statusWarehouse = [
-                            ['value' => 'in_stock', 'label' => 'Còn hàng'],
-                            ['value' => 'out_of_stock', 'label' => 'Hết hàng'],
-                        ];
-                    @endphp --}}
-
                     <div class="card-body padding-0 card-type-product">
                         <div id="simple-product" class="h-100">
                             @include('Pages.Product.Components.navtab.navtab_1')
