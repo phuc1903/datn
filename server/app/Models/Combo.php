@@ -30,4 +30,9 @@ class Combo extends Model
     {
         return $this->belongsToMany(Category::class, 'product_categories');
     }
+
+    public function getImageUrlAttribute($value)
+    {
+        return $value ? asset($value) : null;
+    }
 }
