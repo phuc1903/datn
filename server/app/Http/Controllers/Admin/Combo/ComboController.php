@@ -88,11 +88,7 @@ class ComboController extends Controller
     {
         $combo->load('skus', 'skus.variantValues')->get();
 
-        $comboSkus = $combo->skus->pluck('id')->toArray();
-
-        // dd($combo);
-
-        $products = Product::with('skus', 'skus.variantValues')->limit(10)->get();
+        $skus = Sku::with('product', 'variantValues')->get();
 
         $categories = Category::all();
 
@@ -123,8 +119,7 @@ class ComboController extends Controller
                 'h',
                 'hot',
                 'categories',
-                'products',
-                'comboSkus',
+                'skus',
             )
         );
     }

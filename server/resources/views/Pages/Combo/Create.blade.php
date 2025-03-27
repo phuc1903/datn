@@ -160,7 +160,10 @@
     <script>
         CKEDITOR.replace('description', {
             language: 'vi',
-            height: 300
+            height: 300,
+            contentsCss: [
+                'body { background-color: var(--background) !important; color: var(--foreground) !important;}',
+            ],
         });
     </script>
 @endpush

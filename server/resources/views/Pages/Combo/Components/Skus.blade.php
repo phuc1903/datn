@@ -1,8 +1,8 @@
 <div class="modal fade" id="choseSkus" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content bg-white-custom">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Chọn sản phẩm</h1>
+                <h1 class="modal-title fs-5 text-dark-custom" id="exampleModalLabel">Chọn sản phẩm</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -14,13 +14,13 @@
                                 <div class="content d-flex">
                                     <x-image.index class="image-sku-combo" src="{{ $sku->image_url}}" alt="{{ $sku->product->name}}" />
                                     <div class="ms-2">
-                                        <p class="mb-2 line-champ-2 name-sku-combo">{{ $sku->product->name }}</p>
+                                        <p class="mb-2 line-champ-2 name-sku-combo text-dark-custom">{{ $sku->product->name }}</p>
                                         @if (isset($sku->variantValues) && $sku->variantValues->count() > 0)
                                             <span class="badge bg-secondary variant-values">
                                                 {{ implode(' - ', $sku->variantValues->pluck('value')->toArray()) }}
                                             </span>
                                         @endif
-                                        <span class="price-sku-combo fs-5 d-block mt-2">{{ number_format ($sku->promotion_price, 2, '.', '.') }} VNĐ <del class="fs-6 text-neuture"> {{ number_format ($sku->price, 2, '.', '.') }} </del></span>
+                                        <span class="price-sku-combo fs-5 d-block mt-2 text-dark-custom">{{ number_format ($sku->promotion_price, 2, '.', '.') }} VNĐ <del class="fs-6 text-neuture"> {{ number_format ($sku->price, 2, '.', '.') }} </del></span>
                                     </div>
                                 </div>
                                 <div class="button-warp ms-2">

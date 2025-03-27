@@ -21,6 +21,21 @@ window.Chart = Chart;
 
 
 $(document).ready(function() {
+
+    var addedSkuIds = [];
+    $('.sku.loadData').each(function() {
+        var skuId = $(this).data('sku-id');
+        addedSkuIds.push(skuId);
+    });
+
+    $('.modal-body .add-sku-combo').each(function() {
+        var skuId = $(this).data('sku-id');
+        
+        if (addedSkuIds.includes(skuId)) {
+            $(this).prop('disabled', true).text("Đã thêm");
+        }
+    });
+
     $('.add-sku-combo').on('click', function() {
         var skuId = $(this).data('sku-id'); 
 
@@ -36,9 +51,9 @@ $(document).ready(function() {
                 <div class="content d-flex">
                     <image class="image-sku-combo" src="${skuImage}" alt="${skuName}" />
                     <div class="ms-2">
-                        <p class="name-sku-combo mb-2 line-champ-2">${skuName}</p>
+                        <p class="name-sku-combo mb-2 line-champ-2 text-dark-custom">${skuName}</p>
                         ${variantValues ? `<span class="badge bg-secondary">${variantValues}</span>` : ''}
-                        <span class="price-sku-combo fs-5 d-block mt-2">${skuPrice}</span>
+                        <span class="price-sku-combo fs-5 d-block mt-2 text-dark-custom">${skuPrice}</span>
                     </div>
                 </div>
                 <div class="button-warp ms-2">
@@ -69,6 +84,21 @@ $(document).ready(function() {
 });
 
 $(document).ready(function() {
+
+    var addedProductIds = [];
+    $('.product.loadData').each(function() {
+        var productId = $(this).data('product-id');
+        addedProductIds.push(productId);
+    });
+
+    $('.modal-body .add-product-blog').each(function() {
+        var productId = $(this).data('product-id');
+        
+        if (addedProductIds.includes(productId)) {
+            $(this).prop('disabled', true).text("Đã thêm");
+        }
+    });
+
     $('.add-product-blog').on('click', function() {
         var productId = $(this).data('product-id');
 
@@ -83,8 +113,8 @@ $(document).ready(function() {
                                 <div class="content d-flex">
                                     <image class="image-product-blog" src="${productImage}" alt="${productName}" />
                                     <div class="ms-2">
-                                        <p class="mb-2 line-champ-2 name-product-blog">${productName}</p>
-                                        <span class="description-product-blog line-champ-2 mt-2">${productDescription}</span>
+                                        <p class="mb-2 line-champ-2 name-product-blog text-dark-custom">${productName}</p>
+                                        <span class="description-product-blog line-champ-2 mt-2 text-dark-custom">${productDescription}</span>
                                     </div>
                                 </div>
                                 <div class="button-warp ms-2">

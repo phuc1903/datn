@@ -107,7 +107,7 @@ class BlogController extends Controller
 
         $status = mapEnumToArray(BlogStatus::class, $blog->status);
 
-        $blog->load('products');
+        $blog->load('products', 'products.skus');
         $products = Product::with('skus')->get();
 
         return view('Pages.Blog.Edit', compact('blog', 'status', 'sta', 'products'));
