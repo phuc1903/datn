@@ -12,6 +12,7 @@ use App\Models\Combo;
 use App\Models\ComboProducts;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\Sku;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -22,29 +23,26 @@ class ComboController extends Controller
         return $dataTable->render('Pages.Combo.Index');
     }
 
-    public function create()
+    public function create(Request $request)
     {
-
-        $products = Product::with('skus', 'skus.variantValues')->limit(10)->get();
+        $skus = Sku::with('product', 'variantValues')->get();
 
         $categories = Category::all();
 
         $status = ComboStatus::getKeyValuePairs();
         $hots = ComboHot::getKeyValuePairs();
 
-        return view('Pages.Combo.Create', compact('products', 'categories', 'status', 'hots'));
+        return view('Pages.Combo.Create', compact('skus', 'categories', 'status', 'hots'));
     }
 
     public function store(ComboRequest $request)
     {
-        // dd($request);
         try {
             if ($request->hasFile('image_url')) {
                 $pathImage = putImage('combo_images', $request->image_url);
             } else {
                 $pathImage = config('settings.image_default');
             }
-
 
             $combo = Combo::create([
                 'admin_id' => auth()->id(),

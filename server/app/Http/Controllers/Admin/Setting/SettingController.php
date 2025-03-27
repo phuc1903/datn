@@ -8,42 +8,26 @@ use Illuminate\Http\Request;
 
 class SettingController extends Controller
 {
-    /**
-     * Fetch a specific setting by its name, and decode if necessary.
-     */
-    protected function getSettingByKey($key)
-    {
-        $rawSettings = Setting::pluck('value', 'name');
-        
-        $settingValue = $rawSettings->get($key);
-
-        return $settingValue ? (isJson($settingValue) ? json_decode($settingValue, true) : $settingValue) : null;
-    }
-
+   
     public function index()
     {
-        // Example: Get a specific setting by key
-        $imageActionSignUpHome = $this->getSettingByKey('imageActionSignUpHome');
-        $announcementBar = $this->getSettingByKey('AnnouncementBar');
+        $settings = Setting::all()->pluck('value', 'name')->map(function ($value) {
+            if (is_string($value) && json_decode($value) !== null) {
+                return json_decode($value, true);
+            }
+            return $value;
+        });
 
-        // Pass these settings to your view
-        return view('Pages.Setting.Index', compact('imageActionSignUpHome', 'announcementBar'));
+        return view('Pages.Setting.Index', compact('settings'));
     }
+
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        // dd($request);
         try {
-            $validated = $request->validate([
-                'supports' => 'array',
-                'supports.*.title' => 'nullable|string|max:255',
-                'supports.*.description' => 'nullable|string|max:255',
-                'AnnouncementBar' => 'nullable|string|max:255',
-            ]);
-
             foreach ($request->except('_token') as $key => $value) {
                 if ($request->hasFile($key)) {
                     $existingImage = Setting::where('name', $key)->first();
@@ -60,31 +44,10 @@ class SettingController extends Controller
                     ['value' => $value]
                 );
             }
-
             return redirect()->back()->with('success', 'Cập nhật thành công');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
-    /**
-     * Handle logo-specific settings.
-     */
-    public function logo()
-    {
-        $logoHeaderLightMode = $this->getSettingByKey('logoHeaderLightMode');
-        $logoHeaderDarkMode = $this->getSettingByKey('logoHeaderDarkMode');
-        $logoFooterLightMode = $this->getSettingByKey('logoFooterLightMode');
-        $logoFooterDarkMode = $this->getSettingByKey('logoFooterDarkMode');
-        return view('Pages.Setting.Logo', compact('logoHeaderLightMode', 'logoHeaderDarkMode', 'logoFooterLightMode', 'logoFooterDarkMode'));
-    }
-
-    /**
-     * Handle footer-specific settings.
-     */
-    public function footer()
-    {
-        $footer = Setting::where('name', 'footer')->first();
-        return view('Pages.Setting.Footer', compact('footer'));
-    }
 }

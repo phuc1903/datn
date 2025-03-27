@@ -31,10 +31,10 @@
 		
 		<div class="mb-5 tab-dashboard">
 			<ul class="nav nav-tabs" id="tabDashboard" role="tablist">
-				<x-dashboard.tab.nav_item label="Sản phẩm hết hàng" id="productOutOfStock" active />
-				<x-dashboard.tab.nav_item label="Sản phẩm bán chạy" id="productBestSeller"/>
-				<x-dashboard.tab.nav_item label="Combo hết hàng" id="comboOutOfStock"/>
-				<x-dashboard.tab.nav_item label="Combo bán chạy" id="comboBestSeller"/>
+				<x-tab.nav_item label="Sản phẩm hết hàng" id="productOutOfStock" active />
+				<x-tab.nav_item label="Sản phẩm bán chạy" id="productBestSeller"/>
+				<x-tab.nav_item label="Combo hết hàng" id="comboOutOfStock"/>
+				<x-tab.nav_item label="Combo bán chạy" id="comboBestSeller"/>
 			</ul>
 	
 			<div class="tab-content mt-5" id="tabDashboardContent">

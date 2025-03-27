@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Admin\Combo;
 
-use App\Enums\Blog\BlogStatus;
+use App\Enums\Combo\ComboStatus;
 use App\Http\Requests\Admin\BaseRequest;
 use BenSampo\Enum\Rules\EnumValue;
 
@@ -67,9 +67,9 @@ class ComboRequest extends BaseRequest
             'short_description' => ['required', 'string', 'min:10', 'max:500'],
             'description' => ['required', 'string', 'min:20'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-            'status' => ['required', new EnumValue(BlogStatus::class)],
+            'status' => ['required', new EnumValue(ComboStatus::class)],
             'is_hot' => ['required'],
-            'quantity' => ['required', 'numeric', 'max:4'],
+            'quantity' => ['required', 'numeric', 'max:100'],
             'price' => ['required', 'numeric'],
             'promotion_price' => ['required', 'numeric'],
             'date_start' => ['required', 'date', 'before:date_end'],
@@ -86,9 +86,9 @@ class ComboRequest extends BaseRequest
             'short_description' => ['required', 'string', 'min:10', 'max:500'],
             'description' => ['required', 'string', 'min:20'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-            'status' => ['required', new EnumValue(BlogStatus::class)],
+            'status' => ['required', new EnumValue(ComboStatus::class)],
             'is_hot' => ['required'],
-            'quantity' => ['required', 'numeric', 'max:4'],
+            'quantity' => ['required', 'numeric', 'max:100'],
             'price' => ['required', 'numeric'],
             'promotion_price' => ['required', 'numeric'],
             'date_start' => ['required', 'date', 'before_or_equal:date_end'],

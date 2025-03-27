@@ -426,6 +426,9 @@ class OrderController extends Controller
                 'items.sku' => function ($query) {
                     $query->select('id', 'product_id', 'price');
                 },
+                'items.sku.variantValues' => function ($query) {
+                    $query->select('value');
+                },
                 'items.sku.product' => function ($query) {
                     $query->select('id', 'name', 'description');
                 },
