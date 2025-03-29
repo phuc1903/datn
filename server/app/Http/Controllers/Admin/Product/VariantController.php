@@ -32,7 +32,6 @@ class VariantController extends Controller
      */
     public function store(VariantRequest $request)
     {
-        dd($request);
         try {
             $variant = Variant::create(['name' => $request->name]);
 
@@ -89,7 +88,7 @@ class VariantController extends Controller
                 }
             }
 
-            return redirect()->route('admin.variant.index')->with('success', 'Cập nhật thuộc tính thành công');
+            return redirect()->back()->with('success', 'Cập nhật thuộc tính thành công');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }

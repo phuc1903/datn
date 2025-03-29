@@ -129,7 +129,7 @@ class UserController extends Controller
             // Lấy user kèm theo danh sách vouchers
             $vouchers = User::with(['vouchers' => function ($query) {
                 $query->where('status', VoucherStatus::Active);
-            }, 'vouchers.productVoucher'])
+            }])
                 ->find($user->id);
 
             // Trả về danh sách vouchers của user

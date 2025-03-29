@@ -19,7 +19,7 @@ window.TomSelect = TomSelect;
 window.toastr = toastr;
 window.Chart = Chart;
 
-
+// chose sku in combo
 $(document).ready(function() {
 
     var addedSkuIds = [];
@@ -83,6 +83,7 @@ $(document).ready(function() {
     });
 });
 
+// chose product in blog
 $(document).ready(function() {
 
     var addedProductIds = [];
@@ -143,8 +144,6 @@ $(document).ready(function() {
         $(this).closest('.product').remove();
     });
 });
-
-
 
 
 $(".accordion-header").on("click", function (e) {
@@ -418,15 +417,15 @@ $(document).ready(function () {
                             <div class="w-100"> 
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Giá bán (đ)</label>
-                                    <input class="form-control variant-price" data-index="${index}" value="${price}" min="0" required>
+                                    <input class="form-control variant-price numeric" data-index="${index}" value="${price}" min="0" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Giá khuyến mãi (đ)</label>
-                                    <input class="form-control variant-promotion-price" data-index="${index}" value="${promotion_price}" min="0">
+                                    <input class="form-control variant-promotion-price numeric" data-index="${index}" value="${promotion_price}" min="0">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Số lượng</label>
-                                    <input class="form-control variant-quantity" data-index="${index}" value="${quantity}" min="1" required>
+                                    <input class="form-control variant-quantity numeric" type="number" data-index="${index}" value="${quantity}" min="1" required>
                                 </div>   
                                 <button type="button" class="btn btn-danger remove-variant" data-variant-index="${index}">Xóa biến thể này</button>
                             </div>
@@ -660,6 +659,8 @@ $(document).ready(function () {
     addSlug();
     selectedModules();
     checkSkusCombo();
+    checkQuantity();
+    uploadThumbnailProduct();
 
     function addSlug() {
         function createSlug(str) {
@@ -1120,5 +1121,64 @@ $(document).ready(function () {
             }
         });
     }
+
+    function checkQuantity() {
+        $(document).on('keypress', '.numeric', function (e) {
+            let charCode = e.which ? e.which : e.keyCode;
+            if (charCode < 48 || charCode > 57) {
+                e.preventDefault();
+            }
+        });
+    
+        $(document).on('blur change', '.numeric', function () {
+            let val = parseInt($(this).val().toString().trim());
+    
+            if (isNaN(val) || val < 1) {
+                $(this).val(1);
+            }
+        });
+    }
+
+
+    function uploadThumbnailProduct() {
+        $(document).on('click', '.close-btn', function() {
+            $(this).closest('.image-container').remove();
+        });
+        
+        function imagePreview(name) {
+            return `
+                <div class="col image-container" id="image-${name}">
+                    <input type="file" id="upload-${name}" name="thumbnails[]" hidden />
+                    <img class="w-100 h-100" id="preview-${name}" src="" alt="Image Preview" />
+                    <button type="button" class="close-btn"><i class="bi bi-x"></i></button>
+                </div>
+            `;
+        }
+    
+        $("#uploadThumbnaiProduct").on('click', function() {
+            const name = new Date().getTime();
+            
+            $("#thumbnails").append(imagePreview(name));
+            
+            const fileInput = $(`#upload-${name}`);
+            
+            fileInput[0].click();
+            
+            fileInput.on('change', function(event) {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+            
+                reader.onload = function(e) {
+                    $(`#preview-${name}`).attr("src", e.target.result);
+                };
+            
+                if (file) {
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    }
+    
+    
     
 });

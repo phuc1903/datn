@@ -38,9 +38,11 @@ class ComboRequest extends BaseRequest
 
         'price.required' => "Vui lòng nhập giá",
         'price.numeric' => "Giá phải là số",
+        'price.max' => "Giá tối đa là 999.999.999 VNĐ",
 
         'promotion_price.required' => "Vui lòng nhập giá khuyến mãi",
         'promotion_price.numeric' => "Giá khuyến mãi phải là số",
+        'promotion_price.max' => "Giá khuyến mãi tối đa là 999.999.999 VNĐ",
 
         'date_start.required' => 'Ngày bắt đầu là bắt buộc.',
         'date_start.date' => 'Ngày bắt đầu phải có định dạng ngày hợp lệ.',
@@ -70,8 +72,8 @@ class ComboRequest extends BaseRequest
             'status' => ['required', new EnumValue(ComboStatus::class)],
             'is_hot' => ['required'],
             'quantity' => ['required', 'numeric', 'max:100'],
-            'price' => ['required', 'numeric'],
-            'promotion_price' => ['required', 'numeric'],
+            'price' => ['required', 'numeric', 'max:999999999'],
+            'promotion_price' => ['required', 'numeric', 'max:999999999'],
             'date_start' => ['required', 'date', 'before:date_end'],
             'date_end' => ['required', 'date', 'after:date_start'],
             'skus' => ['required', 'array', 'min:1'],
@@ -89,8 +91,8 @@ class ComboRequest extends BaseRequest
             'status' => ['required', new EnumValue(ComboStatus::class)],
             'is_hot' => ['required'],
             'quantity' => ['required', 'numeric', 'max:100'],
-            'price' => ['required', 'numeric'],
-            'promotion_price' => ['required', 'numeric'],
+            'price' => ['required', 'numeric', 'max:999999999'],
+            'promotion_price' => ['required', 'numeric', 'max:999999999'],
             'date_start' => ['required', 'date', 'before_or_equal:date_end'],
             'date_end' => ['required', 'date', 'after_or_equal:date_start'],
             'skus' => ['required', 'array', 'min:1'],

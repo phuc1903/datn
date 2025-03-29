@@ -122,7 +122,7 @@ abstract class BaseDataTable extends DataTable
         $deleteUrl = route('admin.' . $this->routeName . '.destroy', $row->id);
 
         $buttons = '<div class="d-flex gap-2">
-        <a class="btn btn-warning text-white" href="' . $editUrl . '">Sửa</a>';
+        <a class="btn btn-warning text-white" href="' . $editUrl . '">Xem</a>';
 
         if (!$this->deleteItem) {
             $buttons .= '<form action="' . $deleteUrl . '" method="POST" class="d-inline">
@@ -197,10 +197,7 @@ abstract class BaseDataTable extends DataTable
                     const provinces = $("#provinces").val();
                     const districts = $("#districts").val();
                     const wards = $("#wards").val();
-
-                    if (provinces && districts && wards) {
-                        table.ajax.reload();
-                    }
+                    table.ajax.reload();
                 });
 
             }'

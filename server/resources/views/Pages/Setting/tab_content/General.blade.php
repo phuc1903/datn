@@ -83,9 +83,30 @@
                 </div>
             </div>
         </div>
+        <div class="col mb-4">
+            <div class="bg-white-custom p-4 card-setting">
+                <h4 class="title text-dark-custom mb-4">
+                    Banner giới thiệu Voucher Trang Chủ
+                </h4>
+                <div class="body">
+                    <form action="{{ route('admin.setting.store')}}" method="post" enctype="multipart/form-data">
+                        @csrf
+                        <x-image.index id="image-introduce-voucher" class="mb-3 img-fluid image-setting-banner"
+                            style="width: 300px; height: 300px;" :src="isset($settings['imageIntroduceVoucher']) ? asset($settings['imageIntroduceVoucher']) : config('settings.image_default')"
+                            alt="Logo Header Light Mode" />
+                        <x-button.index label="Tải ảnh" onclick="chooseImage('image-introduce-voucher')" color="outline" />
+                        <x-form.input_text hidden id="file-image-introduce-voucher"
+                            onchange="previewImage(this, 'image-introduce-voucher');" type="file"
+                            accept="image/png, image/jpeg, image/jpg" name="imageIntroduceVoucher" />
+                        <x-button type="submit" label="Cập nhật" style="margin-left: auto" />
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 @push('scripts')
     <x-script.upload_images idPreview="image-action-sign-up-home" inputId="file-image-action-sign-up-home" />
+    <x-script.upload_images idPreview="image-introduce-voucher" inputId="file-image-introduce-voucher" />
 @endpush

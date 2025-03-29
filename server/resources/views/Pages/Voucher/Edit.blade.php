@@ -17,7 +17,7 @@
 
                         <div class="row mb-3">
                             <div class="col-12 col-md-6">
-                                <x-form.input_text label="Số lượng" name="quantity" type="number"
+                                <x-form.input_text label="Số lượng" name="quantity" type="number" class="numeric"
                                     value="{{$voucher->quantity}}" />
                             </div>
                             <div class="col-12 col-md-6">
@@ -39,15 +39,15 @@
                                 @php
                                     $class = $checkTypePercent ? "percent" : 'price';
                                 @endphp
-                                <x-form.input_text label="Giá trị giảm" name="discount_value" class="{{$class}}"
+                                <x-form.input_text label="Giá trị giảm" name="discount_value" class="{{$class}} numeric"
                                     value="{{ old('discount_value', $voucher->discount_value) }}" />
                             </div>
                             <div id="max_discount_value" class="col-12 col-md-4">
-                                <x-form.input_text label="Giảm tối đa" name="max_discount_value" class="price value"
+                                <x-form.input_text label="Giảm tối đa" name="max_discount_value" class="price value numeric"
                                     value="{{$voucher->max_discount_value}}" />
                             </div>
                             <div class="col-12 col-md-4">
-                                <x-form.input_text label="Đơn hàng tối thiểu" name="min_order_value" class="price"
+                                <x-form.input_text label="Đơn hàng tối thiểu" name="min_order_value" class="price numeric"
                                     value="{{$voucher->min_order_value}}" />
                             </div>
                         </div>

@@ -16,13 +16,13 @@
 
                         <div class="row mb-3">
                             <div class="col-12 col-md-2">
-                                <x-form.input_text label="Số lượng" name="quantity" type="number" />
+                                <x-form.input_text label="Số lượng" name="quantity" class="numeric" type="number" />
                             </div>
                             <div class="col-12 col-md-5">
-                                <x-form.input_text label="Giá" name="price" class="price" />
+                                <x-form.input_text label="Giá" name="price" class="price numeric" />
                             </div>
                             <div class="col-12 col-md-5">
-                                <x-form.input_text label="Giá giảm" name="promotion_price" class="price"  />
+                                <x-form.input_text label="Giá giảm" name="promotion_price" class="price numeric"  />
                             </div>
                         </div>
 

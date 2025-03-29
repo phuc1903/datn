@@ -37,7 +37,7 @@
                     </select>
                 </div> --}}
                 
-                <x-form.input_text label="Số lượng sản phẩm" name="quantity" value="{{ $skus->first()->quantity }}" />
+                <x-form.input_text label="Số lượng sản phẩm" name="quantity" type="number" class="numeric" value="{{ $skus->first()->quantity }}" />
             </div>
             {{-- Nội dung Các thuộc tính --}}
             <div class="tab-pane fade" id="attributes-pane" role="tabpanel" aria-labelledby="attributes-tab"

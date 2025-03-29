@@ -38,6 +38,20 @@ class ComboController extends Controller
     public function store(ComboRequest $request)
     {
         try {
+            if ($request->has('quantity')) {
+                $requestedQty = (int) $request->quantity;
+            
+                $skus = Sku::whereIn('id', $request->skus)->get();
+            
+                foreach ($skus as $item) {
+                    if ($item->quantity < $requestedQty + 4) {
+                        return redirect()->back()->with('error', 'Sản phẩm '.$item->id.' không đủ số lượng');
+                    }
+                    $quantitySkuNew = $item->quantity - $requestedQty;
+                    $item->update(['quantity' => $quantitySkuNew]);
+                }
+            }
+
             if ($request->hasFile('image_url')) {
                 $pathImage = putImage('combo_images', $request->image_url);
             } else {
@@ -61,6 +75,7 @@ class ComboController extends Controller
             ]);
 
 
+
             if (isset($request->categories)) {
                 foreach ($request->categories as $cate) {
                     ProductCategory::insert(['combo_id' => $combo->id, 'category_id' => $cate]);
@@ -72,7 +87,7 @@ class ComboController extends Controller
                     ComboProducts::create([
                         'combo_id' => $combo->id,
                         'sku_id' => $sku,
-                        'quantity' => 1
+                        'quantity' => $request->quantity,
                     ]);
                 }
             }
