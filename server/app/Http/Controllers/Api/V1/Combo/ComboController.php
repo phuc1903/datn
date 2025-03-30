@@ -15,13 +15,15 @@ class ComboController extends Controller
     {
         try {
             $combo = Combo::with([
-                'skus'
+                'skus' => function ($query) {
+                    $query->with(['product', 'variantValues.variant']) // Load product và variants
+                    ->withPivot('quantity'); // Lấy quantity từ bảng trung gian
+                }
             ])->find($id);
 
             if (!$combo) {
                 return ResponseError('Combo not found', null, 404);
             }
-
 
             return ResponseSuccess('Combo retrieved successfully.', $combo, 200);
         } catch (\Exception $e) {
