@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\Tag\TagController;
 use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\Admin\Voucher\VoucherController;
 use App\Http\Controllers\Admin\Permission\PermissionController;
+use App\Models\Order;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
