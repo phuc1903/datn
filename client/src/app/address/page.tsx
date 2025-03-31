@@ -3,9 +3,27 @@
 import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import Swal from "sweetalert2";
+import { API_BASE_URL } from "@/config/config";
+
+interface Location {
+  code: string;
+  full_name: string;
+  districts: District[];
+}
+
+interface District {
+  code: string;
+  full_name: string;
+  wards: Ward[];
+}
+
+interface Ward {
+  code: string;
+  full_name: string;
+}
 
 export default function AddAddressPage() {
-  const [locations, setLocations] = useState<any>(null);
+  const [locations, setLocations] = useState<Location[] | null>(null);
   const [formData, setFormData] = useState({
     provinceCode: "",
     districtCode: "",
@@ -25,8 +43,8 @@ export default function AddAddressPage() {
   });
 
   // State to control dropdown enable/disable
-  const [districts, setDistricts] = useState([]);
-  const [wards, setWards] = useState([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
   const [isDistrictEnabled, setIsDistrictEnabled] = useState(false);
   const [isWardEnabled, setIsWardEnabled] = useState(false);
 
@@ -34,7 +52,7 @@ export default function AddAddressPage() {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/v1/get-location-in-vn");
+        const response = await fetch(`${API_BASE_URL}/get-location-in-vn`);
         const data = await response.json();
         setLocations(data.data); // Assuming data.data contains the JSON structure
       } catch (error) {
@@ -57,7 +75,7 @@ export default function AddAddressPage() {
     setFormData((prev) => ({ ...prev, provinceCode, districtCode: "", wardCode: "" }));
     setIsDistrictEnabled(!!provinceCode);
     setIsWardEnabled(false);
-    setDistricts(locations?.find((loc: any) => loc.code === provinceCode)?.districts || []);
+    setDistricts(locations?.find((loc: Location) => loc.code === provinceCode)?.districts || []);
     setWards([]);
     setErrors((prev) => ({ ...prev, provinceCode: "" }));
   };
@@ -67,7 +85,7 @@ export default function AddAddressPage() {
     const districtCode = e.target.value;
     setFormData((prev) => ({ ...prev, districtCode, wardCode: "" }));
     setIsWardEnabled(!!districtCode);
-    const selectedDistrict = districts.find((dist: any) => dist.code === districtCode);
+    const selectedDistrict = districts.find((dist: District) => dist.code === districtCode);
     setWards(selectedDistrict?.wards || []);
     setErrors((prev) => ({ ...prev, districtCode: "" }));
   };
@@ -116,7 +134,7 @@ export default function AddAddressPage() {
         throw new Error("Không tìm thấy token xác thực. Vui lòng đăng nhập lại.");
       }
 
-      const response = await fetch("http://127.0.0.1:8000/api/v1/users/add-addresses", {
+      const response = await fetch(`${API_BASE_URL}/users/add-addresses`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -198,7 +216,7 @@ export default function AddAddressPage() {
             >
               <option value="">Chọn tỉnh/thành phố</option>
               {locations &&
-                locations.map((loc: any) => (
+                locations.map((loc: Location) => (
                   <option key={loc.code} value={loc.code}>
                     {loc.full_name}
                   </option>
@@ -224,7 +242,7 @@ export default function AddAddressPage() {
               required
             >
               <option value="">Chọn quận/huyện</option>
-              {districts.map((dist: any) => (
+              {districts.map((dist: District) => (
                 <option key={dist.code} value={dist.code}>
                   {dist.full_name}
                 </option>
@@ -250,7 +268,7 @@ export default function AddAddressPage() {
               required
             >
               <option value="">Chọn phường/xã</option>
-              {wards.map((ward: any) => (
+              {wards.map((ward: Ward) => (
                 <option key={ward.code} value={ward.code}>
                   {ward.full_name}
                 </option>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Swal from "sweetalert2";
 import Cookies from "js-cookie";
 import { API_BASE_URL } from "@/config/config";
@@ -37,7 +37,7 @@ interface CartItem {
   quantity: number;
 }
 
-export default function PaymentResult() {
+const PaymentResultContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
@@ -204,22 +204,26 @@ export default function PaymentResult() {
               <span className="text-gray-900">{paymentResult.transId}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Thời gian phản hồi:</span>
+              <span className="text-gray-600">Thời gian:</span>
               <span className="text-gray-900">{paymentResult.responseTime}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Thông báo:</span>
-              <span className="text-gray-900">{paymentResult.message}</span>
-            </div>
+            <button
+              onClick={handleContinueShopping}
+              className="w-full mt-6 bg-pink-600 text-white py-2 px-4 rounded-md hover:bg-pink-700 transition-colors"
+            >
+              Tiếp tục mua sắm
+            </button>
           </div>
         )}
-        <button
-          onClick={handleContinueShopping}
-          className="mt-6 w-full bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700"
-        >
-          Tiếp tục mua sắm
-        </button>
       </div>
     </div>
+  );
+};
+
+export default function PaymentResult() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PaymentResultContent />
+    </Suspense>
   );
 }
