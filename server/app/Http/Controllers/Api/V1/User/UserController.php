@@ -126,19 +126,29 @@ class UserController extends Controller
             // Lấy người dùng đang đăng nhập
             $user = Auth::user();
 
-            // Lấy user kèm theo danh sách vouchers
+            // Lấy danh sách voucher của user có trạng thái Active
             $vouchers = User::with(['vouchers' => function ($query) {
                 $query->where('status', VoucherStatus::Active);
-            }, 'vouchers.productVoucher'])
-                ->find($user->id);
+            }])->find($user->id)->vouchers;
 
-            // Trả về danh sách vouchers của user
+            // Kiểm tra xem mỗi voucher đã được sử dụng chưa
+            $vouchers = $vouchers->map(function ($voucher) use ($user) {
+                $used = Order::where('user_id', $user->id)
+                    ->where('voucher_id', $voucher->id)
+                    ->exists();
+
+                // Thêm trạng thái vào voucher
+                $voucher->status = $used ? 'used' : 'can be used';
+                return $voucher;
+            });
+
+            // Trả về danh sách vouchers với trạng thái cập nhật
             return ResponseSuccess('Got user vouchers', $vouchers);
         } catch (\Exception $e) {
-            // Bắt lỗi nếu có ngoại lệ
             return ResponseError($e->getMessage(), null, 500);
         }
     }
+
 
     /*
     |--------------------------------------------------------------------------
