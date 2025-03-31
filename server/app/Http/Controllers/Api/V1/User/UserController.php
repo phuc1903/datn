@@ -100,7 +100,7 @@ class UserController extends Controller
     {
         try {
             $user = auth()->user(); // Lấy người dùng đang đăng nhập
-            $orders = $user->orders()->with()
+            $orders = $user->orders()
                 ->orderBy('created_at', 'desc') // Sắp xếp theo thời gian tạo mới nhất
                 ->get();
             if ($orders) {
@@ -126,29 +126,19 @@ class UserController extends Controller
             // Lấy người dùng đang đăng nhập
             $user = Auth::user();
 
-            // Lấy danh sách voucher của user có trạng thái Active
+            // Lấy user kèm theo danh sách vouchers
             $vouchers = User::with(['vouchers' => function ($query) {
                 $query->where('status', VoucherStatus::Active);
-            }])->find($user->id)->vouchers;
+            }, 'vouchers'])
+                ->find($user->id);
 
-            // Kiểm tra xem mỗi voucher đã được sử dụng chưa
-            $vouchers = $vouchers->map(function ($voucher) use ($user) {
-                $used = Order::where('user_id', $user->id)
-                    ->where('voucher_id', $voucher->id)
-                    ->exists();
-
-                // Thêm trạng thái vào voucher
-                $voucher->status = $used ? 'used' : 'can be used';
-                return $voucher;
-            });
-
-            // Trả về danh sách vouchers với trạng thái cập nhật
+            // Trả về danh sách vouchers của user
             return ResponseSuccess('Got user vouchers', $vouchers);
         } catch (\Exception $e) {
+            // Bắt lỗi nếu có ngoại lệ
             return ResponseError($e->getMessage(), null, 500);
         }
     }
-
 
     /*
     |--------------------------------------------------------------------------

@@ -80,7 +80,9 @@ Route::prefix('v1')->group(function () {
     Route::prefix('orders')->controller(OrderController::class)->group(function () {
         Route::middleware(['auth:sanctum','auth.active'])->group(function () {
             Route::post('/create', 'createOrder');
+            Route::post('/{id}/cancel', 'cancelOrder');
             Route::get('/{id}', 'orderUserDetail');
+
         });
         Route::post('/payment/momo/ipn', 'handleMomoIpn');  // Nhận callback từ MOMO
     });
