@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\Voucher\VoucherController;
 use App\Http\Controllers\Api\V1\ProductFeedback\ProductFeedbackController;
 use App\Http\Controllers\Api\V1\Address\AddressController;
 use App\Http\Controllers\Api\V1\Combo\ComboController;
+use App\Http\Controllers\Api\V1\ProductFeedback\ProductCommentController;
 // Version 1
 Route::prefix('v1')->group(function () {
     /*
@@ -99,6 +100,19 @@ Route::prefix('v1')->group(function () {
         });
     });
 
+    /*
+    |--------------------------------------------------------------------------
+    | ProductCommentController
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('product_comments')->controller(ProductCommentController::class)->group(function (){
+        Route::middleware(['auth:sanctum','auth.active'])->group(function (){
+            Route::post('/create','create');
+            Route::delete('/{id}','delete');
+
+        });
+        Route::get('/getProductComment/{id}','getProductComments');
+    });
     /*
     |--------------------------------------------------------------------------
     | AuthController

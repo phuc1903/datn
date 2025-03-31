@@ -20,7 +20,10 @@ class Product extends Model
     {
         return $this->hasMany(Sku::class ,'product_id')->select('id', 'sku_code', 'product_id', 'price', 'promotion_price', 'quantity', 'image_url');
     }
+    public function comments()
+    {
 
+    }
     // Quan hệ với ảnh sản phẩm
     public function images()
     {
