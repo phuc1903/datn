@@ -38,7 +38,7 @@ const Categories = () => {
           {displayedCategories.map((category) => (
             <Link 
               key={category.id} 
-              href={`/category/${category.slug}`} 
+              href={`/category/${category.id}`} 
               className="group relative h-48 bg-white rounded-lg shadow-md overflow-hidden"
             >
               <img

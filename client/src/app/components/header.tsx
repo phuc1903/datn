@@ -145,23 +145,13 @@ const Header: React.FC = () => {
         const result = await response.json();
         
         if (result.status === 'success') {
-          const mainCategories = result.data.filter((cat: Category) => cat.parent_id === 0);
-          
-          const processedCategories = mainCategories.map((mainCat: Category) => {
-            const subCategories = result.data
-              .filter((cat: Category) => cat.parent_id === mainCat.id)
-              .map((subCat: Category) => ({
-                name: subCat.name,
-                path: `/shop/${subCat.slug}`
-              }));
-            
-            return {
-              id: mainCat.id,
-              name: mainCat.name,
-              slug: mainCat.slug,
-              subcategories: subCategories
-            };
-          });
+          // Lấy tất cả categories và chuyển đổi sang định dạng cần thiết
+          const processedCategories = result.data.map((cat: Category) => ({
+            id: cat.id,
+            name: cat.name,
+            slug: cat.slug,
+            subcategories: [] // Không cần subcategories nữa
+          }));
           
           setCategories(processedCategories);
         }
@@ -193,15 +183,12 @@ const Header: React.FC = () => {
       id: 2,
       name: "Sản phẩm",
       path: "/shop",
-      subcategories:
-        categories.length > 0
-          ? categories.flatMap((cat) =>
-              cat.subcategories.map((sub) => ({
-                name: sub.name,
-                path: sub.path,
-              }))
-            )
-          : [],
+      subcategories: categories.length > 0
+        ? categories.map((cat) => ({
+            name: cat.name,
+            path: `/category/${cat.id}`,
+          }))
+        : [],
     },
     {
       id: 3,
