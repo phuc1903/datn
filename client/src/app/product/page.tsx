@@ -3,47 +3,70 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { ChevronUp, ChevronDown, Diamond, Filter } from 'lucide-react';
 
+interface ExpandedCategories {
+  main: boolean;
+  category1: boolean;
+  ratings: boolean;
+  price: boolean;
+  [key: string]: boolean;
+}
+
+interface FilterState {
+  categories: string[];
+  ratings: string[];
+  priceRange: {
+    min: string;
+    max: string;
+  };
+  tags: string[];
+}
+
 const ProductListingPage = () => {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  const [expandedCategories, setExpandedCategories] = useState({
+  const [expandedCategories, setExpandedCategories] = useState<ExpandedCategories>({
     main: true,
-    category1: true,
-    ratings: true,
-    price: true
+    category1: false,
+    ratings: false,
+    price: false
   });
 
-  const [selectedFilters, setSelectedFilters] = useState({
-    categories: ['Danh mục con 3'],
-    ratings: ['3'],
-    priceRange: { min: '', max: '' },
+  const [filters, setFilters] = useState<FilterState>({
+    categories: [],
+    ratings: [],
+    priceRange: {
+      min: '',
+      max: ''
+    },
     tags: []
   });
 
   const [sortOption, setSortOption] = useState('');
 
-  const toggleCategory = (category) => {
+  const toggleCategory = (category: string) => {
     setExpandedCategories(prev => ({
       ...prev,
       [category]: !prev[category]
     }));
   };
 
-  const handleFilterChange = (type, value) => {
-    setSelectedFilters(prev => {
-      const newFilters = { ...prev };
-      if (type === 'categories' || type === 'ratings' || type === 'tags') {
-        if (newFilters[type].includes(value)) {
-          newFilters[type] = newFilters[type].filter(item => item !== value);
-        } else {
-          newFilters[type] = [...newFilters[type], value];
-        }
+  const handleFilterChange = (type: string, value: string) => {
+    setFilters(prev => {
+      const currentValues = prev[type as keyof FilterState];
+      if (Array.isArray(currentValues)) {
+        const newValues = currentValues.includes(value)
+          ? currentValues.filter(item => item !== value)
+          : [...currentValues, value];
+        return {
+          ...prev,
+          [type]: newValues
+        };
       }
-      return newFilters;
+      return prev;
     });
   };
 
-  const handlePriceChange = (type, value) => {
-    setSelectedFilters(prev => ({
+  const handlePriceChange = (type: 'min' | 'max', value: string) => {
+    setFilters(prev => ({
       ...prev,
       priceRange: {
         ...prev.priceRange,
@@ -101,7 +124,7 @@ const ProductListingPage = () => {
                       <div className="flex items-center gap-2">
                         <input
                           type="checkbox"
-                          checked={selectedFilters.categories.includes(item.name)}
+                          checked={filters.categories.includes(item.name)}
                           onChange={() => handleFilterChange('categories', item.name)}
                           className="w-4 h-4 rounded border-gray-300 text-pink-500 focus:ring-pink-500"
                         />
@@ -151,7 +174,7 @@ const ProductListingPage = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    checked={selectedFilters.ratings.includes(rating.toString())}
+                    checked={filters.ratings.includes(rating.toString())}
                     onChange={() => handleFilterChange('ratings', rating.toString())}
                     className="w-4 h-4 rounded border-gray-300 text-pink-500 focus:ring-pink-500"
                   />
@@ -192,7 +215,7 @@ const ProductListingPage = () => {
               <div className="w-24">
                 <input
                   type="text"
-                  value={selectedFilters.priceRange.min}
+                  value={filters.priceRange.min}
                   onChange={(e) => handlePriceChange('min', e.target.value)}
                   placeholder="$ min"
                   className="w-full px-2 py-1 text-sm border rounded"
@@ -201,7 +224,7 @@ const ProductListingPage = () => {
               <div className="w-24">
                 <input
                   type="text"
-                  value={selectedFilters.priceRange.max}
+                  value={filters.priceRange.max}
                   onChange={(e) => handlePriceChange('max', e.target.value)}
                   placeholder="$ max"
                   className="w-full px-2 py-1 text-sm border rounded"
@@ -219,7 +242,7 @@ const ProductListingPage = () => {
           <label key={tag} className="flex items-center space-x-2 mb-2">
             <input 
               type="checkbox"
-              checked={selectedFilters.tags.includes(tag)}
+              checked={filters.tags.includes(tag)}
               onChange={() => handleFilterChange('tags', tag)}
               className="rounded text-pink-600 focus:ring-pink-500"
             />

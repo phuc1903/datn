@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import Swal from "sweetalert2";
+import { API_BASE_URL } from "@/config/config";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -108,7 +109,7 @@ export default function ChangePasswordPage() {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/v1/auth/change-password", {
+      const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

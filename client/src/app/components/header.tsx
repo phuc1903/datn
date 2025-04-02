@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Search, ShoppingBag, User, Heart, ChevronDown, Menu, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { API_BASE_URL } from "@/config/config";
 
 interface Category {
   id: number;
@@ -28,6 +29,14 @@ interface Product {
   name: string;
   images: Array<{ image_url: string }>;
   skus: Array<{ price: number }>;
+}
+
+interface CartItem {
+  combo_id: number;
+  name: string;
+  image_url: string;
+  price: number;
+  quantity: number;
 }
 
 const Header: React.FC = () => {
@@ -132,27 +141,17 @@ const Header: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/v1/categories');
+        const response = await fetch(`${API_BASE_URL}/categories`);
         const result = await response.json();
         
         if (result.status === 'success') {
-          const mainCategories = result.data.filter((cat: Category) => cat.parent_id === 0);
-          
-          const processedCategories = mainCategories.map((mainCat: Category) => {
-            const subCategories = result.data
-              .filter((cat: Category) => cat.parent_id === mainCat.id)
-              .map((subCat: Category) => ({
-                name: subCat.name,
-                path: `/shop/${subCat.slug}`
-              }));
-            
-            return {
-              id: mainCat.id,
-              name: mainCat.name,
-              slug: mainCat.slug,
-              subcategories: subCategories
-            };
-          });
+          // Lấy tất cả categories và chuyển đổi sang định dạng cần thiết
+          const processedCategories = result.data.map((cat: Category) => ({
+            id: cat.id,
+            name: cat.name,
+            slug: cat.slug,
+            subcategories: [] // Không cần subcategories nữa
+          }));
           
           setCategories(processedCategories);
         }
@@ -169,8 +168,8 @@ const Header: React.FC = () => {
 
   useEffect(() => {
     setIsClient(true); // Đánh dấu là client-side
-    const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const totalQuantity = storedCart.reduce((sum, item) => sum + item.quantity, 0);
+    const storedCart = JSON.parse(localStorage.getItem("cart") || "[]") as CartItem[];
+    const totalQuantity = storedCart.reduce((sum: number, item: CartItem) => sum + item.quantity, 0);
     setCartCount(totalQuantity);
   }, []);
 
@@ -184,15 +183,12 @@ const Header: React.FC = () => {
       id: 2,
       name: "Sản phẩm",
       path: "/shop",
-      subcategories:
-        categories.length > 0
-          ? categories.flatMap((cat) =>
-              cat.subcategories.map((sub) => ({
-                name: sub.name,
-                path: sub.path,
-              }))
-            )
-          : [],
+      subcategories: categories.length > 0
+        ? categories.map((cat) => ({
+            name: cat.name,
+            path: `/category/${cat.id}`,
+          }))
+        : [],
     },
     {
       id: 3,
@@ -208,6 +204,11 @@ const Header: React.FC = () => {
       id: 5,
       name: 'Bài viết',
       path: '/blog',
+    },
+    {
+      id: 6,
+      name: 'Voucher',
+      path: '/voucher',
     },
   ];
 
