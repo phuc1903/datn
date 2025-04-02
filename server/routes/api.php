@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\ProductFeedback\ProductFeedbackController;
 use App\Http\Controllers\Api\V1\Address\AddressController;
 use App\Http\Controllers\Api\V1\Combo\ComboController;
 use App\Http\Controllers\Api\V1\ProductFeedback\ProductCommentController;
+use App\Http\Controllers\Api\V1\Setting\SettingController;
 // Version 1
 Route::prefix('v1')->group(function () {
     /*
@@ -222,5 +223,9 @@ Route::prefix('v1')->group(function () {
             // Nhận Voucher
             Route::post('/{id}/claim', 'claimVouchers');
         });
+    });
+
+    Route::prefix('settings')->controller(SettingController::class)->group(function() {
+        Route::get('/', 'getAllSettings');
     });
 });

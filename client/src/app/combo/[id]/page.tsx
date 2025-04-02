@@ -6,6 +6,7 @@ import { StarIcon, HeartIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import Cookies from "js-cookie";
+import { API_BASE_URL } from "@/config/config";
 
 interface Sku {
   sku_code: string;
@@ -38,6 +39,22 @@ interface Review {
   rating: number;
   comment: string;
   date: string;
+}
+
+interface WishlistItem {
+  id: number;
+  name: string;
+  image_url: string;
+  price: number;
+  promotion_price: number;
+}
+
+interface CartItem {
+  combo_id: number;
+  name: string;
+  image_url: string;
+  price: number;
+  quantity: number;
 }
 
 export default function ComboDetail() {
@@ -74,14 +91,14 @@ export default function ComboDetail() {
 
         // Fetch wishlist if authenticated
         if (token) {
-          const wishlistResponse = await fetch("http://127.0.0.1:8000/api/v1/users/favorites", {
+          const wishlistResponse = await fetch(`${API_BASE_URL}/users/favorites`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (!wishlistResponse.ok) throw new Error("Failed to fetch wishlist");
           const wishlistData = await wishlistResponse.json();
 
           const isInWishlist = wishlistData.data?.favorites?.some(
-            (item) => item.id === parseInt(id as string)
+            (item: WishlistItem) => item.id === parseInt(id as string)
           );
           setIsWishlisted(isInWishlist);
         }
@@ -143,7 +160,7 @@ export default function ComboDetail() {
     if (!combo) return;
 
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const existingItem = storedCart.find((item) => item.combo_id === combo.id);
+    const existingItem = storedCart.find((item: CartItem) => item.combo_id === combo.id);
     let updatedCart;
 
     const cartItem = {
@@ -155,7 +172,7 @@ export default function ComboDetail() {
     };
 
     if (existingItem) {
-      updatedCart = storedCart.map((item) =>
+      updatedCart = storedCart.map((item: CartItem) =>
         item.combo_id === combo.id
           ? { ...item, quantity: Math.min(item.quantity + quantity, combo.quantity) }
           : item
@@ -238,19 +255,22 @@ export default function ComboDetail() {
                 />
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {combo.skus.map((sku, index) => (
+                {combo.skus.map((item: Sku) => (
                   <div
-                    key={sku.sku_code}
-                    className="relative aspect-square rounded-lg overflow-hidden cursor-pointer"
-                    onClick={() => setSelectedSkuIndex(index)}
+                    key={item.sku_code}
+                    className={`relative cursor-pointer ${
+                      selectedSkuIndex === combo.skus.indexOf(item)
+                        ? "ring-2 ring-pink-500"
+                        : "ring-1 ring-gray-200"
+                    }`}
+                    onClick={() => setSelectedSkuIndex(combo.skus.indexOf(item))}
                   >
                     <Image
-                      src={sku.image_url}
-                      alt={sku.sku_code}
-                      fill
-                      className={`object-cover hover:opacity-75 transition-opacity ${
-                        selectedSkuIndex === index ? "border-2 border-pink-600" : ""
-                      }`}
+                      src={item.image_url}
+                      alt={`${combo.name} - ${item.sku_code}`}
+                      width={80}
+                      height={80}
+                      className="rounded-lg object-cover"
                     />
                   </div>
                 ))}
@@ -398,19 +418,19 @@ export default function ComboDetail() {
               combo.skus.length > 0 ? (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-black">
-                    {combo.skus.map((sku) => (
-                      <div key={sku.sku_code} className="bg-gray-50 p-4 rounded-lg flex items-center space-x-4">
+                    {combo.skus.map((item: Sku) => (
+                      <div key={item.sku_code} className="bg-gray-50 p-4 rounded-lg flex items-center space-x-4">
                         <div className="relative w-20 h-20 rounded-lg overflow-hidden">
                           <Image
-                            src={sku.image_url}
-                            alt={sku.sku_code}
+                            src={item.image_url}
+                            alt={item.sku_code}
                             fill
                             className="object-cover"
                           />
                         </div>
                         <div>
-                          <h4 className="font-medium mb-2">Mã SKU: {sku.sku_code}</h4>
-                          <p className="text-sm text-gray-600">ID sản phẩm: {sku.product_id}</p>
+                          <h4 className="font-medium mb-2">Mã SKU: {item.sku_code}</h4>
+                          <p className="text-sm text-gray-600">ID sản phẩm: {item.product_id}</p>
                         </div>
                       </div>
                     ))}
@@ -482,28 +502,25 @@ export default function ComboDetail() {
 
                 {reviews.length > 0 ? (
                   <div className="space-y-6">
-                    {reviews.map((review) => (
-                      <div
-                        key={review.id}
-                        className="border-b last:border-0 pb-6 last:pb-0 text-black"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-4">
-                            <div className="font-medium">{review.user}</div>
+                    {reviews.map((item: Review) => (
+                      <div key={item.id} className="border-b border-gray-200 py-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
                             <div className="flex items-center">
-                              {[1, 2, 3, 4, 5].map((star) => (
+                              {[...Array(5)].map((_, index) => (
                                 <StarIcon
-                                  key={star}
-                                  className={`w-4 h-4 ${
-                                    star <= review.rating ? "text-yellow-400" : "text-gray-300"
+                                  key={index}
+                                  className={`h-5 w-5 ${
+                                    index < item.rating ? "text-yellow-400" : "text-gray-300"
                                   }`}
                                 />
                               ))}
                             </div>
+                            <span className="ml-2 text-sm text-gray-500">{item.user}</span>
                           </div>
-                          <div className="text-sm text-gray-500">{review.date}</div>
+                          <span className="text-sm text-gray-500">{item.date}</span>
                         </div>
-                        <p className="text-gray-600">{review.comment}</p>
+                        <p className="mt-2 text-gray-700">{item.comment}</p>
                       </div>
                     ))}
                   </div>

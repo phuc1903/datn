@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { API_BASE_URL } from "@/config/config";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function ResetPasswordPage() {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/v1/auth/reset-password", {
+      const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -65,7 +66,11 @@ export default function ResetPasswordPage() {
       router.push("/login");
     } catch (error) {
       console.error("Lỗi đặt lại mật khẩu:", error);
-      alert("Lỗi: " + error.message);
+      if (error instanceof Error) {
+        alert("Lỗi: " + error.message);
+      } else {
+        alert("Đã xảy ra lỗi không xác định");
+      }
     } finally {
       setLoading(false);
     }

@@ -119,7 +119,6 @@ class ProductController extends Controller
     {
         try {
             // Lấy feedback của sản phẩm dựa trên SKU
-            // Lấy feedback của sản phẩm dựa trên SKU
             $productFeedback = ProductFeedback::with([
                 'user'  // Lấy thông tin người dùng của bình luận
             ])

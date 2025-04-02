@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Upload } from "lucide-react";
 import Swal from "sweetalert2";
+import { API_BASE_URL } from "@/config/config";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -88,7 +89,7 @@ export default function RegisterPage() {
     });
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/v1/auth/register", {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         body: formDataToSend,
       });

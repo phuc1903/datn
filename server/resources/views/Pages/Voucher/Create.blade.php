@@ -14,7 +14,7 @@
 
                         <div class="row mb-3">
                             <div class="col-12 col-md-6">
-                                <x-form.input_text label="Số lượng" name="quantity" type="number" />
+                                <x-form.input_text label="Số lượng" name="quantity" class="numeric" type="number" />
                             </div>
                             <div class="col-12 col-md-6">
                                 <label for="type" class="form-label">Chọn loại giảm</label>
@@ -34,13 +34,13 @@
                         </div>
                         <div class="row mb-3">
                             <div class="col-12 col-md-4">
-                                <x-form.input_text label="Giá trị giảm" name="discount_value" class="price" />
+                                <x-form.input_text label="Giá trị giảm" name="discount_value" class="price numeric" />
                             </div>
                             <div id="max_discount_value" class="col-12 col-md-4">
-                                <x-form.input_text label="Giảm tối đa" name="max_discount_value" class="price value"/>
+                                <x-form.input_text label="Giảm tối đa" name="max_discount_value" class="price numeric value"/>
                             </div>
                             <div class="col-12 col-md-4">
-                                <x-form.input_text label="Đơn hàng tối thiểu" name="min_order_value" class="price" />
+                                <x-form.input_text label="Đơn hàng tối thiểu" name="min_order_value" class="price numeric" />
                             </div>
                         </div>
 

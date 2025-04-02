@@ -21,6 +21,7 @@ class VoucherController extends Controller
     {
         try {
             $perPage = $request->query('per_page', 10);
+          
             $vouchers = Voucher::where('status', VoucherStatus::Active)
                 ->paginate($perPage);
 
@@ -39,7 +40,9 @@ class VoucherController extends Controller
     public function getDetailVouchers($voucherId)
     {
         try {
+
             $vouchers = Voucher::where('status', VoucherStatus::Active)
+
                 ->find($voucherId);
 
             // Kiểm tra tồn tại

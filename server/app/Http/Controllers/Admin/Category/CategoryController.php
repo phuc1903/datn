@@ -39,27 +39,24 @@ class CategoryController extends Controller
     {
         // dd($request);
         try {
+            if ($request->hasFile('image')) {
+                // $path = Storage::disk('public')->put('category_images', $request->image);
+                $pathImage = putImage('category_images',$request->image);
+            } else {
+                $pathImage = config('settings.image_default');
+            }
             $data = [
                 'name' => $request->name,
                 'short_description' => $request->short_description,
                 'status' => $request->status,
                 'parent_id' => $request->parent_id,
-                'image' => 'đasadasd',
+                'image' => $pathImage,
             ];
 
             if (isset($request->slug) && !empty($request->slug)) {
                 $data['slug'] = $request->slug;
             } else {
                 $data['slug'] = Str::slug($request->name);
-            }
-
-            $path = null;
-
-            if ($request->hasFile('image')) {
-                // $path = Storage::disk('public')->put('category_images', $request->image);
-                $data['image'] = putImage('category_images',$request->image);
-            } else {
-                $data['image'] = config('settings.image_default');
             }
 
             Category::create($data);

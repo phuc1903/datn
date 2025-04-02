@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\Admin\AdminController;
 use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\Admin\Voucher\VoucherController;
 use App\Http\Controllers\Admin\Permission\PermissionController;
+use App\Models\Order;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
@@ -191,21 +192,6 @@ Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function 
         // chung
         Route::get('/', 'index')->middleware('permission:viewSetting')->name('index');
         Route::post('/', 'store')->middleware('permission:createSetting')->name('store');
-
-        // Logo
-        Route::get('/logo', 'logo')->middleware('permission:viewSetting')->name('logo');
-
-        // Footer
-        Route::get('/footer', 'footer')->middleware('permission:viewSetting')->name('footer');
-
-        // Header
-        Route::get('/header', 'header')->middleware('permission:viewSetting')->name('header');
-
-        // About
-        Route::get('/about', 'about')->middleware('permission:viewSetting')->name('about');
-
-        // Contact
-        Route::get('/contact', 'contact')->middleware('permission:viewSetting')->name('contact');
     });
 
 
