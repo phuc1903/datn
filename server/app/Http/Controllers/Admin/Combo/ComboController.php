@@ -12,6 +12,7 @@ use App\Models\Combo;
 use App\Models\ComboProducts;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\Sku;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -22,29 +23,40 @@ class ComboController extends Controller
         return $dataTable->render('Pages.Combo.Index');
     }
 
-    public function create()
+    public function create(Request $request)
     {
-
-        $products = Product::with('skus', 'skus.variantValues')->limit(10)->get();
+        $skus = Sku::with('product', 'variantValues')->get();
 
         $categories = Category::all();
 
         $status = ComboStatus::getKeyValuePairs();
         $hots = ComboHot::getKeyValuePairs();
 
-        return view('Pages.Combo.Create', compact('products', 'categories', 'status', 'hots'));
+        return view('Pages.Combo.Create', compact('skus', 'categories', 'status', 'hots'));
     }
 
     public function store(ComboRequest $request)
     {
-        // dd($request);
         try {
+            if ($request->has('quantity')) {
+                $requestedQty = (int) $request->quantity;
+            
+                $skus = Sku::whereIn('id', $request->skus)->get();
+            
+                foreach ($skus as $item) {
+                    if ($item->quantity < $requestedQty + 4) {
+                        return redirect()->back()->with('error', 'Sản phẩm '.$item->id.' không đủ số lượng');
+                    }
+                    $quantitySkuNew = $item->quantity - $requestedQty;
+                    $item->update(['quantity' => $quantitySkuNew]);
+                }
+            }
+
             if ($request->hasFile('image_url')) {
                 $pathImage = putImage('combo_images', $request->image_url);
             } else {
                 $pathImage = config('settings.image_default');
             }
-
 
             $combo = Combo::create([
                 'admin_id' => auth()->id(),
@@ -63,6 +75,7 @@ class ComboController extends Controller
             ]);
 
 
+
             if (isset($request->categories)) {
                 foreach ($request->categories as $cate) {
                     ProductCategory::insert(['combo_id' => $combo->id, 'category_id' => $cate]);
@@ -74,7 +87,7 @@ class ComboController extends Controller
                     ComboProducts::create([
                         'combo_id' => $combo->id,
                         'sku_id' => $sku,
-                        'quantity' => 1
+                        'quantity' => $request->quantity,
                     ]);
                 }
             }
@@ -90,11 +103,7 @@ class ComboController extends Controller
     {
         $combo->load('skus', 'skus.variantValues')->get();
 
-        $comboSkus = $combo->skus->pluck('id')->toArray();
-
-        // dd($combo);
-
-        $products = Product::with('skus', 'skus.variantValues')->limit(10)->get();
+        $skus = Sku::with('product', 'variantValues')->get();
 
         $categories = Category::all();
 
@@ -125,8 +134,7 @@ class ComboController extends Controller
                 'h',
                 'hot',
                 'categories',
-                'products',
-                'comboSkus',
+                'skus',
             )
         );
     }

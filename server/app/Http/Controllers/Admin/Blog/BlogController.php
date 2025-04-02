@@ -10,6 +10,7 @@ use App\Models\Blog;
 use App\Models\BlogProduct;
 use App\Models\BlogTag;
 use App\Models\Product;
+use App\Models\Sku;
 use App\Models\Tag;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -28,11 +29,11 @@ class BlogController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
+        $products = Product::with('skus')->get();
         $status = BlogStatus::getKeyValuePairs();
         $tags = Tag::all();
-        $products = Product::with('skus')->paginate(8);
         return view('Pages.Blog.Create', compact('status', 'tags', 'products'));
     }
 
@@ -41,7 +42,6 @@ class BlogController extends Controller
      */
     public function store(BlogRequest $request)
     {
-        // dd($request);
         try {
             $data = [
                 'title' => $request->title,
@@ -57,20 +57,14 @@ class BlogController extends Controller
                 $data['slug'] = Str::slug($request->title);
             }
 
-            // $path = null;
-
             if ($request->hasFile('image_url')) {
-                // $path = Storage::disk('public')->put('blog_images', $request->image_url);
                 $data['image_url'] = putImage('blog_images', $request->image_url);
             } else {
                 $data['image_url'] = config('settings.image_default');
             }
 
-            // dd($data['image_url']);
-
             $blog = Blog::create($data);
 
-            // dd($blog->image_url);
             if (isset($request->tags) && !empty($request->tags)) {
                 foreach ($request->tags as $tag) {
                     BlogTag::create(['blog_id' => $blog->id, 'tag_id' => $tag]);
@@ -85,7 +79,6 @@ class BlogController extends Controller
                     ]);
                 }
             }
-
 
             return redirect()->route('admin.blog.index')->with('success', 'Thêm bài viết thành công');
         } catch (\Exception $e) {
@@ -114,8 +107,8 @@ class BlogController extends Controller
 
         $status = mapEnumToArray(BlogStatus::class, $blog->status);
 
-        $blog->load('products');
-        $products = Product::with('skus')->paginate(8);
+        $blog->load('products', 'products.skus');
+        $products = Product::with('skus')->get();
 
         return view('Pages.Blog.Edit', compact('blog', 'status', 'sta', 'products'));
     }

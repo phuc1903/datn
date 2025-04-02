@@ -1,41 +1,67 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { ChevronRight, Package, Truck, CheckCircle, XCircle } from "lucide-react";
+
+import { useState, useEffect } from "react";
+import { Package, Truck, CheckCircle, XCircle } from "lucide-react";
 import Swal from "sweetalert2";
+
+interface OrderItem {
+  name: string;
+  quantity: number;
+  price: number;
+  variants?: Array<{ name: string; value: string }>;
+}
+
+type OrderStatus = "Đang xác nhận" | "Đang đóng gói" | "Đang giao hàng" | "Đã giao" | "Đã hủy";
+
+interface Order {
+  id: string;
+  orderNumber: string;
+  status: OrderStatus;
+  date: string;
+  items: OrderItem[];
+  shipping: number;
+  totalAmount: number;
+}
 
 const OrderHistoryPage = () => {
   // Load danh sách đơn hàng từ localStorage
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
-    const storedOrders = JSON.parse(localStorage.getItem("orders")) || [];
+    const storedOrdersStr = localStorage.getItem("orders");
+    const storedOrders = storedOrdersStr ? JSON.parse(storedOrdersStr) : [];
     setOrders(storedOrders);
   }, []);
 
   // Hàm lưu đơn hàng vào localStorage
-  const saveOrdersToLocalStorage = (updatedOrders) => {
+  const saveOrdersToLocalStorage = (updatedOrders: Order[]) => {
     setOrders(updatedOrders);
     localStorage.setItem("orders", JSON.stringify(updatedOrders));
   };
 
   // Hàm hủy đơn hàng
-  const handleCancelOrder = (orderId) => {
+  const handleCancelOrder = (orderId: string) => {
     Swal.fire({
       title: "Bạn có chắc chắn muốn hủy đơn hàng?",
       text: "Hành động này không thể hoàn tác!",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Hủy đơn",
-      cancelButtonText: "Giữ lại",
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
+      confirmButtonColor: "#db2777",
+      cancelButtonColor: "#9ca3af",
+      confirmButtonText: "Đồng ý",
+      cancelButtonText: "Hủy bỏ",
     }).then((result) => {
       if (result.isConfirmed) {
-        const updatedOrders = orders.map(order =>
-          order.id === orderId ? { ...order, status: "đã hủy" } : order
+        const updatedOrders = orders.map((order) =>
+          order.id === orderId ? { ...order, status: "Đã hủy" as OrderStatus } : order
         );
         saveOrdersToLocalStorage(updatedOrders);
-        Swal.fire("Đã hủy!", "Đơn hàng của bạn đã bị hủy.", "success");
+        Swal.fire({
+          title: "Đã hủy đơn hàng!",
+          text: "Đơn hàng của bạn đã được hủy thành công.",
+          icon: "success",
+          confirmButtonColor: "#db2777",
+        });
       }
     });
   };
@@ -50,16 +76,16 @@ const OrderHistoryPage = () => {
     : orders.filter(order => order.status === activeStatus);
 
   // Biểu tượng trạng thái
-  const statusIcons = {
+  const statusIcons: Record<OrderStatus, JSX.Element> = {
     "Đang xác nhận": <Package className="w-5 h-5 text-yellow-500" />,
     "Đang đóng gói": <Package className="w-5 h-5 text-blue-500" />,
     "Đang giao hàng": <Truck className="w-5 h-5 text-orange-500" />,
     "Đã giao": <CheckCircle className="w-5 h-5 text-green-500" />,
-    "Đã hủy": <XCircle className="w-5 h-5 text-red-500" />
+    "Đã hủy": <XCircle className="w-5 h-5 text-red-500" />,
   };
 
   // Định dạng tiền tệ
-  const formatPrice = (price) =>
+  const formatPrice = (price: number) =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
@@ -137,7 +163,7 @@ const OrderHistoryPage = () => {
 
               <div className="mt-4 flex justify-end gap-2">
                 {/* Nút hủy đơn hàng */}
-                {order.status !== "đã hủy" && order.status !== "đã giao" && (
+                {order.status !== "Đã hủy" && order.status !== "Đã giao" && (
                   <button
                     className="text-pink-600 hover:text-pink-800"
                     onClick={() => handleCancelOrder(order.id)}

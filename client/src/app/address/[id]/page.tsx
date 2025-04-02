@@ -4,12 +4,41 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import Swal from "sweetalert2";
+import { API_BASE_URL } from "@/config/config";
+
+interface Location {
+  code: string;
+  full_name: string;
+  districts: District[];
+}
+
+interface District {
+  code: string;
+  full_name: string;
+  wards: Ward[];
+}
+
+interface Ward {
+  code: string;
+  full_name: string;
+}
+
+interface UserAddress {
+  id: number;
+  address: string;
+  province_code: string;
+  district_code: string;
+  ward_code: string;
+  name: string;
+  phone_number: string;
+  default: string;
+}
 
 export default function EditAddressPage() {
   const { id } = useParams(); // Lấy address_id từ URL
   const router = useRouter();
-  const [locations, setLocations] = useState<any>(null);
-  const [userAddresses, setUserAddresses] = useState<any>(null);
+  const [locations, setLocations] = useState<Location[] | null>(null);
+  const [userAddresses, setUserAddresses] = useState<UserAddress[] | null>(null);
   const [formData, setFormData] = useState({
     address: "",
     provinceCode: "",
@@ -29,8 +58,8 @@ export default function EditAddressPage() {
   });
 
   // State to control dropdown enable/disable
-  const [districts, setDistricts] = useState([]);
-  const [wards, setWards] = useState([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
   const [isDistrictEnabled, setIsDistrictEnabled] = useState(false);
   const [isWardEnabled, setIsWardEnabled] = useState(false);
 
@@ -38,7 +67,7 @@ export default function EditAddressPage() {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/v1/get-location-in-vn");
+        const response = await fetch(`${API_BASE_URL}/get-location-in-vn`);
         if (!response.ok) throw new Error("Không thể tải dữ liệu địa phương");
         const data = await response.json();
         setLocations(data.data);
@@ -59,7 +88,7 @@ export default function EditAddressPage() {
         const token = Cookies.get("accessToken");
         if (!token) throw new Error("Không tìm thấy token xác thực");
 
-        const response = await fetch("http://127.0.0.1:8000/api/v1/users/addresses", {
+        const response = await fetch(`${API_BASE_URL}/users/addresses`, {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
@@ -71,7 +100,7 @@ export default function EditAddressPage() {
         console.error("Error fetching user addresses:", error);
         Swal.fire({
           title: "Lỗi!",
-          text: error.message || "Không thể tải danh sách địa chỉ.",
+          text: error instanceof Error ? error.message : "Không thể tải danh sách địa chỉ.",
           icon: "error",
           confirmButtonText: "OK",
           confirmButtonColor: "#db2777",
@@ -86,7 +115,7 @@ export default function EditAddressPage() {
   // Update formData when userAddresses is loaded
   useEffect(() => {
     if (userAddresses && locations) {
-      const address = userAddresses.find((addr: any) => addr.id === parseInt(id as string));
+      const address = userAddresses.find((addr: UserAddress) => addr.id === parseInt(id as string));
       if (address) {
         setFormData({
           address: address.address || "",
@@ -99,13 +128,13 @@ export default function EditAddressPage() {
         });
         setIsDistrictEnabled(!!address.province_code);
         setDistricts(
-          locations.find((loc: any) => loc.code === address.province_code)?.districts || []
+          locations.find((loc: Location) => loc.code === address.province_code)?.districts || []
         );
         setIsWardEnabled(!!address.district_code);
         setWards(
           locations
-            .find((loc: any) => loc.code === address.province_code)
-            ?.districts.find((dist: any) => dist.code === address.district_code)?.wards || []
+            .find((loc: Location) => loc.code === address.province_code)
+            ?.districts.find((dist: District) => dist.code === address.district_code)?.wards || []
         );
       } else {
         Swal.fire({
@@ -125,7 +154,7 @@ export default function EditAddressPage() {
     setFormData((prev) => ({ ...prev, provinceCode, districtCode: "", wardCode: "" }));
     setIsDistrictEnabled(!!provinceCode);
     setIsWardEnabled(false);
-    setDistricts(locations?.find((loc: any) => loc.code === provinceCode)?.districts || []);
+    setDistricts(locations?.find((loc: Location) => loc.code === provinceCode)?.districts || []);
     setWards([]);
     setErrors((prev) => ({ ...prev, provinceCode: "" }));
   };
@@ -135,7 +164,7 @@ export default function EditAddressPage() {
     const districtCode = e.target.value;
     setFormData((prev) => ({ ...prev, districtCode, wardCode: "" }));
     setIsWardEnabled(!!districtCode);
-    const selectedDistrict = districts.find((dist: any) => dist.code === districtCode);
+    const selectedDistrict = districts.find((dist: District) => dist.code === districtCode);
     setWards(selectedDistrict?.wards || []);
     setErrors((prev) => ({ ...prev, districtCode: "" }));
   };
@@ -184,7 +213,7 @@ export default function EditAddressPage() {
         throw new Error("Không tìm thấy token xác thực. Vui lòng đăng nhập lại.");
       }
 
-      const response = await fetch("http://127.0.0.1:8000/api/v1/users/update-addresses", {
+      const response = await fetch(`${API_BASE_URL}/users/update-addresses`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -220,11 +249,11 @@ export default function EditAddressPage() {
         });
         router.push("/profile"); // Chuyển hướng về trang profile sau khi thành công
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Update address error:", error);
       Swal.fire({
         title: "Lỗi!",
-        text: error.message || "Cập nhật địa chỉ thất bại. Vui lòng thử lại.",
+        text: error instanceof Error ? error.message : "Cập nhật địa chỉ thất bại. Vui lòng thử lại.",
         icon: "error",
         confirmButtonText: "OK",
         confirmButtonColor: "#db2777",
@@ -275,7 +304,7 @@ export default function EditAddressPage() {
             >
               <option value="">Chọn tỉnh/thành phố</option>
               {locations &&
-                locations.map((loc: any) => (
+                locations.map((loc: Location) => (
                   <option key={loc.code} value={loc.code}>
                     {loc.full_name}
                   </option>
@@ -301,7 +330,7 @@ export default function EditAddressPage() {
               required
             >
               <option value="">Chọn quận/huyện</option>
-              {districts.map((dist: any) => (
+              {districts.map((dist: District) => (
                 <option key={dist.code} value={dist.code}>
                   {dist.full_name}
                 </option>
@@ -327,7 +356,7 @@ export default function EditAddressPage() {
               required
             >
               <option value="">Chọn phường/xã</option>
-              {wards.map((ward: any) => (
+              {wards.map((ward: Ward) => (
                 <option key={ward.code} value={ward.code}>
                   {ward.full_name}
                 </option>

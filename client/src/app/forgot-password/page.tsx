@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import Swal from "sweetalert2";
+import { toast } from "react-hot-toast";
+import { API_BASE_URL } from "@/config/config";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -13,13 +14,15 @@ export default function ForgotPasswordPage() {
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
-    let timer;
+    let timer: NodeJS.Timeout | undefined;
     if (cooldown > 0) {
       timer = setInterval(() => {
         setCooldown(prev => prev - 1);
       }, 1000);
     }
-    return () => clearInterval(timer);
+    return () => {
+      if (timer) clearInterval(timer);
+    };
   }, [cooldown]);
 
   // Nếu user đã đăng nhập, chuyển hướng về profile
@@ -34,7 +37,7 @@ export default function ForgotPasswordPage() {
     setMessage("");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/v1/auth/forgot-password", {
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,31 +46,24 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email }),
       });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Yêu cầu quên mật khẩu thất bại.");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status === "success") {
+          toast.success("Mã xác thực đã được gửi đến email của bạn!");
+          setCooldown(60);
+        } else {
+          toast.error(data.message || "Có lỗi xảy ra khi gửi mã xác thực.");
+        }
+      } else {
+        toast.error("Có lỗi xảy ra khi gửi mã xác thực.");
       }
-
-      // Thay thế alert bằng Sweetalert2 thành công
-      await Swal.fire({
-        icon: 'success',
-        title: 'Thành công!',
-        text: 'Yêu cầu quên mật khẩu thành công! Vui lòng kiểm tra email.',
-        confirmButtonColor: '#db2777', // pink-600
-      });
-
-      setMessage("Vui lòng kiểm tra email để đặt lại mật khẩu.");
-      setCooldown(45);
     } catch (error) {
-      console.error("Lỗi quên mật khẩu:", error);
-      // Thay thế alert bằng Sweetalert2 lỗi
-      await Swal.fire({
-        icon: 'error',
-        title: 'Lỗi!',
-        text: error.message,
-        confirmButtonColor: '#db2777', // pink-600
-      });
+      console.error("Lỗi đặt lại mật khẩu:", error);
+      if (error instanceof Error) {
+        toast.error("Lỗi: " + error.message);
+      } else {
+        toast.error("Đã xảy ra lỗi không xác định");
+      }
     } finally {
       setLoading(false);
     }

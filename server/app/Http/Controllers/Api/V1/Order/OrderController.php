@@ -8,6 +8,7 @@ use App\Enums\Voucher\VoucherStatus;
 use App\Enums\Voucher\VoucherType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Order\CreateOrderRequest;
+use App\Jobs\SendCreateOrder;
 use App\Models\Combo;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -163,6 +164,9 @@ class OrderController extends Controller
                 $order->reason = $data['message'];
             }
             $order->save();
+
+            // Tạo job gữi mail (đối với đơn hàng Bank)
+            SendCreateOrder::dispatch(['order' => $order]);
             return true;
         }
 
@@ -400,6 +404,11 @@ class OrderController extends Controller
                     }
                 }
 
+                // Tạo job gữi mail (đối với đơn hàng COD), đơn hàng Bank sẽ được gữi sau khi thanh toán thành công (nằm ở webhook)
+                if ($orderData['payment_method'] == 'cod') {
+                    SendCreateOrder::dispatch(['order' => $order]);
+                }
+
                 return $response;
             });
 
@@ -425,6 +434,9 @@ class OrderController extends Controller
             $order = Order::with([
                 'items.sku' => function ($query) {
                     $query->select('id', 'product_id', 'price');
+                },
+                'items.sku.variantValues' => function ($query) {
+                    $query->select('value');
                 },
                 'items.sku.product' => function ($query) {
                     $query->select('id', 'name', 'description');

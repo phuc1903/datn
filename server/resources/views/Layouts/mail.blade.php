@@ -59,7 +59,7 @@
                             <tr>
                                 <td colspan="2"
                                     style="width: 100%; text-align: center; font-style: italic; font-size: 13px; font-weight: 600; color: #666666; padding: 15px 0; border-top: 1px solid #eeeeee;">
-                                    <b style="font-size: 14px;">Copyright © ZBeaut</b>
+                                    <b style="font-size: 14px;">Copyright © {{ config('app.name') }} </b>
                                 </td>
                             </tr>
                             <!-- End payment method Section -->
