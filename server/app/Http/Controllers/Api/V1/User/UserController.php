@@ -100,6 +100,7 @@ class UserController extends Controller
     {
         try {
             $user = auth()->user(); // Lấy người dùng đang đăng nhập
+
             $orders = $user->orders()->with('items', 'items.sku', 'items.sku.product')
                 ->orderBy('created_at', 'desc') // Sắp xếp theo thời gian tạo mới nhất
                 ->get();
@@ -129,7 +130,7 @@ class UserController extends Controller
             // Lấy user kèm theo danh sách vouchers
             $vouchers = User::with(['vouchers' => function ($query) {
                 $query->where('status', VoucherStatus::Active);
-            }])
+            }, 'vouchers'])
                 ->find($user->id);
 
             // Trả về danh sách vouchers của user

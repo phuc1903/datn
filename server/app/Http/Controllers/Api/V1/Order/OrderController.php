@@ -455,4 +455,39 @@ class OrderController extends Controller
             return ResponseError($e->getMessage(), null, 500);
         }
     }
+    public function cancelOrder(Request $request, $order_id)
+    {
+        try {
+            // Lấy người dùng đang đăng nhập
+            $user = auth()->user();
+
+            // Tìm đơn hàng thuộc về user
+            $order = Order::where('id', $order_id)->where('user_id', $user->id)->first();
+
+            // Kiểm tra nếu đơn hàng không tồn tại
+            if (!$order) {
+                return ResponseError('Order not found', null, 404);
+            }
+
+            // Kiểm tra nếu đơn hàng không ở trạng thái pending
+            if ($order->status !== OrderStatus::Pending) {
+                return ResponseError('Only pending orders can be canceled', null, 400);
+            }
+
+            // Kiểm tra xem lý do hủy có được nhập không
+            $request->validate([
+                'reason' => 'required|string|max:255',
+            ]);
+
+            // Cập nhật trạng thái thành canceled và lưu lý do hủy
+            Order::where('id', $order_id)->where('user_id', $user->id)->update([
+                'status' => OrderStatus::Cancel,
+                'reason' => $request->reason,
+            ]);
+            $order = Order::where('id', $order_id)->where('user_id', $user->id)->first();
+            return ResponseSuccess('Order canceled successfully', $order);
+        } catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
+        }
+    }
 }

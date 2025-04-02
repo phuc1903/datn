@@ -87,7 +87,8 @@ class ProductController extends Controller
                 'images',
                 'categories',
                 'skus.variantValues.variant',
-                'tags'
+                'tags',
+                'comments'
             ])
                 ->withCount('feedbacks') // Đếm số feedback qua SKU
                 ->find($id);
