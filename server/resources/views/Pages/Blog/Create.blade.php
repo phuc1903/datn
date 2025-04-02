@@ -33,26 +33,15 @@
                 </div>
                 <div class="card card-custom mb-3">
                     <div class="card-header">
-                        <h3 class="title">Chọn sản phẩm gắn vào bài viết</h3>
-                    </div>
-                    <div class="card-body p-3">
-                        <div class="row row-cols-1 g-3 row-cols-md-2 row-cols-lg-4">
-                            @foreach ($products as $product)
-                                <div class="col">
-                                    <div class="card product-blog product mb-3 sku-combo">
-                                        <div class="form-check m-2 ms-auto">
-                                            <input class="form-check-input check-skus" type="checkbox" name="products[]" value="{{$product->id}}">
-                                        </div>
-                                        <x-image.index class="mb-3" src="{{ $product->skus->first()->image_url }}" />
-                                        <div class="card-body">
-                                            <h5 class="card-title line-champ-3 text-dark-custom mb-2">{{ $product->name }}</h5>
-                                            <x-button.index label="Xem chi tiết" type='href' href="{{ route('admin.product.edit', $product) }}" />
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
+                        <div class="d-flex justify-content-between">
+                            <h3 class="title">Chọn sản phẩm gắn vào bài viết</h3>
+                            <x-button.index label="Thêm sản phẩm" data-bs-toggle="modal" data-bs-target="#choseProducts" />
+                            @include('Pages.Blog.Modal.Product', ['products' => $products])
                         </div>
-                        {{ $products->links('pagination::bootstrap-5') }}
+                    </div>
+                    <div class="card-body">
+                        <div id="product-list">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -127,3 +116,4 @@
         });
     </script>
 @endpush
+

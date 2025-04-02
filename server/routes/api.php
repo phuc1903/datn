@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\V1\Voucher\VoucherController;
 use App\Http\Controllers\Api\V1\ProductFeedback\ProductFeedbackController;
 use App\Http\Controllers\Api\V1\Address\AddressController;
 use App\Http\Controllers\Api\V1\Combo\ComboController;
+use App\Http\Controllers\Api\V1\ProductFeedback\ProductCommentController;
+use App\Http\Controllers\Api\V1\Setting\SettingController;
 // Version 1
 Route::prefix('v1')->group(function () {
     /*
@@ -80,7 +82,9 @@ Route::prefix('v1')->group(function () {
     Route::prefix('orders')->controller(OrderController::class)->group(function () {
         Route::middleware(['auth:sanctum','auth.active'])->group(function () {
             Route::post('/create', 'createOrder');
+            Route::post('/{id}/cancel', 'cancelOrder');
             Route::get('/{id}', 'orderUserDetail');
+
         });
         Route::post('/payment/momo/ipn', 'handleMomoIpn');  // Nhận callback từ MOMO
     });
@@ -97,6 +101,19 @@ Route::prefix('v1')->group(function () {
         });
     });
 
+    /*
+    |--------------------------------------------------------------------------
+    | ProductCommentController
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('product_comments')->controller(ProductCommentController::class)->group(function (){
+        Route::middleware(['auth:sanctum','auth.active'])->group(function (){
+            Route::post('/create','create');
+            Route::delete('/{id}','delete');
+
+        });
+        Route::get('/getProductComment/{id}','getProductComments');
+    });
     /*
     |--------------------------------------------------------------------------
     | AuthController
@@ -206,5 +223,9 @@ Route::prefix('v1')->group(function () {
             // Nhận Voucher
             Route::post('/{id}/claim', 'claimVouchers');
         });
+    });
+
+    Route::prefix('settings')->controller(SettingController::class)->group(function() {
+        Route::get('/', 'getAllSettings');
     });
 });

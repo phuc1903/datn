@@ -36,7 +36,7 @@
                         <x-form.select.option :options="$statusWarehouse" />
                     </select>
                 </div> --}}
-                <x-form.input_text label="Số lượng sản phẩm" name="quantity" />
+                <x-form.input_text label="Số lượng sản phẩm" name="quantity" class="numeric" type="number" />
             </div>
             {{-- Nội dung Các thuộc tính --}}
             <div class="tab-pane fade" id="attributes-pane" role="tabpanel" aria-labelledby="attributes-tab"

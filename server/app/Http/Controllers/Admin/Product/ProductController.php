@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Product;
 use App\Enums\Product\ProductStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ProductCategory;
+use App\Models\ProductImage;
 use App\Models\ProductTag;
 use Illuminate\Http\Request;
 use App\DataTables\Product\ProductDataTable;
@@ -53,7 +54,6 @@ class ProductController extends Controller
      */
     public function store(ProductRequest $request)
     {
-        // dd($request);
         try {
             \DB::beginTransaction();
 
@@ -66,6 +66,18 @@ class ProductController extends Controller
                 'admin_id' => auth()->id() ?? 1,
                 'slug' => $request->slug ? Str::slug($request->slug) : Str::slug($request->name),
             ]);
+
+            if ($request->hasFile('thumbnails')) {
+                foreach ($request->file('thumbnails') as $thumbnail) {
+                    $imagePath = putImage('product_images/thumbnail', $thumbnail);
+            
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'image_url' => $imagePath,
+                    ]);
+                }
+            }
+            
 
             if (isset($request->categories)) {
                 foreach ($request->categories as $cate) {
@@ -165,7 +177,7 @@ class ProductController extends Controller
             'label' =>  $productStatus->label()
         ];
 
-        $product->load('tags')->get();
+        $product->load('tags', 'images', 'skus.variantValues')->get();
         // dd($product);
 
         $status = mapEnumToArray(ProductStatus::class, $product->status);
@@ -185,8 +197,31 @@ class ProductController extends Controller
      */
     public function update(ProductRequest $request, Product $product)
     {
-        // dd($request);
         try {
+            $productImageIds = $product->images->pluck('id')->toArray();
+
+            $deletedImages = array_diff($productImageIds, $request->old_thumbnails);
+    
+            if (!empty($deletedImages)) {
+                $imagesToDelete = $product->images->whereIn('id', $deletedImages);
+    
+                foreach ($imagesToDelete as $image) {
+                    deleteImage($image->image_url); 
+                    $image->delete(); 
+                }
+            }
+
+            if ($request->hasFile('thumbnails')) {
+                foreach ($request->file('thumbnails') as $thumbnail) {
+                    $imagePath = putImage('product_images/thumbnail', $thumbnail);
+            
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'image_url' => $imagePath,
+                    ]);
+                }
+            }
+    
             \DB::beginTransaction();
 
             $product->update([
@@ -310,7 +345,7 @@ class ProductController extends Controller
 
 
             \DB::commit();
-            return redirect()->route('admin.product.index')->with('success', 'Sản phẩm đã được cập nhật thành công!');
+            return redirect()->back()->with('success', 'Sản phẩm đã được cập nhật thành công!');
         } catch (\Exception $e) {
             \DB::rollBack();
             return redirect()->back()->with('error', $e->getMessage());

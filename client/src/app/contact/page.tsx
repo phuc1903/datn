@@ -48,7 +48,7 @@ export default function Contact() {
               <div>
                 <label className="block text-gray-700 font-medium mb-2">Tin nhắn</label>
                 <textarea
-                  rows="4"
+                  rows={4}
                   placeholder="Nhập tin nhắn của bạn"
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
                 ></textarea>

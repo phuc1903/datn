@@ -35,7 +35,7 @@ class VariantRequest extends BaseRequest
     protected function methodPut(): array
     {
         return [
-            'name' => ['required', 'string', 'min:3', 'max:30', 'unique:variants,name' . $this->variant],
+            'name' => ['required', 'string', 'min:3', 'max:30', 'unique:variants,name,'.$this->route('variant')->id.',id'],
             'variants' => ['required', 'array', 'min:1'],
         ];
     }

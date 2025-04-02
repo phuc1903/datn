@@ -1,59 +1,108 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { ChevronUp, ChevronDown, Diamond, Filter, Search } from "lucide-react";
+import { ChevronUp, ChevronDown, Search } from "lucide-react";
 import Link from "next/link";
 import { API_BASE_URL } from "@/config/config";
-import ReactSlider from "react-slider";
+
+interface Category {
+  id: number;
+  name: string;
+  subcategories?: Category[];
+}
+
+interface Product {
+  id: number;
+  name: string;
+  image_url: string;
+  short_description?: string;
+  rating?: number;
+  categories: Category[];
+  images?: Array<{
+    image_url: string;
+  }>;
+  skus: Array<{
+    id: number;
+    price: number;
+    promotion_price: number;
+  }>;
+}
+
+interface CategoryGroup {
+  id: string;
+  name: string;
+  subcategories: Category[];
+}
+
+interface ExpandedCategories {
+  [key: string]: boolean;
+}
+
+interface FilterSearchHeaderProps {
+  searchTerm: string;
+  setSearchTerm: (value: string) => void;
+}
+
+const FilterSearchHeader = ({ searchTerm, setSearchTerm }: FilterSearchHeaderProps) => {
+  return (
+    <div className="w-full mb-6 border-b border-gray-300 pb-4">
+      <div className="flex items-center gap-4">
+        <div className="flex-grow relative">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Tìm kiếm sản phẩm..."
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+          />
+          <Search className="absolute right-3 top-3 text-gray-400 w-5 h-5" />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const ProductListingPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filteredProducts, setFilteredProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [sortOrder, setSortOrder] = useState("");
-  const FilterSearchHeader = ({ searchTerm, setSearchTerm }) => {
-    return <div></div>;
-  };
+  const [expandedCategories, setExpandedCategories] = useState<ExpandedCategories>({});
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/products`)
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("Dữ liệu sản phẩm:", data.data); // Kiểm tra dữ liệu
-        setProducts(data.data);
-        setFilteredProducts(data.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-        setLoading(false);
-      });
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/products`);
+        const data = await response.json();
+        if (data.status === "success") {
+          setProducts(data.data);
+          setFilteredProducts(data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/categories`);
+        const data = await response.json();
+        if (data.status === "success") {
+          setCategories(data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchProducts();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
-    const filtered = products.filter((product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredProducts(filtered);
-  }, [searchTerm, products]);
-
-  useEffect(() => {
-    fetch(`${API_BASE_URL}/categories`)
-      .then((res) => res.json())
-      .then((data) => {
-        setCategories(data.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    let updatedProducts = products.filter((item) =>
+    const updatedProducts = products.filter((item) =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -70,174 +119,76 @@ const ProductListingPage = () => {
     setFilteredProducts(updatedProducts);
   }, [searchTerm, sortOrder, products]);
 
-  // console.log(categories);
-
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  const [expandedCategories, setExpandedCategories] = useState({
-    main: true,
-    category1: true,
-    ratings: true,
-    price: true,
-  });
 
-  const [selectedFilters, setSelectedFilters] = useState({
-    categories: ["Danh mục con 3"],
-    ratings: ["3"],
-    priceRange: { min: "", max: "" },
-    tags: [],
-  });
-
-  const [sortOption, setSortOption] = useState("");
-
-  const toggleCategory = (category) => {
-    setExpandedCategories((prev) => ({
+  const toggleCategory = (categoryId: string | number) => {
+    setExpandedCategories(prev => ({
       ...prev,
-      [category]: !prev[category],
+      [categoryId]: !prev[categoryId]
     }));
   };
 
-  useEffect(() => {
-    fetch(`${API_BASE_URL}/categories`)
-      .then((res) => res.json())
-      .then((data) => {
-        setCategories(data.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching categories:", error);
-        setLoading(false);
-      });
-  }, []);
-
-  const handleCategoryChange = (categoryId) => {
-    setSelectedFilters((prev) => {
-      const newCategories = prev.categories.includes(categoryId)
-        ? prev.categories.filter((id) => id !== categoryId)
-        : [...prev.categories, categoryId];
-
-      return { ...prev, categories: newCategories };
-    });
+  const handleCategorySelect = (categoryId: number) => {
+    setSelectedCategory(categoryId);
   };
 
-  useEffect(() => {
-    if (selectedFilters.categories.length === 0) {
-      setFilteredProducts(products);
-      return;
-    }
+  const handleSortChange = (value: string) => {
+    setSortOrder(value);
+    const updatedProducts = [...products];
 
-    const filtered = products.filter(
-      (product) =>
-        product.categories &&
-        product.categories.some((category) =>
-          selectedFilters.categories.includes(category.id)
-        )
-    );
-
-    setFilteredProducts(filtered.length > 0 ? filtered : products);
-  }, [selectedFilters.categories, products]);
-
-  const categoriesData = Array.from({ length: 50 }, (_, i) => ({
-    id: `cate-${i + 1}`,
-    name: `Danh mục ${i + 1}`,
-    subcategories: [],
-  }));
-
-  const groupedCategories = categoriesData.reduce((acc, category, index) => {
-    const groupIndex = Math.floor(index / 10);
-    if (!acc[groupIndex])
-      acc[groupIndex] = {
-        id: `group-${groupIndex + 1}`,
-        name: `Danh mục ${groupIndex + 1}`,
-        subcategories: [],
-      };
-    acc[groupIndex].subcategories.push(category);
-    return acc;
-  }, []);
-
-  const handleFilterChange = (filterType, value) => {
-    setSelectedFilters((prev) => {
-      const updatedFilters = { ...prev };
-
-      if (filterType === "ratings") {
-        updatedFilters.ratings = prev.ratings.includes(value)
-          ? prev.ratings.filter((rating) => rating !== value)
-          : [...prev.ratings, value];
-      }
-
-      return updatedFilters;
-    });
-  };
-
-  useEffect(() => {
-    let updatedProducts = products.filter((product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    if (selectedFilters.ratings.length > 0) {
-      updatedProducts = updatedProducts.filter((product) => {
-        const productRating = product.rating; // Giả sử mỗi sản phẩm có thuộc tính rating
-        return selectedFilters.ratings.some((selectedRating) => {
-          const minRating = parseInt(selectedRating);
-          const maxRating = minRating + 0.9;
-          return productRating >= minRating && productRating <= maxRating;
+    switch (value) {
+      case "price-asc":
+        updatedProducts.sort((a, b) => {
+          const priceA = a.skus[0]?.promotion_price > 0 ? a.skus[0].promotion_price : a.skus[0]?.price;
+          const priceB = b.skus[0]?.promotion_price > 0 ? b.skus[0].promotion_price : b.skus[0]?.price;
+          return (priceA || 0) - (priceB || 0);
         });
-      });
+        break;
+      case "price-desc":
+        updatedProducts.sort((a, b) => {
+          const priceA = a.skus[0]?.promotion_price > 0 ? a.skus[0].promotion_price : a.skus[0]?.price;
+          const priceB = b.skus[0]?.promotion_price > 0 ? b.skus[0].promotion_price : b.skus[0]?.price;
+          return (priceB || 0) - (priceA || 0);
+        });
+        break;
+      default:
+        break;
     }
 
-    setFilteredProducts(updatedProducts);
-  }, [selectedFilters.ratings, searchTerm, products]);
-
-  const handlePriceChange = (type, value) => {
-    setSelectedFilters((prev) => ({
-      ...prev,
-      priceRange: {
-        ...prev.priceRange,
-        [type]: value ? parseFloat(value) : "", // Chuyển đổi sang số, nếu không nhập thì để rỗng
-      },
-    }));
+    setProducts(updatedProducts);
   };
 
-  useEffect(() => {
-    let updatedProducts = products.filter((product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    if (
-      selectedFilters.priceRange.min !== "" ||
-      selectedFilters.priceRange.max !== ""
-    ) {
-      updatedProducts = updatedProducts.filter((product) => {
-        const price = product.skus[0].promotion_price;
-        const minPrice = selectedFilters.priceRange.min
-          ? parseFloat(selectedFilters.priceRange.min)
-          : 0;
-        const maxPrice = selectedFilters.priceRange.max
-          ? parseFloat(selectedFilters.priceRange.max)
-          : Infinity;
-        return price >= minPrice && price <= maxPrice;
-      });
-    }
-
-    setFilteredProducts(updatedProducts);
-  }, [selectedFilters.priceRange, searchTerm, products]);
-
-  const MIN_PRICE = 0; // Giá thấp nhất, có thể thay đổi theo nhu cầu
-  const MAX_PRICE = 999000; // Giá cao nhất
+  const filteredProductsByCategory = selectedCategory
+    ? filteredProducts.filter(product =>
+        product.categories.some(category => category.id === selectedCategory)
+      )
+    : filteredProducts;
 
   const ITEMS_PER_PAGE = 18;
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredProductsByCategory.length / ITEMS_PER_PAGE);
 
-  const displayedProducts = filteredProducts.slice(
+  const displayedProducts = filteredProductsByCategory.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
-  const handlePageChange = (page) => {
+  const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
+
+  const categoriesGroups = categories.reduce((acc: CategoryGroup[], category, index) => {
+    if (index % 5 === 0) {
+      acc.push({
+        id: `group-${Math.floor(index / 5) + 1}`,
+        name: `Danh mục ${Math.floor(index / 5) + 1}`,
+        subcategories: categories.slice(index, index + 5),
+      });
+    }
+    return acc;
+  }, []);
 
   const Sidebar = () => (
     <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -246,231 +197,123 @@ const ProductListingPage = () => {
       <div className="mb-4 border border-[#E2E0DF] rounded-md">
         <div
           className="flex justify-between items-center cursor-pointer p-4 bg-white border-b border-[#E2E0DF]"
-          onClick={() => toggleCategory("main")}
+          onClick={() => toggleCategory(1)}
         >
           <h3 className="font-medium text-lg">Danh Mục</h3>
-          {expandedCategories.main ? (
+          {expandedCategories[1] ? (
             <ChevronUp className="w-4 h-4 text-gray-600" />
           ) : (
             <ChevronDown className="w-4 h-4 text-gray-600" />
           )}
         </div>
 
-        {expandedCategories.main && (
+        {expandedCategories[1] && (
           <div className="p-4 space-y-2">
-            {categories
-              .reduce((acc, category, index) => {
-                if (index % 5 === 0) {
-                  acc.push({
-                    id: `group-${Math.floor(index / 5) + 1}`,
-                    name: `Danh mục ${Math.floor(index / 5) + 1}`,
-                    subcategories: categories.slice(index, index + 5),
-                  });
-                }
-                return acc;
-              }, [])
-              .map((group) => (
-                <div key={group.id}>
-                  <div
-                    className="flex justify-between items-center cursor-pointer p-2 rounded-md hover:bg-gray-100"
-                    onClick={() => toggleCategory(group.id)}
-                  >
-                    <div className="flex items-center gap-2">
-                      {group.id === "group-1" && (
-                        <svg
-                          className="w-4 h-4 text-[#ED0E69]"
-                          fill="none"
-                          strokeWidth="1.5"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z"
-                          ></path>
-                        </svg>
-                      )}
-                      {group.id === "group-2" && (
-                        <svg
-                          className="w-4 h-4 text-[#ED0E69]"
-                          fill="none"
-                          strokeWidth="1.5"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"
-                          ></path>
-                        </svg>
-                      )}
-                      {group.id === "group-3" && (
-                        <svg
-                          className="w-4 h-4 text-[#ED0E69]"
-                          fill="none"
-                          strokeWidth="1.5"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
-                          ></path>
-                        </svg>
-                      )}
-                      {group.id === "group-4" && (
-                        <svg
-                          className="w-4 h-4 text-[#ED0E69]"
-                          fill="none"
-                          strokeWidth="1.5"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3"
-                          ></path>
-                        </svg>
-                      )}
-                      <span className="text-sm font-medium text-gray-700">
-                        {group.name}
-                      </span>
-                    </div>
-                    {expandedCategories[group.id] ? (
-                      <ChevronUp className="w-4 h-4 text-gray-500" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-gray-500" />
+            {categoriesGroups.map((group) => (
+              <div key={group.id}>
+                <div
+                  className="flex justify-between items-center cursor-pointer p-2 rounded-md hover:bg-gray-100"
+                  onClick={() => toggleCategory(group.id)}
+                >
+                  <div className="flex items-center gap-2">
+                    {group.id === "group-1" && (
+                      <svg
+                        className="w-4 h-4 text-[#ED0E69]"
+                        fill="none"
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z"
+                        ></path>
+                      </svg>
                     )}
+                    {group.id === "group-2" && (
+                      <svg
+                        className="w-4 h-4 text-[#ED0E69]"
+                        fill="none"
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"
+                        ></path>
+                      </svg>
+                    )}
+                    {group.id === "group-3" && (
+                      <svg
+                        className="w-4 h-4 text-[#ED0E69]"
+                        fill="none"
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
+                        ></path>
+                      </svg>
+                    )}
+                    {group.id === "group-4" && (
+                      <svg
+                        className="w-4 h-4 text-[#ED0E69]"
+                        fill="none"
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3"
+                        ></path>
+                      </svg>
+                    )}
+                    <span className="text-sm font-medium text-gray-700">
+                      {group.name}
+                    </span>
                   </div>
-
-                  {expandedCategories[group.id] && (
-                    <div className="ml-6 mt-2 space-y-1">
-                      {group.subcategories.map((sub) => (
-                        <div key={sub.id} className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedFilters.categories.includes(
-                              sub.id
-                            )}
-                            onChange={() => handleCategoryChange(sub.id)}
-                            className="w-4 h-4 rounded border-gray-300 accent-pink-500 focus:ring-pink-500"
-                          />
-                          <span className="text-sm text-gray-500">
-                            {sub.name}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                  {expandedCategories[group.id] ? (
+                    <ChevronUp className="w-4 h-4 text-gray-500" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-500" />
                   )}
                 </div>
-              ))}
-          </div>
-        )}
-      </div>
 
-      {/* Rating Section */}
-      <div className="mb-4 border border-[#E2E0DF]">
-        <div
-          className="flex justify-between items-center cursor-pointer p-5 border border-[#E2E0DF]"
-          onClick={() => toggleCategory("ratings")}
-        >
-          <h3 className="font-medium  text-lg">Đánh Giá</h3>
-          {expandedCategories.ratings ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
-        </div>
-
-        {expandedCategories.ratings && (
-          <div className="space-y-2 p-5">
-            {[5, 4, 3, 2, 1].map((rating) => (
-              <div key={rating} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFilters.ratings.includes(
-                      rating.toString()
-                    )}
-                    onChange={() =>
-                      handleFilterChange("ratings", rating.toString())
-                    }
-                    className="w-4 h-4 rounded border-gray-300 accent-pink-500 focus:ring-pink-500"
-                  />
-                  <div className="flex items-center">
-                    <span className="text-sm mr-1">{rating}</span>
-                    <span className="text-yellow-400">★</span>
-                    <span className="text-sm ml-1">& up</span>
+                {expandedCategories[group.id] && (
+                  <div className="ml-6 mt-2 space-y-1">
+                    {group.subcategories.map((sub) => (
+                      <div key={sub.id} className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedCategory === sub.id}
+                          onChange={() => handleCategorySelect(sub.id)}
+                          className="w-4 h-4 rounded border-gray-300 accent-pink-500 focus:ring-pink-500"
+                        />
+                        <span className="text-sm text-gray-500">
+                          {sub.name}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                </div>
-                <span className="text-sm text-gray-400">1345</span>
+                )}
               </div>
             ))}
-          </div>
-        )}
-      </div>
-
-      {/* Price Range Section */}
-      <div className="border border-[#E2E0DF] p-5">
-        <div
-          className="flex justify-between items-center cursor-pointer"
-          onClick={() => toggleCategory("price")}
-        >
-          <h3 className="font-medium text-lg">Giá</h3>
-          {expandedCategories.price ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
-        </div>
-
-        {expandedCategories.price && (
-          <div className="px-2 mt-4">
-            <ReactSlider
-              className="w-full h-2 bg-gray-200 rounded-full"
-              thumbClassName="w-4 h-4 bg-pink-500 rounded-full cursor-pointer"
-              trackClassName="bg-pink-500 h-2 rounded-full"
-              min={MIN_PRICE}
-              max={MAX_PRICE}
-              value={[
-                selectedFilters.priceRange.min || MIN_PRICE,
-                selectedFilters.priceRange.max || MAX_PRICE,
-              ]}
-              onChange={([min, max]) => {
-                setSelectedFilters((prev) => ({
-                  ...prev,
-                  priceRange: { min, max },
-                }));
-              }}
-            />
-            <div className="flex justify-between mt-4">
-              <input
-                type="number"
-                value={selectedFilters.priceRange.min}
-                onChange={(e) => handlePriceChange("min", e.target.value)}
-                placeholder="$ min"
-                className="w-24 px-2 py-1 text-sm border rounded"
-              />
-              <input
-                type="number"
-                value={selectedFilters.priceRange.max}
-                onChange={(e) => handlePriceChange("max", e.target.value)}
-                placeholder="$ max"
-                className="w-24 px-2 py-1 text-sm border rounded"
-              />
-            </div>
           </div>
         )}
       </div>
@@ -532,7 +375,7 @@ const ProductListingPage = () => {
                 </div>
                 <select
                   className="border border-gray-300 px-2 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                  onChange={(e) => setSortOrder(e.target.value)}
+                  onChange={(e) => handleSortChange(e.target.value)}
                   value={sortOrder}
                 >
                   <option value="">Tất cả</option>
@@ -544,34 +387,6 @@ const ProductListingPage = () => {
                   </option>
                 </select>
               </div>
-              {/* <div className="mt-4 flex justify-between items-center text-sm text-gray-500">
-                <div>
-                  Gợi ý:{" "}
-                  <span className="text-pink-500 cursor-pointer hover:underline">
-                    user interface
-                  </span>
-                  ,{" "}
-                  <span className="text-pink-500 cursor-pointer hover:underline">
-                    user experience
-                  </span>
-                  ,{" "}
-                  <span className="text-pink-500 cursor-pointer hover:underline">
-                    web design
-                  </span>
-                  ,{" "}
-                  <span className="text-pink-500 cursor-pointer hover:underline">
-                    interface
-                  </span>
-                  ,{" "}
-                  <span className="text-pink-500 cursor-pointer hover:underline">
-                    app
-                  </span>
-                </div>
-                <div className="text-gray-600 font-medium">
-                  <strong>3,145,684</strong> results find for{" "}
-                  <span className="italic">"ui/ux design"</span>
-                </div>
-              </div> */}
             </div>
 
             {/* Layout mới: Sidebar và sản phẩm cùng hàng */}
@@ -606,7 +421,7 @@ const ProductListingPage = () => {
                                 key={tag.id}
                                 className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full"
                               >
-                                {tag.name} {/* Chỉ hiển thị tên danh mục */}
+                                {tag.name}
                               </span>
                             ))}
                           </div>
@@ -623,8 +438,7 @@ const ProductListingPage = () => {
                                   {item.skus?.[0]?.price.toLocaleString()}đ
                                 </span>
                                 <span className="text-pink-600 font-bold text-lg">
-                                  {item.skus?.[0]?.promotion_price.toLocaleString()}
-                                  đ
+                                  {item.skus?.[0]?.promotion_price.toLocaleString()}đ
                                 </span>
                               </>
                             ) : (
@@ -635,8 +449,7 @@ const ProductListingPage = () => {
                           </div>
                           <div className="flex items-center justify-between mb-4">
                             <span className="text-yellow-500 text-sm ml-2">
-                              ★{" "}
-                              {item.rating ? item.rating.toFixed(1) : "Chưa có"}
+                              ★ {item.rating ? item.rating.toFixed(1) : "Chưa có"}
                             </span>
                             <button className="bg-pink-600 text-white py-2 px-4 rounded text-sm hover:bg-pink-700">
                               Mua Ngay

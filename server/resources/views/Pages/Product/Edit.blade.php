@@ -152,6 +152,23 @@
                         <x-form.input_text hidden id="typeFile" onchange="previewImage(this);" type="file"
                             accept="image/png, image/jpeg, image/jpg" name="image" />
                     </div>
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="title">Thư viện ảnh</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="thumbnails row row-cols-2 mb-3" id="thumbnails">
+                                @foreach ($product->images as $image)
+                                    <div class="col image-container" id="image-{{ $image->id }}">
+                                        <input type="hidden" name="old_thumbnails[]" value="{{ $image->id }}" />
+                                        <img class="w-100 h-100" id="preview-{{ $image->id }}" src="{{ asset($image->image_url) }}" alt="{{ $product->name }}-thumbnail-{{ $image->id }}" />
+                                        <button type="button" class="close-btn"><i class="bi bi-x"></i></button>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <x-button.index label="Tải ảnh" color="outline" id="uploadThumbnaiProduct"/>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -170,4 +187,5 @@
             height: 300
         });
     </script>
+    
 @endpush

@@ -12,7 +12,6 @@ class Combo extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    use SoftDeletes;
 
     protected $casts = [
         'random_flag' => 'boolean',
@@ -24,11 +23,16 @@ class Combo extends Model
 
     public function skus()
     {
-        return $this->belongsToMany(Sku::class, 'combo_products')->select('skus.id','sku_code','product_id','image_url')->withPivot('quantity');
+        return $this->belongsToMany(Sku::class, 'combo_products')->select('skus.id','sku_code','product_id','image_url', 'price', 'promotion_price')->withPivot('quantity');
     }
 
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'product_categories');
+    }
+
+    public function getImageUrlAttribute($value)
+    {
+        return $value ? asset($value) : null;
     }
 }

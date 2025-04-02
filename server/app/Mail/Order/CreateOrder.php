@@ -40,6 +40,9 @@ class CreateOrder extends Mailable
     {
         return new Content(
             view: 'email.order.create_order',
+            with: [
+                'order' => $this->data['order'],
+            ]
         );
     }
 

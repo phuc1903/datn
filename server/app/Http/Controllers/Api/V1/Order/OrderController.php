@@ -8,6 +8,7 @@ use App\Enums\Voucher\VoucherStatus;
 use App\Enums\Voucher\VoucherType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Order\CreateOrderRequest;
+use App\Jobs\SendCreateOrder;
 use App\Models\Combo;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -163,6 +164,9 @@ class OrderController extends Controller
                 $order->reason = $data['message'];
             }
             $order->save();
+
+            // Tạo job gữi mail (đối với đơn hàng Bank)
+            SendCreateOrder::dispatch(['order' => $order]);
             return true;
         }
 
@@ -379,7 +383,7 @@ class OrderController extends Controller
                     'order' => $order,
                     'order_items' => $orderItems,
                 ];
-                
+
                 // If payment method is bank, use Momo payment
                 if ($orderData['payment_method'] == 'bank') {
                     try {
@@ -390,7 +394,7 @@ class OrderController extends Controller
                         } else {
                             $paymentResult = $this->createMomoPayment($order);
                         }
-                        
+
                         // Add payment URL to response
                         $response['payment_url'] = $paymentResult['paymentUrl'];
                     } catch (\Exception $e) {
@@ -398,6 +402,11 @@ class OrderController extends Controller
                         Log::error('Failed to create Momo payment for order #' . $order->id . ': ' . $e->getMessage());
                         $response['payment_error'] = $e->getMessage();
                     }
+                }
+
+                // Tạo job gữi mail (đối với đơn hàng COD), đơn hàng Bank sẽ được gữi sau khi thanh toán thành công (nằm ở webhook)
+                if ($orderData['payment_method'] == 'cod') {
+                    SendCreateOrder::dispatch(['order' => $order]);
                 }
 
                 return $response;
@@ -426,6 +435,9 @@ class OrderController extends Controller
                 'items.sku' => function ($query) {
                     $query->select('id', 'product_id', 'price');
                 },
+                'items.sku.variantValues' => function ($query) {
+                    $query->select('value');
+                },
                 'items.sku.product' => function ($query) {
                     $query->select('id', 'name', 'description');
                 },
@@ -439,6 +451,41 @@ class OrderController extends Controller
             } else {
                 return ResponseError('Order not Found', null, 404);
             }
+        } catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
+        }
+    }
+    public function cancelOrder(Request $request, $order_id)
+    {
+        try {
+            // Lấy người dùng đang đăng nhập
+            $user = auth()->user();
+
+            // Tìm đơn hàng thuộc về user
+            $order = Order::where('id', $order_id)->where('user_id', $user->id)->first();
+
+            // Kiểm tra nếu đơn hàng không tồn tại
+            if (!$order) {
+                return ResponseError('Order not found', null, 404);
+            }
+
+            // Kiểm tra nếu đơn hàng không ở trạng thái pending
+            if ($order->status !== OrderStatus::Pending) {
+                return ResponseError('Only pending orders can be canceled', null, 400);
+            }
+
+            // Kiểm tra xem lý do hủy có được nhập không
+            $request->validate([
+                'reason' => 'required|string|max:255',
+            ]);
+
+            // Cập nhật trạng thái thành canceled và lưu lý do hủy
+            Order::where('id', $order_id)->where('user_id', $user->id)->update([
+                'status' => OrderStatus::Cancel,
+                'reason' => $request->reason,
+            ]);
+            $order = Order::where('id', $order_id)->where('user_id', $user->id)->first();
+            return ResponseSuccess('Order canceled successfully', $order);
         } catch (\Exception $e) {
             return ResponseError($e->getMessage(), null, 500);
         }

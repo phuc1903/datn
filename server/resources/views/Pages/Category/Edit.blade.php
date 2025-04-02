@@ -11,7 +11,7 @@
                         <h3 class="title">Chỉnh sửa danh mục danh mục</h3>
                     </div>
                     <div class="card-body">
-                        <x-form.input_text label="Tên danh mục" name="name" value="{{ $category->name }}" />
+                        <x-form.input_text label="Tên danh mục" name="name" value="{{ $category->name }}" id="name" />
                         <div class="mb-3">
                             <label for="" class="form-label fw-bold text-dark-custom">Danh mục cha</label>
                             <select class="form-select selec-custom input-text-custom" aria-label="Default select example"
@@ -30,7 +30,7 @@
                             </select>
                         </div>
 
-                        <x-form.input_text label="Slug" name="slug" value="{{ $category->slug ?? '' }}" />
+                        <x-form.input_text label="Slug" name="slug" value="{{ $category->slug ?? '' }}" id="slug" />
 
                         <div class="form-floating mb-3">
                             <textarea class="form-control input-text-custom" name="short_description" placeholder="Leave a comment here"
@@ -70,7 +70,7 @@
                         <h5 class="title">Hình ảnh danh mục</h5>
                     </div>
                     <div class="card-body">
-                        <x-image.index id="imagePreview" class="mb-3 img-fluid" src="{{ $category->image }}"
+                        <x-image.index id="imagePreview" class="mb-3 img-fluid" src="{{ asset($category->image) }}"
                             alt="{{ $category->name }}" />
 
                         <x-button.index label="Tải ảnh" onclick="chooseImage()" />
