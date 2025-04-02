@@ -80,7 +80,7 @@ class User extends Authenticatable
 
     public function feedbacks()
     {
-        return $this->belongsToMany(Product::class, 'product_feedbacks', 'user_id', 'product_id')
+        return $this->belongsToMany(Sku::class, 'product_feedbacks', 'user_id', 'sku_id')
             ->withPivot('rating', 'content')  // Đảm bảo lấy thêm rating và comment
             ->withTimestamps();  // Lấy timestamps nếu có
     }

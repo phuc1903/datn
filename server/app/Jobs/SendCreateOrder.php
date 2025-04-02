@@ -2,11 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Mail\Order\CreateOrder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Mail;
 
 class SendCreateOrder implements ShouldQueue
 {
@@ -15,7 +17,7 @@ class SendCreateOrder implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct()
+    public function __construct(public array $incoming)
     {
         //
     }
@@ -25,6 +27,8 @@ class SendCreateOrder implements ShouldQueue
      */
     public function handle(): void
     {
-        //
+        Mail::to($this->incoming['order']->email)->send(new CreateOrder([
+            'order' => $this->incoming['order'],
+        ]));
     }
 }

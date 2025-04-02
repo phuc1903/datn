@@ -13,8 +13,8 @@
                         <x-form.input_text label="Tên sản phẩm" name="name" />
                         <div class="form-floating mb-3">
                             <textarea class="form-control input-text-custom @error('short_description') is-invalid @enderror"
-                                value="{{ old('short_description') }}" name="short_description" placeholder="Leave a comment here"
-                                id="floatingTextarea" style="height: 100px"></textarea>
+                                name="short_description" placeholder="Leave a comment here"
+                                id="floatingTextarea" style="height: 100px">{{ old('short_description') }}</textarea>
                             <label for="floatingTextarea" class="text-dark-custom">Mô tả ngắn</label>
                             @error('short_description')
                                 <div class="invalid-feedback">
@@ -23,7 +23,7 @@
                             @enderror
                         </div>
 
-                        <textarea id="description" class="input-text-custom" name="description"></textarea>
+                        <textarea id="description" class="input-text-custom" name="description">{{ old('description') }}</textarea>
                         @error('description')
                             <div class="text-danger mt-2">
                                 {{ $message }}
@@ -140,6 +140,15 @@
 
                         <x-form.input_text hidden id="typeFile" onchange="previewImage(this);" type="file"
                             accept="image/png, image/jpeg, image/jpg" name="image_url" />
+                    </div>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="title">Thư viện ảnh</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="thumbnails row row-cols-2 mb-3" id="thumbnails"></div>
+                        <x-button.index label="Tải ảnh" color="outline" id="uploadThumbnaiProduct" />
                     </div>
                 </div>
             </div>

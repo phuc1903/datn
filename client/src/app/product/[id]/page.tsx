@@ -6,6 +6,7 @@ import { StarIcon, HeartIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import Cookies from "js-cookie";
+import { API_BASE_URL } from "@/config/config";
 
 interface ProductVariant {
   id: number;
@@ -17,7 +18,7 @@ interface ProductVariant {
 
 interface Sku {
   id: number;
-  sku_code: string;
+  name: string;
   price: number;
   promotion_price: number;
   quantity: number;
@@ -33,10 +34,37 @@ interface Review {
   date: string;
 }
 
+interface WishlistItem {
+  id: number;
+}
+
+interface Category {
+  id: number;
+  name: string;
+}
+
+interface CartItem {
+  product_id: number;
+  name: string;
+  image_url: string;
+  price: number;
+  quantity: number;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  skus: Sku[];
+  description: string;
+  short_description: string;
+  image_url: string;
+  categories: Category[];
+}
+
 export default function ProductDetail() {
   const { id } = useParams();
   const router = useRouter();
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedSku, setSelectedSku] = useState<Sku | null>(null);
   const [selectedVariants, setSelectedVariants] = useState<{ [key: string]: string }>({});
@@ -47,6 +75,7 @@ export default function ProductDetail() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [selectedSkuIndex, setSelectedSkuIndex] = useState(0);
 
   const token = Cookies.get("accessToken");
 
@@ -67,14 +96,14 @@ export default function ProductDetail() {
 
         // Fetch wishlist if authenticated
         if (token) {
-          const wishlistResponse = await fetch("http://127.0.0.1:8000/api/v1/users/favorites", {
+          const wishlistResponse = await fetch(`${API_BASE_URL}/users/favorites`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (!wishlistResponse.ok) throw new Error("Failed to fetch wishlist");
           const wishlistData = await wishlistResponse.json();
           
           const isInWishlist = wishlistData.data?.favorites?.some(
-            (item) => item.id === parseInt(id as string)
+            (item: WishlistItem) => item.id === parseInt(id as string)
           );
           setIsWishlisted(isInWishlist);
         }
@@ -109,7 +138,7 @@ export default function ProductDetail() {
 
   const handleQuantityChange = useCallback(
     (value: number) => {
-      if (!selectedSku) return;
+      if (!selectedSku?.quantity) return;
       const newQuantity = Math.max(1, Math.min(value, selectedSku.quantity));
       setQuantity(newQuantity);
     },
@@ -156,27 +185,23 @@ export default function ProductDetail() {
       router.push("/login");
       return;
     }
-    if (!selectedSku || !product) return;
+    if (!product || !selectedSku || !selectedSku.quantity) return;
 
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const existingItem = storedCart.find((item) => item.sku_id === selectedSku.id);
+    const existingItem = storedCart.find((item: CartItem) => item.product_id === product.id);
     let updatedCart;
 
     const cartItem = {
-      sku_id: selectedSku.id,
+      product_id: product.id,
       name: product.name,
-      image_url: selectedSku.image_url,
+      image_url: product.image_url,
       price: selectedSku.promotion_price > 0 ? selectedSku.promotion_price : selectedSku.price,
       quantity: quantity,
-      variants: selectedSku.variant_values.map((variant) => ({
-        name: variant.variant.name,
-        value: variant.value,
-      })),
     };
 
     if (existingItem) {
-      updatedCart = storedCart.map((item) =>
-        item.sku_id === selectedSku.id
+      updatedCart = storedCart.map((item: CartItem) =>
+        item.product_id === product.id
           ? { ...item, quantity: Math.min(item.quantity + quantity, selectedSku.quantity) }
           : item
       );
@@ -185,8 +210,8 @@ export default function ProductDetail() {
     }
 
     localStorage.setItem("cart", JSON.stringify(updatedCart));
-    toast.success("Đã thêm vào giỏ hàng!");
-  }, [selectedSku, product, quantity, token, router]);
+    toast.success("Đã thêm sản phẩm vào giỏ hàng!");
+  }, [product, quantity, token, router, selectedSku]);
 
   const toggleWishlist = useCallback(async () => {
     if (!token) {
@@ -268,19 +293,22 @@ export default function ProductDetail() {
                 />
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {product.skus.map((sku) => (
+                {product.skus.map((item: Sku) => (
                   <div
-                    key={sku.id}
-                    className="relative aspect-square rounded-lg overflow-hidden cursor-pointer"
-                    onClick={() => setSelectedSku(sku)}
+                    key={item.id}
+                    className={`relative cursor-pointer ${
+                      selectedSkuIndex === product.skus.indexOf(item)
+                        ? "ring-2 ring-pink-500"
+                        : "ring-1 ring-gray-200"
+                    }`}
+                    onClick={() => setSelectedSkuIndex(product.skus.indexOf(item))}
                   >
                     <Image
-                      src={sku.image_url}
-                      alt={sku.sku_code}
-                      fill
-                      className={`object-cover hover:opacity-75 transition-opacity ${
-                        selectedSku?.id === sku.id ? "border-2 border-pink-600" : ""
-                      }`}
+                      src={item.image_url}
+                      alt={`${product.name} - ${item.name}`}
+                      width={80}
+                      height={80}
+                      className="rounded-lg object-cover"
                     />
                   </div>
                 ))}
@@ -295,7 +323,7 @@ export default function ProductDetail() {
     {product?.categories?.length > 0 && (
       <h3 className="text-base md:text-lg font-bold text-gray-500">
         Danh mục: {product.categories.map((category) => category.name).join(", ")}
-        {selectedSku && ` - Mã sản phẩm: ${selectedSku.sku_code}`}
+        {selectedSku && ` - Mã sản phẩm: ${selectedSku.name}`}
       </h3>
     )}
   </div>
@@ -389,15 +417,16 @@ export default function ProductDetail() {
                     min="1"
                     max={selectedSku?.quantity || 1}
                     value={quantity}
-                    onChange={(e) =>
-                      handleQuantityChange(Math.min(parseInt(e.target.value) || 1, selectedSku?.quantity))
-                    }
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1;
+                      handleQuantityChange(value);
+                    }}
                     className="w-20 h-10 border border-gray-300 rounded-lg text-center text-pink-600"
                   />
                   <button
-                    disabled={quantity >= selectedSku?.quantity}
+                    disabled={!selectedSku?.quantity || quantity >= selectedSku.quantity}
                     className={`w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 ${
-                      quantity >= selectedSku?.quantity ? "opacity-50 cursor-not-allowed" : ""
+                      !selectedSku?.quantity || quantity >= selectedSku.quantity ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                     onClick={() => handleQuantityChange(quantity + 1)}
                   >
@@ -458,19 +487,17 @@ export default function ProductDetail() {
             )}
 
             {activeTab === "specifications" && (
-              selectedSku?.variant_values.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-black">
-                    {selectedSku.variant_values.map((variant) => (
-                      <div key={variant.id} className="bg-gray-50 p-4 rounded-lg">
-                        <h4 className="font-medium mb-2">{variant.variant.name}</h4>
-                        <p>{variant.value}</p>
-                      </div>
+              selectedSku && selectedSku.variant_values && selectedSku.variant_values.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="text-sm font-medium text-gray-900 mb-2">Thông số kỹ thuật:</h3>
+                  <ul className="space-y-2">
+                    {selectedSku.variant_values.map((variant, index) => (
+                      <li key={index} className="text-sm text-gray-600">
+                        {variant.variant.name}: {variant.value}
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
-              ) : (
-                <p className="text-gray-500">Chưa có thông số sản phẩm.</p>
               )
             )}
 

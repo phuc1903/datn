@@ -15,8 +15,8 @@ class ProductRequest extends BaseRequest
         'name.min' => 'Tên sản phẩm ít nhất 10 ký tự',
 
         'short_description.required' => 'Vui lòng nhập đoạn mô tả ngắn.',
-        'short_description.max' => 'Mô tả ngắn không được vượt quá 100 ký tự.',
-        'short_description.min' => 'Mô tả ngắn ít nhất 30 ký tự.',
+        'short_description.max' => 'Mô tả ngắn không được vượt quá 255 ký tự.',
+        'short_description.min' => 'Mô tả ngắn ít nhất 10 ký tự.',
         'short_description.string' => 'Mô tả ngắn phải là một chuỗi.',
         
         'description.required' => 'Vui lòng nhập đoạn mô tả.',
@@ -61,8 +61,8 @@ class ProductRequest extends BaseRequest
         ];
 
         if($this->input('type') === 'simple') {
-            $this->validate['price'] = ['required', 'numeric', 'max:10'];
-            $this->validate['promotion_price'] = ['required', 'numeric', 'max:10'];
+            $this->validate['price'] = ['required', 'numeric', 'max:999999999'];
+            $this->validate['promotion_price'] = ['required', 'numeric', 'max:999999999'];
             $this->validate['quantity_default'] = ['required', 'numeric'];
         }else {
             $this->validate['quantity'] = ['required', 'numeric'];

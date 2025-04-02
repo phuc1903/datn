@@ -19,6 +19,133 @@ window.TomSelect = TomSelect;
 window.toastr = toastr;
 window.Chart = Chart;
 
+// chose sku in combo
+$(document).ready(function() {
+
+    var addedSkuIds = [];
+    $('.sku.loadData').each(function() {
+        var skuId = $(this).data('sku-id');
+        addedSkuIds.push(skuId);
+    });
+
+    $('.modal-body .add-sku-combo').each(function() {
+        var skuId = $(this).data('sku-id');
+        
+        if (addedSkuIds.includes(skuId)) {
+            $(this).prop('disabled', true).text("Đã thêm");
+        }
+    });
+
+    $('.add-sku-combo').on('click', function() {
+        var skuId = $(this).data('sku-id'); 
+
+        var sku = $(this).closest('.sku'); 
+        var skuName = sku.find('.name-sku-combo').text();
+        var skuPrice = sku.find('.price-sku-combo').html();
+        var skuImage = sku.find('.image-sku-combo').attr('src');
+        var variantValues = sku.find('.variant-values').text();
+
+        var skuDiv = `<div class="sku p-3 border-bottom" data-sku-id="${skuId}">
+            <div class="d-flex justify-content-between">
+                <input hidden name="skus[]" value="${skuId}" />
+                <div class="content d-flex">
+                    <image class="image-sku-combo" src="${skuImage}" alt="${skuName}" />
+                    <div class="ms-2">
+                        <p class="name-sku-combo mb-2 line-champ-2 text-dark-custom">${skuName}</p>
+                        ${variantValues ? `<span class="badge bg-secondary">${variantValues}</span>` : ''}
+                        <span class="price-sku-combo fs-5 d-block mt-2 text-dark-custom">${skuPrice}</span>
+                    </div>
+                </div>
+                <div class="button-warp ms-2">
+                    <button class="remove-sku-combo">Xóa</button>
+                </div>
+            </div>
+        </div>`;
+
+        $('#sku-list').append(skuDiv);
+
+        $(this).prop('disabled', true).text('Đã thêm');
+
+        $('#choseSkus').modal('hide');
+    });
+
+    $(document).on('click', '.remove-sku-combo', function() {
+        var skuId = $(this).closest('.sku').data('sku-id');
+
+        $('.add-sku-combo').each(function() {
+            var buttonSkuId = $(this).data('sku-id');
+            if (buttonSkuId === skuId) {
+                $(this).prop('disabled', false).text('Thêm');
+            }
+        });
+
+        $(this).closest('.sku').remove();
+    });
+});
+
+// chose product in blog
+$(document).ready(function() {
+
+    var addedProductIds = [];
+    $('.product.loadData').each(function() {
+        var productId = $(this).data('product-id');
+        addedProductIds.push(productId);
+    });
+
+    $('.modal-body .add-product-blog').each(function() {
+        var productId = $(this).data('product-id');
+        
+        if (addedProductIds.includes(productId)) {
+            $(this).prop('disabled', true).text("Đã thêm");
+        }
+    });
+
+    $('.add-product-blog').on('click', function() {
+        var productId = $(this).data('product-id');
+
+        var product = $(this).closest('.product');
+        var productName = product.find('.name-product-blog').text();
+        var productDescription = product.find('.description-product-blog').text();
+        var productImage = product.find('.image-product-blog').attr('src');
+
+        var productDiv = `<div class="product p-3 border-bottom" data-product-id="${productId}">
+                            <input hidden name="products[]" value="${productId}"/>
+                            <div class="d-flex justify-content-between">
+                                <div class="content d-flex">
+                                    <image class="image-product-blog" src="${productImage}" alt="${productName}" />
+                                    <div class="ms-2">
+                                        <p class="mb-2 line-champ-2 name-product-blog text-dark-custom">${productName}</p>
+                                        <span class="description-product-blog line-champ-2 mt-2 text-dark-custom">${productDescription}</span>
+                                    </div>
+                                </div>
+                                <div class="button-warp ms-2">
+                                    <button class="remove-product-blog">Xóa</button>
+                                </div>
+                            </div>
+                        </div>`;
+
+        $('#product-list').append(productDiv);
+
+        $(this).prop('disabled', true).text('Đã thêm');
+
+        $('#choseProducts').modal('hide');
+    });
+
+    $(document).on('click', '.remove-product-blog', function() {
+        var productId = $(this).closest('.product').data('product-id');
+
+        $('.add-product-blog').each(function() {
+            var buttonSkuId = $(this).data('product-id'); 
+            if (buttonSkuId === productId) {
+                $(this).prop('disabled', false).text('Thêm');
+            }
+        });
+
+        $(this).closest('.product').remove();
+    });
+});
+
+
 $(".accordion-header").on("click", function (e) {
     if (this.getAttribute("href") === "#") {
         e.preventDefault();
@@ -290,15 +417,15 @@ $(document).ready(function () {
                             <div class="w-100"> 
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Giá bán (đ)</label>
-                                    <input class="form-control variant-price" data-index="${index}" value="${price}" min="0" required>
+                                    <input class="form-control variant-price numeric" data-index="${index}" value="${price}" min="0" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Giá khuyến mãi (đ)</label>
-                                    <input class="form-control variant-promotion-price" data-index="${index}" value="${promotion_price}" min="0">
+                                    <input class="form-control variant-promotion-price numeric" data-index="${index}" value="${promotion_price}" min="0">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Số lượng</label>
-                                    <input class="form-control variant-quantity" data-index="${index}" value="${quantity}" min="1" required>
+                                    <input class="form-control variant-quantity numeric" type="number" data-index="${index}" value="${quantity}" min="1" required>
                                 </div>   
                                 <button type="button" class="btn btn-danger remove-variant" data-variant-index="${index}">Xóa biến thể này</button>
                             </div>
@@ -532,6 +659,8 @@ $(document).ready(function () {
     addSlug();
     selectedModules();
     checkSkusCombo();
+    checkQuantity();
+    uploadThumbnailProduct();
 
     function addSlug() {
         function createSlug(str) {
@@ -992,5 +1121,64 @@ $(document).ready(function () {
             }
         });
     }
+
+    function checkQuantity() {
+        $(document).on('keypress', '.numeric', function (e) {
+            let charCode = e.which ? e.which : e.keyCode;
+            if (charCode < 48 || charCode > 57) {
+                e.preventDefault();
+            }
+        });
+    
+        $(document).on('blur change', '.numeric', function () {
+            let val = parseInt($(this).val().toString().trim());
+    
+            if (isNaN(val) || val < 1) {
+                $(this).val(1);
+            }
+        });
+    }
+
+
+    function uploadThumbnailProduct() {
+        $(document).on('click', '.close-btn', function() {
+            $(this).closest('.image-container').remove();
+        });
+        
+        function imagePreview(name) {
+            return `
+                <div class="col image-container" id="image-${name}">
+                    <input type="file" id="upload-${name}" name="thumbnails[]" hidden />
+                    <img class="w-100 h-100" id="preview-${name}" src="" alt="Image Preview" />
+                    <button type="button" class="close-btn"><i class="bi bi-x"></i></button>
+                </div>
+            `;
+        }
+    
+        $("#uploadThumbnaiProduct").on('click', function() {
+            const name = new Date().getTime();
+            
+            $("#thumbnails").append(imagePreview(name));
+            
+            const fileInput = $(`#upload-${name}`);
+            
+            fileInput[0].click();
+            
+            fileInput.on('change', function(event) {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+            
+                reader.onload = function(e) {
+                    $(`#preview-${name}`).attr("src", e.target.result);
+                };
+            
+                if (file) {
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    }
+    
+    
     
 });

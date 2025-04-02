@@ -29,8 +29,8 @@ class OrderDataTable extends BaseDataTable
         $districts = request('districts') ?? null;
         $wards = request('wards') ?? null;
         $query = Order::query()->with('province');
-        if ($provinces && $districts && $wards) {
-            $query->where('province_code', $provinces)->where('district_code', $districts)->where('ward_code', $wards);
+        if ($provinces || $districts || $wards) {
+            $query->where('province_code', $provinces)->orWhere('district_code', $districts)->orWhere('ward_code', $wards);
         }
         return $query;
     }

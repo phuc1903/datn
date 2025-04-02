@@ -87,7 +87,8 @@ class ProductController extends Controller
                 'images',
                 'categories',
                 'skus.variantValues.variant',
-                'tags'
+                'tags',
+                'comments'
             ])
                 ->withCount('feedbacks') // Đếm số feedback qua SKU
                 ->find($id);
@@ -117,7 +118,6 @@ class ProductController extends Controller
     public function getFeedBackProduct($id): JsonResponse
     {
         try {
-            // Lấy feedback của sản phẩm dựa trên SKU
             // Lấy feedback của sản phẩm dựa trên SKU
             $productFeedback = ProductFeedback::with([
                 'user'  // Lấy thông tin người dùng của bình luận
