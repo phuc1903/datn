@@ -17,76 +17,40 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Lấy thông tin toàn bộ Users
-    | Path: api/users
-    |--------------------------------------------------------------------------
-    */
-    public function index()
-    {
-        try {
-            // Eager load các mối quan hệ liên quan
-            $users = User::with('addresses', 'carts.sku.product', 'carts.sku.variantValues', 'favorites.product', 'wallet', 'productFeedbacks.sku', 'orders.items.sku', 'orders.items.sku', 'orders.items.sku.variantValues')
-                ->get();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Got all users',
-                'data' => $users
-            ], 200);
-        } catch (\Exception $e) {
-            // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
 
     /*
     |--------------------------------------------------------------------------
-    | Lấy thông tin User theo id
-    | Path: /api/users/{{userId}}
+    | Lấy thông tin User
+    | Path: /api/users/
     |--------------------------------------------------------------------------
     */
-    public function show($userId)
+    public function show()
     {
         try {
+            $user = auth()->user();
+            $userId = $user->id;
+            if(!$user){
+                return ResponseError('Authentication fail',null,400);
+            }
+            if(!$userId){
+                return ResponseError('User Not Found',null,404);
+            }
             // Eager load các mối quan hệ liên quan
-            $users = User::with('addresses',
+            $users = User::with(
+                'addresses',
                 'carts.sku.product',
                 'carts.sku.variantValues',
                 'favorites',
-                'vouchers.productVoucher',
-                'wallet',
-                'productFeedbacks.product',
-                'orders.items.product',
-                'orders.items.sku',
+                'vouchers',
+                'productFeedbacks.sku.product',
+                'orders.items.sku.product',
                 'orders.items.sku.variantValues')
                 ->find($userId);
-
-            // Không tìm thấy User
-            if (!$users) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                    'data' => NULL
-                ], 404);
-            }
-
             // Tìm thấy User
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Got user data',
-                'data' => $users
-            ], 200);
+            return ResponseSuccess('Get data successfully',$users,200);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
+            return ResponseError($e->getMessage(),null,500);
         }
     }
 
@@ -100,7 +64,7 @@ class UserController extends Controller
     {
         try {
             $user = auth()->user(); // Lấy người dùng đang đăng nhập
-          
+
             $orders = $user->orders()->with('items', 'items.sku', 'items.sku.product')
                 ->orderBy('created_at', 'desc') // Sắp xếp theo thời gian tạo mới nhất
                 ->get();

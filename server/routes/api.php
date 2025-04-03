@@ -145,6 +145,8 @@ Route::prefix('v1')->group(function () {
     Route::prefix('users')->controller(UserController::class)->group(function () {
         // Authenticator
         Route::middleware(['auth:sanctum', 'auth.active'])->group(function () {
+            Route::get('/', 'show');
+
             // Xem sản phẩm giỏ hàng
             Route::get('/carts', 'carts');
             Route::get('/orders', 'orders');
@@ -161,11 +163,11 @@ Route::prefix('v1')->group(function () {
             Route::put('/update-addresses', 'updateAddressUser');
             Route::delete('/delete-addresses', 'deleteAddressUser');
 
+            //  Danh sách feedback
+            Route::get('/product-feedbacks', 'productFeedbacks');
         });
 
-        Route::get('/', 'index');
-        Route::get('/{id}', 'show');
-        Route::get('/{id}/product-feedbacks', 'productFeedbacks');
+
     });
 
 
