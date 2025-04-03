@@ -9,12 +9,11 @@ import Cookies from "js-cookie";
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
 
-// Định nghĩa kiểu cho variant_values
+// Interfaces remain the same
 interface VariantValue {
   value: string;
 }
 
-// Định nghĩa kiểu cho SKU
 interface Sku {
   product_id: string;
   price: number;
@@ -25,14 +24,28 @@ interface Sku {
   variant_values: VariantValue[];
 }
 
-// Định nghĩa kiểu cho item trong cart
 interface CartItem {
   id: string;
   sku: Sku;
   quantity: number;
 }
 
-// Định nghĩa kiểu cho dữ liệu người dùng
+interface Voucher {
+  id: number;
+  title: string;
+  description: string;
+  quantity: number;
+  type: "percent" | "price";
+  discount_value: number;
+  max_discount_value: number;
+  min_order_value: number;
+  status: string;
+  started_date: string;
+  ended_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 interface UserData {
   first_name: string;
   last_name: string;
@@ -41,16 +54,19 @@ interface UserData {
   role?: string;
   address?: string;
   carts: CartItem[];
+  vouchers?: Voucher[];
 }
 
 export default function CartPage() {
-  const [cart, setCart] = useState<CartItem[]>([]); // Khai báo kiểu cho cart
-  const [variantOptions, setVariantOptions] = useState<{}>({}); // Có thể định nghĩa kiểu cụ thể hơn nếu cần
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
+  const [variantOptions, setVariantOptions] = useState<{}>({});
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUserCart = async () => {
+    const fetchUserData = async () => {
       const userToken = Cookies.get("accessToken");
       const email = Cookies.get("userEmail");
 
@@ -63,7 +79,7 @@ export default function CartPage() {
       }
 
       try {
-        const response = await fetch(`${API_BASE_URL}/users/carts`, {
+        const cartResponse = await fetch(`${API_BASE_URL}/users/carts`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -71,35 +87,50 @@ export default function CartPage() {
           },
         });
 
-        if (!response.ok) {
-          throw new Error(`Lỗi lấy giỏ hàng: ${response.status} - ${response.statusText}`);
+        if (!cartResponse.ok) {
+          throw new Error(`Cart fetch error: ${cartResponse.status}`);
         }
 
-        const result = await response.json();
-        if (result.data?.email === email) {
-          setCart(result.data.carts || []);
-        } else {
-          setCart([]);
+        const cartResult = await cartResponse.json();
+        if (cartResult.data?.email === email) {
+          setCart(cartResult.data.carts || []);
+        }
+
+        const voucherResponse = await fetch(`${API_BASE_URL}/users/vouchers`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${userToken}`,
+          },
+        });
+
+        if (!voucherResponse.ok) {
+          throw new Error(`Voucher fetch error: ${voucherResponse.status}`);
+        }
+
+        const voucherResult = await voucherResponse.json();
+        if (voucherResult.status === "success") {
+          setVouchers(voucherResult.data.vouchers || []);
         }
       } catch (error) {
-        console.error("Lỗi khi lấy giỏ hàng:", error);
+        console.error("Error fetching data:", error);
         Swal.fire({
           icon: "error",
           title: "Lỗi!",
-          text: "Không thể tải giỏ hàng. Vui lòng thử lại sau.",
+          text: "Không thể tải dữ liệu. Vui lòng thử lại sau.",
         });
         setCart([]);
+        setVouchers([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUserCart();
+    fetchUserData();
   }, [router]);
 
   const handleQuantityChange = async (product_id: string, quantity: number) => {
     if (quantity < 1) return;
-
     try {
       const userToken = Cookies.get("accessToken");
       if (!userToken) return;
@@ -145,16 +176,36 @@ export default function CartPage() {
   };
 
   const formatPrice = (price: number) => `${price.toLocaleString()} VND`;
+
   const subtotal = useMemo(
     () => cart.reduce((sum, item) => sum + item.sku.price * item.quantity, 0),
     [cart]
   );
-  const shipping = subtotal > 0 ? 30000 : 0;
-  // const total = subtotal + 0;
+
+  const uniqueVouchers = useMemo(() => {
+    const seenIds = new Set();
+    return vouchers.filter((voucher) => {
+      if (seenIds.has(voucher.id)) {
+        return false;
+      }
+      seenIds.add(voucher.id);
+      return true;
+    });
+  }, [vouchers]);
+
+  const discount = useMemo(() => {
+    if (!selectedVoucher || subtotal < selectedVoucher.min_order_value) return 0;
+    if (selectedVoucher.type === "percent") {
+      const discountValue = (subtotal * selectedVoucher.discount_value) / 100;
+      return Math.min(discountValue, selectedVoucher.max_discount_value);
+    }
+    return Math.min(selectedVoucher.discount_value, selectedVoucher.max_discount_value);
+  }, [selectedVoucher, subtotal]);
+
+  const total = subtotal - discount;
 
   const handleCheckout = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-
     const userToken = Cookies.get("accessToken");
 
     if (!userToken) {
@@ -252,18 +303,40 @@ export default function CartPage() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-6">Tóm Tắt Đơn Hàng</h2>
               <div className="space-y-4">
-                {/* <div className="flex justify-between text-base text-gray-600">
-                  <span>Tạm Tính</span>
+                <div className="flex justify-between text-base text-gray-600">
+                  <span>Tạm tính</span>
                   <span>{formatPrice(subtotal)}</span>
-                </div> */}
-                {/* <div className="flex justify-between text-base text-gray-600">
-                  <span>Phí Vận Chuyển</span>
-                  <span>{formatPrice(shipping)}</span>
-                </div> */}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-base text-gray-600">Chọn voucher:</label>
+                  <select
+                    className="w-full p-2 border rounded-md"
+                    value={selectedVoucher?.id || ""}
+                    onChange={(e) => {
+                      const voucher = uniqueVouchers.find((v) => v.id === Number(e.target.value));
+                      setSelectedVoucher(voucher || null);
+                    }}
+                  >
+                    <option value="">Không sử dụng voucher</option>
+                    {uniqueVouchers.map((voucher) => (
+                      <option key={voucher.id} value={voucher.id}>
+                        {voucher.title} ({voucher.type === "percent"
+                          ? `${voucher.discount_value}%`
+                          : formatPrice(voucher.discount_value)})
+                      </option>
+                    ))}
+                  </select>
+                  {selectedVoucher && (
+                    <div className="text-sm text-gray-500">
+                      Giảm: {formatPrice(discount)}{" "}
+                      (Tối thiểu: {formatPrice(selectedVoucher.min_order_value)})
+                    </div>
+                  )}
+                </div>
                 <div className="border-t pt-4">
                   <div className="flex justify-between text-lg font-medium text-gray-900">
-                    <span>Tổng Cộng</span>
-                    <span>{formatPrice(subtotal)}</span>
+                    <span>Tổng cộng</span>
+                    <span>{formatPrice(total)}</span>
                   </div>
                 </div>
               </div>
