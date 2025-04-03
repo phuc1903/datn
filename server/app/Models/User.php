@@ -68,10 +68,6 @@ class User extends Authenticatable
         return $this->belongsToMany(Voucher::class, 'user_vouchers');
     }
 
-    public function wallet()
-    {
-        return $this->hasOne(Wallet::class, 'user_id');
-    }
 
     public function productFeedbacks()
     {

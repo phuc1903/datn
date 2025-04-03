@@ -98,6 +98,8 @@ Route::prefix('v1')->group(function () {
         Route::middleware(['auth:sanctum','auth.active'])->group(function (){
             Route::get('getAllOrderItem', 'getAllOrderItem');
             Route::post('create','create');
+            Route::post('/{id}/update','update');
+            Route::delete('/{id}','destroy');
         });
     });
 
@@ -110,7 +112,6 @@ Route::prefix('v1')->group(function () {
         Route::middleware(['auth:sanctum','auth.active'])->group(function (){
             Route::post('/create','create');
             Route::delete('/{id}','delete');
-
         });
         Route::get('/getProductComment/{id}','getProductComments');
     });
@@ -163,8 +164,6 @@ Route::prefix('v1')->group(function () {
             Route::put('/update-addresses', 'updateAddressUser');
             Route::delete('/delete-addresses', 'deleteAddressUser');
 
-            //  Danh sách feedback
-            Route::get('/product-feedbacks', 'productFeedbacks');
         });
 
 

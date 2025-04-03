@@ -91,4 +91,55 @@ class ProductFeedbackController extends Controller
             return ResponseError($e->getMessage(), null, 500);
         }
     }
+
+    public function update(Request $request, $id)
+    {
+
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return ResponseError('Authentication failed', null, 400);
+            }
+
+            $feedback = ProductFeedback::find($id);
+            if (!$feedback) {
+                return ResponseError('Feedback not found', null, 404);
+            }
+
+            $feedback->update([
+                'rating' => $request->rating,
+                'comment' => $request->comment,
+            ]);
+
+            $feedback = ProductFeedback::with('sku.product')->find($id);
+
+            return ResponseSuccess('Update feedback successfully', $feedback, 200);
+        } catch (\Exception $exception) {
+            return ResponseError($exception->getMessage(), null, 500);
+        }
+    }
+
+
+    public function destroy($id)
+    {
+        try {
+            // Lấy bình luận
+            $feedback = ProductFeedback::find($id);
+            if (!$feedback) {
+                return ResponseError('Comment not found', null, 404);
+            }
+
+            $user = Auth::user();
+
+            // Kiểm tra quyền xóa (user chỉ xóa được bình luận của mình)
+            if ($user->id !== $feedback->user_id ) {
+                return ResponseError('Unauthorized', null, 403);
+            }
+            $feedback->delete();
+            return ResponseSuccess('Feedback deleted successfully');
+        }
+        catch (\Exception $e) {
+        return ResponseError($e->getMessage(), null, 500);
+    }
+    }
 }
