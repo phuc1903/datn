@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Product;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductFeedback;
+use App\Models\Sku;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -115,26 +116,39 @@ class ProductController extends Controller
         }
     }
 
-    public function getFeedBackProduct($id): JsonResponse
+    public function getFeedBackProduct($productId): JsonResponse
     {
         try {
-            // Lấy feedback của sản phẩm dựa trên SKU
-            $productFeedback = ProductFeedback::with([
-                'user'  // Lấy thông tin người dùng của bình luận
-            ])
-                ->where('sku_id', $id)  // Lọc theo SKU ID
-                ->whereHas('user', function ($query) {
-                    $query->where('status', 'active');  // Chỉ lấy feedback của người dùng có trạng thái active
-                })
-                ->get();
+            // Lấy tất cả sku_id của sản phẩm
+            $skuIds = Sku::where('product_id', $productId)->pluck('id');
 
-            if ($productFeedback->isEmpty()) {
-                return ResponseError('No active user feedbacks found for this SKU', null, 404);
+            if ($skuIds->isEmpty()) {
+                return ResponseError('Sản phẩm không có biến thể nào.', null, 404);
             }
 
-            return ResponseSuccess('Product feedbacks from active users retrieved successfully.', $productFeedback, 200);
+            // Lấy feedback của tất cả các biến thể (sku)
+            $productFeedbacks = ProductFeedback::with([
+                'user',
+                'sku.variantValues.variant',
+            ])
+                ->whereIn('sku_id', $skuIds)
+                ->whereHas('user', function ($query) {
+                    $query->where('status', 'active');
+                })
+                ->orderByDesc('created_at')
+                ->get(); // Hoặc ->paginate(10)
+
+            if ($productFeedbacks->isEmpty()) {
+                return ResponseError('Không có đánh giá nào từ người dùng active cho sản phẩm này.', null, 404);
+            }
+
+            return ResponseSuccess('Lấy đánh giá sản phẩm thành công.', $productFeedbacks, 200);
         } catch (\Exception $e) {
-            return ResponseError($e->getMessage(), null, 500);
+            \Log::error('Lỗi khi lấy feedback sản phẩm: ' . $e->getMessage(), [
+                'product_id' => $productId,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return ResponseError('Đã có lỗi xảy ra khi lấy đánh giá sản phẩm.', null, 500);
         }
     }
 
