@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Blog;
+namespace App\Http\Controllers\Admin\Tag;
 
-use App\DataTables\Blog\TagDataTable;
+use App\DataTables\Tag\TagDataTable;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Blog\TagRequest;
+use App\Http\Requests\Admin\Tag\TagRequest;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 
@@ -15,7 +15,7 @@ class TagController extends Controller
      */
     public function index(TagDataTable $dataTable)
     {
-        return $dataTable->render('Pages.Blog.Tag.Index');
+        return $dataTable->render('Pages.Tag.Index');
     }
 
     /**
@@ -23,7 +23,7 @@ class TagController extends Controller
      */
     public function create()
     {
-        return view('Pages.Blog.Tag.Create');
+        return view('Pages.Tag.Create');
     }
 
     /**
@@ -40,19 +40,11 @@ class TagController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Tag $tag)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Tag $tag)
     {
-        return view('Pages.Blog.Tag.Edit', compact('tag'));
+        return view('Pages.Tag.Edit', compact('tag'));
     }
 
     /**

@@ -2,7 +2,7 @@
 
 <div class="statistics-products mb-5">
     <h4 class="title mb-3 text-dark-custom">{{ $title }}</h4>
-    
+
     @if($loading)
         <div class="row row-cols-1 g-3 row-cols-md-2 row-cols-lg-4">
             @foreach (range(1, 8) as $index)
@@ -28,20 +28,14 @@
     @else
         <div class="row row-cols-1 g-3 row-cols-md-2 row-cols-lg-4">
             @foreach ($combos as $combo)
-                <a href="{{ route('admin.combo.edit', $combo) }}">
-                    <div class="col mb-3">
-                        <div class="card product combo mb-3" style="max-width: 540px;">
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <x-image.index src="{{ $combo->image_url }}" />
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="card-body">
-                                        <h5 class="card-title line-champ-3 text-dark-custom">{{ $combo->name }}</h5>
-                                        <p class="quantity">SL còn lại: <span>{{ $combo->quantity }}</span></p>
-                                    </div>
-                                </div>
-                            </div>
+                <a class="col bg-white-custom combo-item" href="{{ route('admin.combo.edit', $combo) }}">
+                    <div class="row g-2 p-3">
+                        <div class="col-md-4">
+                            <x-image.index src="{{ $combo->image_url }}" />
+                        </div>
+                        <div class="col-md-8">
+                            <h5 class="title line-champ-3 text-dark-custom mb-2">{{ $combo->name }}</h5>
+                            <p class="quantity">SL còn lại: <span>{{ $combo->quantity }}</span></p>
                         </div>
                     </div>
                 </a>

@@ -8,13 +8,11 @@ use App\Enums\Order\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Order\OrderRequest;
 use App\Jobs\SendChangeStatusOrderJob;
-use App\Mail\Order\ChangeStatusOrder;
 use App\Models\District;
-use App\Models\order;
+use App\Models\Order;
 use App\Models\Province;
 use App\Models\Ward;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -70,7 +68,26 @@ class OrderController extends Controller
         // dd($orderStatus->value);
 
         $statusList = collect(OrderStatus::getValues())
-            ->filter(fn($status) => $status !== $orderStatus->value)
+        ->filter(function ($status) use ($orderStatus) {
+            if ($orderStatus->value === OrderStatus::Waiting) {
+                return $status === OrderStatus::Cancel;
+            }
+            if ($orderStatus->value === OrderStatus::Pending) {
+                return in_array($status, [OrderStatus::Shipped, OrderStatus::Cancel]);
+            }
+            if ($orderStatus->value === OrderStatus::Shipped) {
+                return in_array($status, [OrderStatus::Success, OrderStatus::Cancel]);
+            }
+            if ($orderStatus->value === OrderStatus::Success) {
+                return false;
+            }
+
+            if($orderStatus->value === OrderStatus::Cancel){
+                return false;
+            }
+
+            return $status !== $orderStatus->value;
+            })
             ->map(fn($value) => [
                 'label' => OrderStatus::fromValue($value)->label(),
                 'value' => $value,
@@ -109,6 +126,17 @@ class OrderController extends Controller
     public function update(OrderRequest $request, Order $order)
     {
         try {
+            
+            $newStatus = OrderStatus::fromValue($request->status);
+
+            if (!$newStatus) {
+                return redirect()->back()->with('error', 'Trạng thái không hợp lệ.');
+            }
+
+            if($order->status === OrderStatus::Success && $request->status === OrderStatus::Cancel) {
+                return redirect()->back()->with('error', 'Đơn đã thành công không thể hủy');
+            }
+
             if ($request->has('status') && $request->status === OrderStatus::Cancel) {
                 if ($order->status === OrderStatus::Success) {
                     return redirect()->back()->with('error', 'Đơn đã hoàn thành! Không thể hủy đơn.');
@@ -117,12 +145,6 @@ class OrderController extends Controller
                 if (!$request->has('reason') || empty($request->reason)) {
                     return redirect()->back()->with('error', 'Vui lòng nhập lý do hủy.');
                 }
-            }
-
-            $newStatus = OrderStatus::fromValue($request->status);
-
-            if (!$newStatus) {
-                return redirect()->back()->with('error', 'Trạng thái không hợp lệ.');
             }
 
             $currentStatus = OrderStatus::fromValue($order->status);

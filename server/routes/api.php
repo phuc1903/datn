@@ -1,4 +1,4 @@
-<?php
+    <?php
 
 use App\Http\Controllers\Api\V1\Auth\AuthenticatorController;
 use App\Http\Controllers\Api\V1\Blog\BlogController;

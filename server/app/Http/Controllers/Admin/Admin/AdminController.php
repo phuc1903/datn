@@ -117,7 +117,7 @@ class AdminController extends Controller
             ->values()
             ->toArray();
 
-        return view('Pages.admin.Edit', [
+        return view('Pages.Admin.Edit', [
             'admin' => $adminShow,
             'statusList' => $statusList,
             'sexList' => $sexList,

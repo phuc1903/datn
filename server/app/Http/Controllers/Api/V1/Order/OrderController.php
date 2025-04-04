@@ -354,6 +354,7 @@ class OrderController extends Controller
                     $this->validateVoucher($user, $voucher, $totalAmount, $orderData['orders'], $skus);
                     $totalAmountBeforeDiscount = $this->applyVoucherDiscount($voucher, $totalAmount);
                     $voucher->decrement('quantity');
+                    $totalAmount = $totalAmountBeforeDiscount;
                 }
 
                 $order = Order::create([

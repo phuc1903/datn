@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Admin\Blog;
+namespace App\Http\Requests\Admin\Tag;
 
-use App\Http\Requests\Admin\BaseRequest;
+use Illuminate\Foundation\Http\FormRequest;
 
-class TagRequest extends BaseRequest
+class TagRequest extends FormRequest
 {
     protected $customMessage = [
         'name.required' => 'Vui lòng nhập Tên danh mục.',
@@ -21,14 +21,14 @@ class TagRequest extends BaseRequest
     protected function methodPost(): array
     {
         return [
-            'name' => ['required', 'string', 'min:5', 'max:60', 'unique:tags,name'.$this->tag],
+            'name' => ['required', 'string', 'min:5', 'max:60', 'unique:blog_tags,name'.$this->tag],
         ];
     }
 
     protected function methodPut(): array
     {
         return [
-            'name' => ['required', 'string', 'min:5', 'max:60', 'unique:tags,name,'.$this->route('tag')->id.',id'],
+            'name' => ['required', 'string', 'min:5', 'max:60', 'unique:blog_tags,name,'.$this->route('tag')->id.',id'],
         ];
     }
 }
