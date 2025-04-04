@@ -229,6 +229,10 @@
 
                     <!-- Begin Page Content -->
                     <div class="mx-5">
+                        <div class="breadcrumbs">
+                            {{ Breadcrumbs::render(request()->route()->getName()) }}
+                        </div>
+                        
                         @yield('content')
                     </div>
 

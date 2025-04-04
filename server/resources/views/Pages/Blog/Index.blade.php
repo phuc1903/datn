@@ -1,5 +1,4 @@
 @extends('layouts.app')
-
 @section('content')
     <div class="card">
         <div class="card-header d-flex justify-content-between bg-white-custom py-3 align-items-center">

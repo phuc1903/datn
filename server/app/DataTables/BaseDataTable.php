@@ -22,6 +22,13 @@ abstract class BaseDataTable extends DataTable
 
     protected bool $deleteItem = true;
 
+    protected bool $includeBtnExcel = true;
+    protected bool $includeBtnCSV = true;
+    protected bool $includeBtnPDF = true;
+    protected bool $includeBtnPrint = true;
+    protected bool $includeBtnReset = true;
+    protected bool $includeBtnReload = true;
+
     /**
      * Build the DataTable class.
      *
@@ -103,15 +110,48 @@ abstract class BaseDataTable extends DataTable
 
     protected function getButtons(): array
     {
-        return [
-            // Button::make('excel'),
-            // Button::make('csv'),
-            // Button::make('pdf'),
-            Button::make('print'),
-            // Button::make('reset'),
-            Button::make('reload')
-        ];
+        $buttons = [];
+
+        if ($this->includeBtnExcel) {
+            $buttons[] = Button::make('excel')
+                ->className('bg-primary text-white border-primary btn-dataTable-custom')
+                ->text('<i class="fa fa-file-excel"></i> Xuất Excel');
+        }
+
+        if ($this->includeBtnCSV) {
+            $buttons[] = Button::make('csv')
+                ->className('bg-primary text-white border-primary btn-dataTable-custom')
+                ->text('<i class="fa fa-file-csv"></i> Xuất CSV');
+        }
+
+        if ($this->includeBtnPDF) {
+            $buttons[] = Button::make('pdf')
+                ->className('bg-primary text-white border-primary btn-dataTable-custom')
+                ->text('<i class="fa fa-file-pdf"></i> Xuất PDF');
+        }
+
+        if ($this->includeBtnPrint) {
+            $buttons[] = Button::make('print')
+                ->className('bg-primary text-white border-primary btn-dataTable-custom')
+                ->text('<i class="fa fa-print"></i> In');
+        }
+
+        if ($this->includeBtnReset) {
+            $buttons[] = Button::make('reset')
+                ->className('bg-primary text-white border-primary btn-dataTable-custom')
+                ->text('<i class="fa fa-undo"></i> Reset');
+        }
+
+        if ($this->includeBtnReload) {
+            $buttons[] = Button::make('reload')
+                ->className('bg-primary text-white border-primary btn-dataTable-custom')
+                ->text('<i class="fa fa-sync"></i> Cập nhật');
+        }
+
+        return $buttons;
     }
+
+
 
     /**
      * Get action buttons.
@@ -192,7 +232,6 @@ abstract class BaseDataTable extends DataTable
                 $thead.append($filterRow);
 
 
-                // for the date filter
                 $("#provinces, #districts, #wards").on("change", function() {
                     const provinces = $("#provinces").val();
                     const districts = $("#districts").val();

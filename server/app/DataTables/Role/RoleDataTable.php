@@ -13,7 +13,10 @@ class RoleDataTable extends BaseDataTable
     protected string $routeName = "role";
     protected bool $includeCreatedAt = true;
     protected bool $includeUpdatedAt = true;
-
+    protected bool $includeBtnCSV = false;
+    protected bool $includeBtnExcel = false;
+    protected bool $includeBtnPrint = false;
+    protected bool $includeBtnPDF = false;
     protected int $orderBy = 2;
 
     /**

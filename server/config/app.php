@@ -209,8 +209,8 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
-        Spatie\Permission\PermissionServiceProvider::class
-
+        Spatie\Permission\PermissionServiceProvider::class,
+        Barryvdh\Snappy\ServiceProvider::class,
     ],
 
     /*
@@ -226,6 +226,7 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'ExampleClass' => App\Example\ExampleClass::class,
+        'SnappyPDF' => Barryvdh\Snappy\Facades\SnappyPdf::class,
     ])->toArray(),
 
 ];

@@ -68,9 +68,9 @@ class DashboardController extends Controller
     }
     protected function statisticRevenuesCard()
     {
-        $totalRevenueToDay = Order::whereDate('created_at', today())->sum('total_amount');
-        $totalRevenueThisMonth = Order::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('total_amount');
-        $totalRevenueThisYear = Order::whereYear('created_at', now()->year)->sum('total_amount');
+        $totalRevenueToDay = Order::whereDate('created_at', today())->where('status', OrderStatus::Success)->sum('total_amount');
+        $totalRevenueThisMonth = Order::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->where('status', OrderStatus::Success)->sum('total_amount');
+        $totalRevenueThisYear = Order::whereYear('created_at', now()->year)->where('status', OrderStatus::Success)->sum('total_amount');
 
         return [
             'data' => [
@@ -159,7 +159,7 @@ class DashboardController extends Controller
             ->whereHas('product', function($query) {
                 $query->where('status', ProductStatus::Active);
             })
-            ->groupBy('skus.id', 'skus.product_id') 
+            ->groupBy('skus.id','skus.image_url','skus.quantity', 'skus.product_id')
             ->orderByDesc('total_quantity')
             ->limit(8) 
             ->with('product', 'variantValues') 
@@ -170,10 +170,10 @@ class DashboardController extends Controller
 
     protected function combosBestSeller()
     {
-        $bestSellers = Combo::select('combos.id', 'combos.name', 'combos.image_url', 'combos.quantity' ,'combos.status', \DB::raw('SUM(order_items.quantity) as total_quantity'))
+        $bestSellers = Combo::select('combos.id', 'combos.name', 'combos.image_url', 'combos.quantity','combos.status', \DB::raw('SUM(order_items.quantity) as total_quantity'))
             ->join('order_items', 'order_items.combo_id', '=', 'combos.id')
             ->where('combos.status', ComboStatus::Active)
-            ->groupBy('combos.id')
+            ->groupBy('combos.id', 'combos.name', 'combos.image_url', 'combos.quantity', 'combos.status')
             ->orderByDesc('total_quantity')
             ->limit(8)
             ->get();

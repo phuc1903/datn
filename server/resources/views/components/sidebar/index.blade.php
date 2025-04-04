@@ -27,6 +27,15 @@
             'path' => route('admin.user.index'),
             'permission_required' => 'viewUser',
         ],
+                // Quản lý đánh giá sản phẩm
+                [
+            'label' => 'Đánh giá sản phẩm',
+            'active' => request()->routeIs('admin.feedback-product.index'),
+            'type' => 'nav',
+            'icon' => 'bi-star',
+            'path' => route('admin.feedback-product.index'),
+            'permission_required' => 'viewProductFeedback',
+        ],
         // Title
         [
             'label' => 'Quản lý',
@@ -106,22 +115,6 @@
                 ],
             ],
         ],
-        // Quản lý đánh giá sản phẩm
-        [
-            'label' => 'Đánh giá sản phẩm',
-            'active' => request()->routeIs('admin.feedback-product.index'),
-            'type' => 'nav',
-            'icon' => 'bi-star',
-            'path' => route('admin.feedback-product.index'),
-            'permission_required' => 'viewProductFeedback',
-            'child' => [
-                [
-                    'label' => 'Danh sách đánh giá',
-                    'path' => route('admin.feedback-product.index'),
-                    'permission_required' => 'viewProductFeedback',
-                ],
-            ],
-        ],
         // Quản lý bài viết
         [
             'label' => 'Bài viết',
@@ -141,15 +134,26 @@
                     'path' => route('admin.blog.create'),
                     'permission_required' => 'createPost',
                 ],
+            ],
+        ],
+        // Quản lý thẻ
+        [
+            'label' => 'Thẻ',
+            'active' => request()->routeIs('admin.tag.index'),
+            'type' => 'nav',
+            'icon' => 'bi-bookmark',
+            'path' => route('admin.tag.index'),
+            'permission_required' => 'viewPost',
+            'child' => [
                 [
-                    'label' => 'DS danh mục bài viết',
+                    'label' => 'Danh sách thẻ',
                     'path' => route('admin.tag.index'),
-                    'permission_required' => 'viewPostCategory',
+                    'permission_required' => 'viewPost',
                 ],
                 [
-                    'label' => 'Thêm danh mục',
+                    'label' => 'Thêm thẻ',
                     'path' => route('admin.tag.create'),
-                    'permission_required' => 'createPostCategory',
+                    'permission_required' => 'createPost',
                 ],
             ],
         ],
@@ -329,7 +333,7 @@
 @endphp
 
 
-<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion position-fixed top-0 left-0 bottom-0" id="accordionSidebar">
 
     <!-- Sidebar - Brand -->
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html" style="height: auto">
