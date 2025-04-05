@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Enums\Product\ProductStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\ProductComment;
 class Product extends Model
 {
     use HasFactory;
@@ -22,7 +22,7 @@ class Product extends Model
     }
     public function comments()
     {
-
+        return $this->hasMany(ProductComment::class);
     }
     // Quan hệ với ảnh sản phẩm
     public function images()
