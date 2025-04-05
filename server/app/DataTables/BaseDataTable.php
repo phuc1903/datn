@@ -58,7 +58,6 @@ abstract class BaseDataTable extends DataTable
             $editableColumns[] = 'updated_at';
         }
 
-        // Thêm các cột có chỉnh sửa từ customizeDataTable()
         $editableColumns = array_merge($editableColumns, $this->getEditableColumns());
 
         return $dataTable

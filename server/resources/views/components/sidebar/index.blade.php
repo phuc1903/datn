@@ -191,17 +191,17 @@
             'type' => 'nav',
             'icon' => 'bi-images',
             'path' => route('admin.slider.index'),
-            'permission_required' => 'viewSlide',
+            'permission_required' => 'viewSlider',
             'child' => [
                 [
                     'label' => 'Danh sách Slider',
                     'path' => route('admin.slider.index'),
-                    'permission_required' => 'viewSlide',
+                    'permission_required' => 'viewSlider',
                 ],
                 [
                     'label' => 'Thêm Slide',
                     'path' => route('admin.slider.create'),
-                    'permission_required' => 'createSlide',
+                    'permission_required' => 'createSlider',
                 ],
             ],
         ],

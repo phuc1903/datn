@@ -7,7 +7,7 @@
             <div class="col-12 col-md-9">
                 <div class="card card-custom mb-3">
                     <div class="card-header card-header-custom">
-                        <h3 class="title">Thêm bài danh mục viết</h3>
+                        <h3 class="title">Thêm thẻ</h3>
                     </div>
                     <div class="card-body">
                         <x-form.input_text label="Tên danh mục" name="name" />

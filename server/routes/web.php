@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Admin\Address\AddressController;
 use App\Http\Controllers\Admin\Auth\AuthController;
-use App\Http\Controllers\Admin\Auth\TwoFactorController;
 use App\Http\Controllers\Admin\Blog\BlogController;
 use App\Http\Controllers\Admin\Category\CategoryController;
 use App\Http\Controllers\Admin\Combo\ComboController;
@@ -20,7 +19,6 @@ use App\Http\Controllers\Admin\Tag\TagController;
 use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\Admin\Voucher\VoucherController;
 use App\Http\Controllers\Admin\Permission\PermissionController;
-use App\Models\Order;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
@@ -44,13 +42,6 @@ Route::middleware('guest:admin')->group(function () {
 
 Route::middleware('auth:admin')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-    // Route::get('/2fa/setup', [TwoFactorController::class, 'showSetupForm'])->name('2fa.setup');
-    // Route::post('/2fa/setup', [TwoFactorController::class, 'enable'])->name('2fa.enable');
-
-    // Route::get('/2fa/verify', [TwoFactorController::class, 'showVerifyForm'])->name('2fa.verify');
-    // Route::post('/2fa/verify', [TwoFactorController::class, 'verifyCode'])->name('2fa.verify.post');
-
 });
 
 Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function () {

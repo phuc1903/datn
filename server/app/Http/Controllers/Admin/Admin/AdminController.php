@@ -70,13 +70,6 @@ class AdminController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(admin $admin)
-    {
-        //
-    }
 
     /**
      * Show the form for editing the specified resource.
