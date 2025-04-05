@@ -591,6 +591,7 @@ document.addEventListener("DOMContentLoaded", function () {
     $("#sidebarToggle, #sidebarToggleTop").on("click", function () {
         $("body").toggleClass("sidebar-toggled");
         $(".sidebar").toggleClass("toggled");
+        $('#content-wrapper').toggleClass('toggled');
         $(".accordion-button-custom").addClass("active");
 
         if ($(".sidebar").hasClass("toggled")) {
@@ -611,6 +612,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if ($(window).width() < 480 && !$(".sidebar").hasClass("toggled")) {
             $("body").addClass("sidebar-toggled");
             $(".sidebar").addClass("toggled");
+            $(".#content-wrapper").addClass("toggled");
             $(".accordion-button-custom").addClass("active");
             $(".sidebar .collapse").collapse("hide");
         }

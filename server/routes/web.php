@@ -2,8 +2,8 @@
 
 use App\Http\Controllers\Admin\Address\AddressController;
 use App\Http\Controllers\Admin\Auth\AuthController;
+use App\Http\Controllers\Admin\Auth\TwoFactorController;
 use App\Http\Controllers\Admin\Blog\BlogController;
-use App\Http\Controllers\Admin\Blog\TagController;
 use App\Http\Controllers\Admin\Category\CategoryController;
 use App\Http\Controllers\Admin\Combo\ComboController;
 use App\Http\Controllers\Admin\Dashboard\DashboardController;
@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\Role\RoleController;
 use App\Http\Controllers\Admin\Setting\SettingController;
 use App\Http\Controllers\Admin\Slider\SliderController;
 use App\Http\Controllers\Admin\Admin\AdminController;
+use App\Http\Controllers\Admin\Tag\TagController;
 use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\Admin\Voucher\VoucherController;
 use App\Http\Controllers\Admin\Permission\PermissionController;
@@ -38,13 +39,21 @@ use Illuminate\Support\Facades\Session;
 Route::middleware('guest:admin')->group(function () {
     Route::get('/login', [AuthController::class, 'login'])->name('login');
     Route::post('/login', [AuthController::class, 'loginStore'])->name('login.store');
+
 });
 
 Route::middleware('auth:admin')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    Route::get('/2fa/setup', [TwoFactorController::class, 'showSetupForm'])->name('2fa.setup');
+    Route::post('/2fa/setup', [TwoFactorController::class, 'enable'])->name('2fa.enable');
+
+    Route::get('/2fa/verify', [TwoFactorController::class, 'showVerifyForm'])->name('2fa.verify');
+    Route::post('/2fa/verify', [TwoFactorController::class, 'verifyCode'])->name('2fa.verify.post');
+
 });
 
-Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function () {
+Route::prefix('/admin')->as('admin.')->middleware('auth:admin', '2fa')->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Sản phẩm

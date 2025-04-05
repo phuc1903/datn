@@ -15,6 +15,10 @@ class PermissionDataTable extends BaseDataTable
     protected string $routeName = "permission";
     protected bool $includeCreatedAt = true;
     protected bool $includeUpdatedAt = true;
+    protected bool $includeBtnCSV = false;
+    protected bool $includeBtnExcel = false;
+    protected bool $includeBtnPrint = false;
+    protected bool $includeBtnPDF = false;
 
     protected int $orderBy = 5;
 

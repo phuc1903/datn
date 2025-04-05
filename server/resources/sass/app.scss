@@ -210,23 +210,19 @@ a {
     .statistics-products {
         .title {
         }
+        .combo-item {
+            border: 1px solid var(--muted);
+            border-radius: 8px;
+            
+            .quantity {
+                color: var(--danger);
+            }
+        }
         .product {
             background-color: var(--background);
             padding: 24px;
             min-height: 210px;
             border: 1px solid var(--muted) !important;
-
-            &.combo {
-                height: 120px;
-            }
-
-            .card-body {
-                padding: 0;
-
-                .quantity {
-                    color: var(--danger);
-                }
-            }
         }
     }
 }
@@ -726,6 +722,18 @@ a.sidebar-children {
 .table-dataTables {
     .dt-info {
         margin-top: 24px;
+        display: inline-block;
+    }
+
+    .dt-paging {
+        display: inline-block;
+        float: right;
+        margin-top: 24px !important;
+
+        .dt-paging-button {
+            transition: all .3s linear;
+            cursor: pointer;
+        }
     }
 
     .page-item .page-link {
@@ -915,4 +923,69 @@ a.sidebar-children {
 
 .image-setting-banner {
     width: 100% !important;
+}
+
+.btn-dataTable-custom {
+
+    transition: all .3s linear;
+    
+    &:hover {
+        opacity: .8;
+
+    }
+}
+
+.custom-breadcrumb {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.custom-breadcrumb-item {
+    display: flex;
+    align-items: center;
+    
+    a {
+        background-color: var(--secondary);
+        border-radius: 24px;
+        padding: 8px 16px;
+        margin-right: 12px;
+        color: white;
+        font-weight: 500;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        color: var(--white);
+        text-decoration: none;
+        gap: 6px;
+    }
+
+    .arrow {
+        margin-left: 8px;
+        margin-right: 8px;
+        color: var(--primary);
+        font-weight: 900;
+        font-size: 1.2rem;
+    }
+
+    &.active {
+        background-color: var(--primary);
+        border-radius: 24px;
+        padding: 8px 16px;
+        margin-right: 12px;
+        color: white;
+        font-weight: 500;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        color: var(--white);
+        text-decoration: none;
+        gap: 6px;
+    }
+
+    i, svg {
+        margin-right: 4px;
+    }
 }

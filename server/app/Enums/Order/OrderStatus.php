@@ -25,7 +25,7 @@ final class OrderStatus extends Enum
         return match ($this->value) {
             self::Waiting => "Chờ thanh toán",
             self::Pending => "Đang xử lý",
-            self::Shipped => "Đã giao hàng",
+            self::Shipped => "Đã giao cho phía vận chuyển",
             self::Success => "Đơn thành công",
             self::Cancel => "Đã hủy",
             default => "Không xác định",
@@ -46,7 +46,7 @@ final class OrderStatus extends Enum
     public function canTransitionTo(self $newStatus): bool
     {
         $validTransitions = [
-            self::Waiting => [self::Pending],
+            self::Waiting => [],
             self::Pending => [self::Shipped],
             self::Shipped => [self::Success],
             self::Success => [],

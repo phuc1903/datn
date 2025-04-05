@@ -23,6 +23,6 @@ class Ward extends Model
 
     public function administrativeUnit()
     {
-        return $this->belongsTo(AdministrativeUnits::class, 'administrative_unit_id');
+        return $this->belongsTo(administrativeUnits::class, 'administrative_unit_id');
     }
 }
