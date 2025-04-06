@@ -1,20 +1,38 @@
 import Image from "next/image";
 
-export default function Contact() {
+async function getSettings() {
+  try {
+    const res = await fetch('https://test.zbeauty.id.vn/api/v1/settings', {
+      next: { revalidate: 3600 }
+    });
+    
+    if (!res.ok) {
+      throw new Error('Failed to fetch settings');
+    }
+
+    const data = await res.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching settings:', error);
+    return [];
+  }
+}
+
+export default async function Contact() {
+  const settings = await getSettings();
+  const contactSetting = settings.find((setting: any) => setting.name === 'Contact');
+  const contactInfo = contactSetting ? JSON.parse(contactSetting.value) : null;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="relative w-full h-80">
-        <Image
-          src="/banner/1.jpg"
-          alt="Liên hệ"
-          layout="fill"
-          objectFit="cover"
-          className="rounded-lg shadow-md"
-        />
-        <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-          <h1 className="text-white text-4xl font-bold">Liên Hệ</h1>
+      <div className="relative w-full h-48 md:h-64">
+        <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-pink-400 flex items-center justify-center">
+          <h1 className="text-white text-3xl md:text-4xl font-bold drop-shadow-lg px-4 text-center">
+            Liên Hệ
+          </h1>
         </div>
+        <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-20"></div>
       </div>
 
       {/* Content Section */}
@@ -63,7 +81,7 @@ export default function Contact() {
           </div>
 
           {/* Contact Info */}
-          <div className="bg-gray-100 p-8 rounded-lg shadow-lg">
+          <div className="bg-white p-8 rounded-lg shadow-lg">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Thông tin liên lạc</h2>
             <p className="text-gray-600 mb-6">
               Bạn cũng có thể liên hệ trực tiếp với chúng tôi qua thông tin dưới đây:
@@ -82,13 +100,13 @@ export default function Contact() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M3 10l1.664 8.328A2 2 0 006.632 20h10.736a2 2 0 001.968-1.672L21 10M5 10l7 7m0 0l7-7m-7 7V4"
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                     />
                   </svg>
                 </div>
                 <div>
                   <p className="text-gray-800 font-medium">Email</p>
-                  <p className="text-gray-600">support@example.com</p>
+                  <p className="text-gray-600">{contactInfo?.Email || 'zbeautyshop@gmail.com'}</p>
                 </div>
               </li>
               <li className="flex items-center gap-4">
@@ -104,13 +122,13 @@ export default function Contact() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M5.121 17.804a3.998 3.998 0 010-5.658m13.658 5.658a3.998 3.998 0 010-5.658M8.464 12a5 5 0 117.072 0m-7.072 0a7 7 0 1010 0m-10 0a9 9 0 1112.364-7.636M12 6v6m0 0l4-4m-4 4L8 8"
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                     />
                   </svg>
                 </div>
                 <div>
                   <p className="text-gray-800 font-medium">Điện thoại</p>
-                  <p className="text-gray-600">+84 123 456 789</p>
+                  <p className="text-gray-600">{contactInfo?.Phone || '0377461482'}</p>
                 </div>
               </li>
               <li className="flex items-center gap-4">
@@ -126,13 +144,19 @@ export default function Contact() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M8 17l-4-4m0 0l4-4m-4 4h16"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                     />
                   </svg>
                 </div>
                 <div>
                   <p className="text-gray-800 font-medium">Địa chỉ</p>
-                  <p className="text-gray-600">123 Đường ABC, Quận XYZ, TP.HCM</p>
+                  <p className="text-gray-600">{contactInfo?.Address || '49 Trần Hưng Đạo, Phường Tân Thành, Quận Tân Phú'}</p>
                 </div>
               </li>
             </ul>

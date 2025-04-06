@@ -16,7 +16,10 @@ interface Product {
     price: number;
     promotion_price: number;
   }>;
-  images: string[];
+  images: Array<{
+    id: number;
+    image_url: string;
+  }>;
 }
 
 const SearchResults = () => {
@@ -24,11 +27,18 @@ const SearchResults = () => {
   const query = searchParams.get("query") || "";
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [sortOption, setSortOption] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
         const response = await fetch(`${API_BASE_URL}/products`);
+        if (!response.ok) {
+          throw new Error('Không thể tải dữ liệu sản phẩm');
+        }
         const data = await response.json();
 
         if (data?.data) {
@@ -39,6 +49,9 @@ const SearchResults = () => {
         }
       } catch (error) {
         console.error("Error fetching products:", error);
+        setError('Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -50,6 +63,12 @@ const SearchResults = () => {
     const sortedProducts = [...filteredProducts];
 
     switch (e.target.value) {
+      case "name-asc":
+        sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "name-desc":
+        sortedProducts.sort((a, b) => b.name.localeCompare(a.name));
+        break;
       case "price-asc":
         sortedProducts.sort((a, b) => {
           const priceA = a.skus[0]?.promotion_price > 0 ? a.skus[0].promotion_price : a.skus[0]?.price;
@@ -70,6 +89,30 @@ const SearchResults = () => {
 
     setFilteredProducts(sortedProducts);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white min-h-screen py-10 px-4">
@@ -95,47 +138,68 @@ const SearchResults = () => {
         {/* Danh sách sản phẩm */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredProducts.length > 0 ? (
-            filteredProducts.map((product) => (
-              <Link
-                key={product.id}
-                href={`/product/${product.id}`}
-                className="group relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <div className="aspect-square relative">
-                  <Image
-                    src={product.image_url}
-                    alt={product.name}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                    {product.name}
-                  </h3>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      {product.skus[0]?.promotion_price > 0 ? (
-                        <>
+            filteredProducts.map((product) => {
+              // Kiểm tra và sử dụng hình ảnh mặc định nếu cần
+              let imageUrl = '/placeholder.jpg'; // Giá trị mặc định
+              
+              if (product.image_url && typeof product.image_url === 'string' && product.image_url.trim() !== '') {
+                imageUrl = product.image_url;
+              } else if (product.images && product.images.length > 0 && product.images[0]?.image_url) {
+                imageUrl = product.images[0].image_url;
+              }
+              
+              return (
+                <Link
+                  key={product.id}
+                  href={`/product/${product.id}`}
+                  className="group relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  <div className="aspect-square relative">
+                    <Image
+                      src={imageUrl}
+                      alt={product.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform"
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      priority={false}
+                    />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                      {product.name}
+                    </h3>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        {product.skus[0]?.promotion_price > 0 ? (
+                          <>
+                            <p className="text-lg font-bold text-pink-600">
+                              {product.skus[0].promotion_price.toLocaleString()}đ
+                            </p>
+                            <p className="text-sm text-gray-500 line-through">
+                              {product.skus[0].price.toLocaleString()}đ
+                            </p>
+                          </>
+                        ) : (
                           <p className="text-lg font-bold text-pink-600">
-                            {product.skus[0].promotion_price.toLocaleString()}đ
+                            {product.skus[0]?.price.toLocaleString()}đ
                           </p>
-                          <p className="text-sm text-gray-500 line-through">
-                            {product.skus[0].price.toLocaleString()}đ
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-lg font-bold text-pink-600">
-                          {product.skus[0]?.price.toLocaleString()}đ
-                        </p>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))
+                </Link>
+              );
+            })
           ) : (
-            <p className="text-gray-600 col-span-full text-center">Không tìm thấy sản phẩm nào.</p>
+            <div className="col-span-full text-center py-10">
+              <p className="text-gray-600">Không tìm thấy sản phẩm nào phù hợp với từ khóa "{query}"</p>
+              <Link 
+                href="/shop"
+                className="mt-4 inline-block px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+              >
+                Xem tất cả sản phẩm
+              </Link>
+            </div>
           )}
         </div>
       </div>
@@ -145,7 +209,11 @@ const SearchResults = () => {
 
 const SearchPage = () => {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
+      </div>
+    }>
       <SearchResults />
     </Suspense>
   );

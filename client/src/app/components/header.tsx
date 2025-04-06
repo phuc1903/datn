@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Search, ShoppingBag, User, Heart, ChevronDown, Menu, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { API_BASE_URL } from "@/config/config";
+import { useSettings } from '../context/SettingsContext';
 
 interface Category {
   id: number;
@@ -40,6 +41,8 @@ interface CartItem {
 }
 
 const Header: React.FC = () => {
+  const { getSetting } = useSettings();
+  const announcementBar = getSetting('AnnouncementBar');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [categories, setCategories] = useState<ProcessedCategory[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -247,11 +250,13 @@ const Header: React.FC = () => {
 
   return (
     <>
-      <div className="bg-gray-100 py-2">
-        <div className="container mx-auto px-4 text-center text-sm text-gray-600">
-          Miễn phí vận chuyển cho đơn hàng từ 1.000.000đ
+      {announcementBar && (
+        <div className="bg-gray-100 py-2">
+          <div className="container mx-auto px-4 text-center text-sm text-gray-600">
+            {announcementBar.value}
+          </div>
         </div>
-      </div>
+      )}
       
       <header className="bg-white shadow-sm z-50 sticky top-0">
         <div className="max-w-7xl container mx-auto px-4">
