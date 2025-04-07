@@ -4,31 +4,41 @@ import Image from 'next/image';
 import { ChevronUp, ChevronDown, Diamond, Filter } from 'lucide-react';
 
 const ProductListingPage = () => {
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  const [expandedCategories, setExpandedCategories] = useState({
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
+  const [expandedCategories, setExpandedCategories] = useState<{
+    main: boolean;
+    category1: boolean;
+    ratings: boolean;
+    price: boolean;
+  }>({
     main: true,
     category1: true,
     ratings: true,
     price: true
   });
 
-  const [selectedFilters, setSelectedFilters] = useState({
+  const [selectedFilters, setSelectedFilters] = useState<{
+    categories: string[];
+    ratings: string[];
+    priceRange: { min: string; max: string };
+    tags: string[];
+  }>({
     categories: ['Danh mục con 3'],
     ratings: ['3'],
     priceRange: { min: '', max: '' },
     tags: []
   });
 
-  const [sortOption, setSortOption] = useState('');
+  const [sortOption, setSortOption] = useState<string>('');
 
-  const toggleCategory = (category) => {
+  const toggleCategory = (category: keyof typeof expandedCategories) => {
     setExpandedCategories(prev => ({
       ...prev,
       [category]: !prev[category]
     }));
   };
 
-  const handleFilterChange = (type, value) => {
+  const handleFilterChange = (type: 'categories' | 'ratings' | 'tags', value: string) => {
     setSelectedFilters(prev => {
       const newFilters = { ...prev };
       if (type === 'categories' || type === 'ratings' || type === 'tags') {
@@ -42,7 +52,7 @@ const ProductListingPage = () => {
     });
   };
 
-  const handlePriceChange = (type, value) => {
+  const handlePriceChange = (type: 'min' | 'max', value: string) => {
     setSelectedFilters(prev => ({
       ...prev,
       priceRange: {
