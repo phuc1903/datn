@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Star, ChevronLeft } from "lucide-react";
+import { Star, CheckCircle } from "lucide-react";
 import Swal from "sweetalert2";
 import Cookies from "js-cookie";
-import Link from "next/link";
 import { API_BASE_URL } from "@/config/config";
 
 interface OrderItem {
@@ -22,28 +21,53 @@ interface Order {
   id: string;
   orderNumber: string;
   status: string;
+  date: string;
+  totalAmount: number;
   items: OrderItem[];
 }
 
-const ReviewPage: React.FC = () => {
+interface ReviewForm {
+  [sku_id: string]: {
+    rating: number;
+    comment: string;
+  };
+}
+
+const SubmitFeedbackPage = () => {
   const router = useRouter();
   const params = useParams();
-  const orderId = params?.id;
+  const orderId = params.id as string; // Matches the dynamic route [id]
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [ratings, setRatings] = useState<{ [key: string]: number }>({}); // Rating for each item
-  const [comments, setComments] = useState<{ [key: string]: string }>({}); // Comment for each item
-  const [userId, setUserId] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<ReviewForm>({});
 
   const statusMap: { [key: string]: string } = {
     success: "Giao hàng thành công",
   };
 
-  useEffect(() => {
-    const fetchOrderDetails = async () => {
+  const statusIcons = {
+    "Giao hàng thành công": <CheckCircle className="w-5 h-5 text-green-500" />,
+  };
+
+  const fetchWithRetry = async (url: string, options: RequestInit, retries = 3, delay = 1000) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch(url, options);
+        return response;
+      } catch (error) {
+        console.error(`Fetch error (${i + 1}/${retries}) for ${url}:`, error); // Log the error for debugging
+        if (i === retries - 1) throw error;
+        console.warn(`Retrying fetch (${i + 1}/${retries}) for ${url}...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+    throw new Error("Max retries reached");
+  };
+
+  const fetchOrder = async () => {
+    try {
       const userToken = Cookies.get("accessToken");
       const userEmail = Cookies.get("userEmail");
-      const storedUserId = Cookies.get("userId");
 
       if (!userToken || !userEmail) {
         router.push("/login");
@@ -51,175 +75,135 @@ const ReviewPage: React.FC = () => {
         return;
       }
 
-      try {
-        if (!storedUserId) {
-          const userRes = await fetch(`${API_BASE_URL}/users`, {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${userToken}`,
-            },
-          });
-          if (!userRes.ok) {
-            const errorText = await userRes.text();
-            throw new Error(`Không thể lấy thông tin người dùng: ${userRes.status} - ${errorText}`);
-          }
-          const userData = await userRes.json();
-          const foundUser = userData.data.find((u: any) => u.email === userEmail);
-          if (!foundUser) throw new Error("Không tìm thấy người dùng");
-          setUserId(foundUser.id.toString());
-        } else {
-          setUserId(storedUserId);
-        }
+      const ordersUrl = `${API_BASE_URL}/users/orders/${orderId}`;
+      const ordersResponse = await fetchWithRetry(ordersUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userToken}`,
+        },
+      });
 
-        const url = `${API_BASE_URL}/orders/${orderId}`;
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${userToken}`,
-          },
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Không thể lấy chi tiết đơn hàng: ${response.status} - ${errorText}`);
-        }
-
-        const result = await response.json();
-        if (result.status !== "success") {
-          throw new Error(result.message || "Không thể lấy chi tiết đơn hàng");
-        }
-
-        const orderData = result.data;
-        if (!orderData || orderData.status?.toLowerCase() !== "success") {
-          throw new Error("Đơn hàng không hợp lệ hoặc chưa giao hàng thành công");
-        }
-
-        const fetchedOrder: Order = {
-          id: orderData.id?.toString() || "",
-          orderNumber: orderData.order_number || `OD-${orderData.id}`,
-          status: statusMap[orderData.status?.toLowerCase()] || "Không xác định",
-          items: (orderData.items || []).map((item: any) => ({
-            id: item.id?.toString() || "",
-            quantity: item.quantity || 0,
-            price: item.price || 0,
-            sku_id: item.sku?.id?.toString() || "",
-            product: {
-              name: item.sku?.product?.name || "Sản phẩm không xác định",
-            },
-          })),
-        };
-
-        setOrder(fetchedOrder);
-      } catch (error: any) {
-        console.error("Fetch order details error:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Lỗi",
-          text: error.message || "Không thể tải chi tiết đơn hàng",
-          confirmButtonText: "OK",
-        });
-        setOrder(null);
-      } finally {
-        setIsLoading(false);
+      if (!ordersResponse.ok) {
+        const errorText = await ordersResponse.text();
+        throw new Error(`Không thể lấy thông tin đơn hàng: ${ordersResponse.status} - ${errorText}`);
       }
-    };
 
-    if (orderId && typeof orderId === "string" && orderId.trim() !== "") {
-      fetchOrderDetails();
-    } else {
-      setIsLoading(false);
-      setOrder(null);
+      const orderResult = await ordersResponse.json();
+      const orderData = orderResult.data;
+
+      const fetchedOrder: Order = {
+        id: orderData.id?.toString() || "",
+        orderNumber: orderData.order_number || `OD-${orderData.id}`,
+        status: statusMap[orderData.status?.toLowerCase()] || "Không xác định",
+        date: orderData.created_at
+          ? new Date(orderData.created_at).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
+        totalAmount: orderData.total_amount || 0,
+        items: (orderData.items || []).map((item: any) => ({
+          id: item.id?.toString() || "",
+          quantity: item.quantity || 0,
+          price: item.price || 0,
+          sku_id: item.sku?.id?.toString() || "",
+          product: {
+            name: item.sku?.product?.name || "Sản phẩm không xác định",
+          },
+        })),
+      };
+
+      setOrder(fetchedOrder);
+
+      // Initialize reviews state for each item
+      const initialReviews: ReviewForm = {};
+      fetchedOrder.items.forEach((item) => {
+        initialReviews[item.sku_id] = { rating: 0, comment: "" };
+      });
+      setReviews(initialReviews);
+    } catch (error: any) {
       Swal.fire({
         icon: "error",
         title: "Lỗi",
-        text: "Không tìm thấy ID đơn hàng. Quay lại trang phản hồi.",
+        text: error.message || "Không thể tải dữ liệu đơn hàng",
         confirmButtonText: "OK",
-      }).then(() => {
-        router.push("/feedback");
       });
+      router.push("/feedback");
+    } finally {
+      setIsLoading(false);
     }
-  }, [orderId, router]);
-
-  const handleRating = (itemId: string, rating: number) => {
-    setRatings((prev) => ({ ...prev, [itemId]: rating }));
   };
 
-  const handleCommentChange = (itemId: string, comment: string) => {
-    setComments((prev) => ({ ...prev, [itemId]: comment }));
-  };
+  useEffect(() => {
+    fetchOrder();
+  }, [orderId]);
 
-  const handleSubmit = async () => {
-    if (!order || !userId) return;
-
-    const reviews = order.items.map((item) => ({
-      sku_id: item.sku_id,
-      order_id: order.id,
-      rating: ratings[item.id] || 0,
-      comment: comments[item.id] || "",
+  const handleRatingChange = (sku_id: string, rating: number) => {
+    setReviews((prev) => ({
+      ...prev,
+      [sku_id]: { ...prev[sku_id], rating },
     }));
+  };
 
-    const invalidItems = reviews.filter((review) => !review.sku_id || review.rating === 0);
-    if (invalidItems.length > 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "Cảnh báo",
-        text: "Vui lòng kiểm tra thông tin sản phẩm và đánh giá sao!",
-        confirmButtonText: "OK",
-      });
-      return;
-    }
+  const handleCommentChange = (sku_id: string, comment: string) => {
+    setReviews((prev) => ({
+      ...prev,
+      [sku_id]: { ...prev[sku_id], comment },
+    }));
+  };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
       const userToken = Cookies.get("accessToken");
-      if (!userToken) {
-        throw new Error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+      const userEmail = Cookies.get("userEmail");
+      const userId = Cookies.get("userId"); // Retrieve userId from cookies
+
+      if (!userToken || !userEmail || !userId) {
+        router.push("/login");
+        return;
       }
 
-      console.log("Submitting reviews:", reviews);
-      console.log("User token:", userToken);
+      console.log("Submitting reviews with token:", userToken); // Debug log
+      console.log("User ID:", userId); // Debug log
 
-      for (const review of reviews) {
-        const response = await fetch(`${API_BASE_URL}/product_feedbacks/create`, {
+      const reviewPromises = Object.keys(reviews).map(async (sku_id) => {
+        const review = reviews[sku_id];
+        if (review.rating === 0) {
+          return Promise.resolve(); // Skip if no rating is provided
+        }
+
+        const response = await fetchWithRetry(`${API_BASE_URL}/product_feedbacks/create`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${userToken}`,
           },
-          body: JSON.stringify(review),
+          body: JSON.stringify({
+            sku_id,
+            user_id: userId, // Include user_id in the request body
+            order_id: orderId,
+            rating: review.rating,
+            comment: review.comment || "",
+          }),
         });
 
         if (!response.ok) {
-          const contentType = response.headers.get("content-type");
-          let errorMessage = "Không thể gửi đánh giá";
-
-          if (contentType && contentType.includes("application/json")) {
-            const errorData = await response.json();
-            console.error("Error response:", response.status, errorData);
-            errorMessage = errorData.message || `Không thể gửi đánh giá: ${response.status}`;
-          } else {
-            const text = await response.text();
-            console.error("Non-JSON response:", text);
-            errorMessage = `Lỗi server: ${response.status} - Vui lòng kiểm tra API endpoint`;
-          }
-
-          throw new Error(errorMessage);
+          const errorText = await response.text();
+          throw new Error(`Không thể gửi đánh giá: ${response.status} - ${errorText}`);
         }
+      });
 
-        const data = await response.json();
-        console.log("Success response:", data);
-      }
+      await Promise.all(reviewPromises);
 
       Swal.fire({
         icon: "success",
         title: "Thành công",
-        text: "Đánh giá của bạn đã được gửi!",
+        text: "Đánh giá của bạn đã được gửi thành công!",
         confirmButtonText: "OK",
       }).then(() => {
         router.push("/feedback?refresh=true");
       });
     } catch (error: any) {
-      console.error("Submission error:", error);
+      console.error("Submit error:", error); // Debug log
       Swal.fire({
         icon: "error",
         title: "Lỗi",
@@ -229,8 +213,14 @@ const ReviewPage: React.FC = () => {
     }
   };
 
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+
   if (isLoading) {
-    return <div className="text-center py-8">Đang tải...</div>;
+    return <div className="text-center py-8">Đang tải thông tin đơn hàng...</div>;
   }
 
   if (!order) {
@@ -240,78 +230,88 @@ const ReviewPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
-        <Link
-          href="/feedback"
-          className="flex items-center text-pink-600 hover:text-pink-800 mb-6"
-        >
-          <ChevronLeft className="w-5 h-5" /> Quay lại trang phản hồi
-        </Link>
-
-        <h1 className="text-2xl font-semibold mb-6 text-pink-500">
-          Đánh Giá Đơn Hàng #{order.orderNumber}
-        </h1>
+        <h1 className="text-2xl font-semibold mb-6 text-pink-500">Đánh Giá Đơn Hàng</h1>
 
         <div className="bg-white rounded-lg shadow p-6 text-black">
-          {order.items.length > 0 ? (
-            <div className="space-y-6">
-              {order.items.map((item) => (
-                <div key={item.id} className="border-b pb-4 last:border-b-0">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div>
-                      <span className="font-medium block">{item.product.name}</span>
-                      <span className="text-sm text-gray-500">Số lượng: {item.quantity}</span>
-                    </div>
+          <div className="mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div>
+                  <span className="font-medium block">Mã đơn hàng: {order.orderNumber}</span>
+                  <div className="text-sm text-gray-600 flex items-center gap-1">
+                    {statusIcons[order.status]}
+                    <span>{order.status}</span>
                   </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Đánh giá sao
-                    </label>
-                    <div className="flex gap-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          onClick={() => handleRating(item.id, star)}
-                          className={`focus:outline-none ${
-                            (ratings[item.id] || 0) >= star
-                              ? "text-yellow-400"
-                              : "text-gray-300"
-                          }`}
-                        >
-                          <Star className="w-6 h-6" fill="currentColor" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nhận xét
-                    </label>
-                    <textarea
-                      value={comments[item.id] || ""}
-                      onChange={(e) => handleCommentChange(item.id, e.target.value)}
-                      placeholder="Nhập nhận xét của bạn..."
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      rows={4}
-                    />
-                  </div>
+                  <span className="text-sm text-gray-500">Ngày đặt: {order.date}</span>
                 </div>
-              ))}
-              <div className="flex justify-end mt-6">
-                <button
-                  onClick={handleSubmit}
-                  className="bg-pink-600 text-white px-6 py-2 rounded-lg hover:bg-pink-700"
-                >
-                  Gửi đánh giá
-                </button>
+              </div>
+              <div className="text-right">
+                <span className="font-medium block">{formatPrice(order.totalAmount)}</span>
               </div>
             </div>
-          ) : (
-            <p className="text-gray-500">Không có sản phẩm để đánh giá.</p>
-          )}
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {order.items.map((item) => (
+              <div key={item.id} className="border-b pb-4 last:border-b-0">
+                <div className="flex items-center gap-4 mb-4">
+                  <div>
+                    <span className="font-medium block">{item.product.name}</span>
+                    <span className="text-sm text-gray-500">Số lượng: {item.quantity}</span>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Đánh giá sao
+                  </label>
+                  <div className="flex items-center">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-6 h-6 cursor-pointer transition-colors duration-200 ${
+                          star <= reviews[item.sku_id].rating
+                            ? "text-yellow-400"
+                            : "text-gray-300"
+                        }`}
+                        onClick={() => handleRatingChange(item.sku_id, star)}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <label
+                    htmlFor={`comment-${item.sku_id}`}
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Nhận xét
+                  </label>
+                  <textarea
+                    id={`comment-${item.sku_id}`}
+                    className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    rows={4}
+                    value={reviews[item.sku_id].comment}
+                    onChange={(e) => handleCommentChange(item.sku_id, e.target.value)}
+                    placeholder="Viết nhận xét của bạn về sản phẩm..."
+                  />
+                </div>
+              </div>
+            ))}
+
+            <div className="text-right">
+              <button
+                type="submit"
+                className="inline-flex items-center px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-md text-sm transition-all duration-300"
+              >
+                Gửi Đánh Giá
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   );
 };
 
-export default ReviewPage;
+export default SubmitFeedbackPage;

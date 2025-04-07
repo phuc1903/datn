@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react"; // Thêm useMemo
+import { useState, useEffect, useMemo } from "react";
 import { CreditCard, Truck, ChevronLeft } from "lucide-react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
@@ -55,11 +55,11 @@ interface UserAddress {
   province: { full_name: string; code: string };
   district: { full_name: string; code: string };
   ward: { full_name: string; code: string };
-  default: string; // "default" or not
+  default: string;
 }
 
 interface Voucher {
-  id: number;
+  id: string; // Đổi từ number sang string
   title: string;
   description: string;
   quantity: number;
@@ -103,7 +103,6 @@ export default function CheckoutOrder() {
   const [userAddresses, setUserAddresses] = useState<UserAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
 
-  // Lọc voucher trùng lặp
   const uniqueVouchers = useMemo(() => {
     const seenIds = new Set();
     return vouchers.filter((voucher) => {
@@ -115,7 +114,6 @@ export default function CheckoutOrder() {
     });
   }, [vouchers]);
 
-  // Fetch user addresses
   useEffect(() => {
     const fetchUserAddresses = async () => {
       const userToken = Cookies.get("accessToken");
@@ -168,7 +166,6 @@ export default function CheckoutOrder() {
     fetchUserAddresses();
   }, [router]);
 
-  // Fetch cart data and vouchers
   useEffect(() => {
     const fetchData = async () => {
       const userToken = Cookies.get("accessToken");
@@ -183,7 +180,6 @@ export default function CheckoutOrder() {
       }
 
       try {
-        // Fetch cart
         const cartResponse = await fetch(`${API_BASE_URL}/users/carts`, {
           method: "GET",
           headers: {
@@ -208,7 +204,6 @@ export default function CheckoutOrder() {
           );
         }
 
-        // Fetch vouchers
         const voucherResponse = await fetch(`${API_BASE_URL}/users/vouchers`, {
           method: "GET",
           headers: {
@@ -264,7 +259,7 @@ export default function CheckoutOrder() {
   };
 
   const handleVoucherChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const voucherId = Number(e.target.value);
+    const voucherId = e.target.value; // Giữ nguyên dạng chuỗi
     const voucher = uniqueVouchers.find((v) => v.id === voucherId) || null;
     setSelectedVoucher(voucher);
     const discount = voucher ? calculateDiscount(cartSummary.subtotal, voucher) : 0;
@@ -345,7 +340,7 @@ export default function CheckoutOrder() {
     const orderData = {
       user_email: userEmail,
       orders: orders,
-      voucher_id: selectedVoucher ? selectedVoucher.id : [],
+      voucher_id: selectedVoucher ? selectedVoucher.id : null, // Giữ nguyên dạng chuỗi hoặc null
       address: shippingInfo.address,
       phone_number: shippingInfo.phone_number,
       payment_method: apiPaymentMethod,
@@ -614,10 +609,6 @@ export default function CheckoutOrder() {
                       <span>Tạm tính</span>
                       <span>{formatPrice(cartSummary.subtotal)}</span>
                     </div>
-                    {/* <div className="flex justify-between text-gray-600">
-                      <span>Phí vận chuyển</span>
-                      <span>{formatPrice(cartSummary.shipping)}</span>
-                    </div> */}
                     {appliedDiscount > 0 && (
                       <div className="flex justify-between text-gray-600">
                         <span>Giảm giá</span>
