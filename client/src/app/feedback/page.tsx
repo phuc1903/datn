@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle, Star } from "lucide-react";
+import { CheckCircle, Star, PenSquare } from "lucide-react";
 import Swal from "sweetalert2";
 import Cookies from "js-cookie";
 import Link from "next/link";
+import Image from "next/image";
 import { API_BASE_URL } from "@/config/config";
 
 interface OrderItem {
@@ -43,6 +44,8 @@ interface Review {
     product?: {
       name: string;
     };
+    image_url?: string;
+    variant_values?: { variant: { name: string }; value: string }[];
   };
 }
 
@@ -51,8 +54,9 @@ const FeedbackPage = () => {
   const searchParams = useSearchParams();
   const refresh = searchParams.get("refresh") === "true";
   const [orders, setOrders] = useState<Order[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [selectedTab, setSelectedTab] = useState<string>("Chưa đánh giá");
+  const [activeTab, setActiveTab] = useState<"pending" | "reviewed">("pending");
 
   const statusMap: { [key: string]: string } = {
     success: "Giao hàng thành công",
@@ -62,10 +66,19 @@ const FeedbackPage = () => {
     "Giao hàng thành công": <CheckCircle className="w-5 h-5 text-green-500" />,
   };
 
-  const tabs = [
-    { label: "Chưa đánh giá", value: "Chưa đánh giá" },
-    { label: "Đã đánh giá", value: "Đã đánh giá" },
-  ];
+  const fetchWithRetry = async (url: string, options: RequestInit, retries = 3, delay = 1000) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch(url, options);
+        return response;
+      } catch (error) {
+        if (i === retries - 1) throw error;
+        console.warn(`Retrying fetch (${i + 1}/${retries}) for ${url}...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+    throw new Error("Max retries reached");
+  };
 
   const fetchData = async () => {
     try {
@@ -78,15 +91,17 @@ const FeedbackPage = () => {
         return;
       }
 
-      // Fetch orders
       const ordersUrl = `${API_BASE_URL}/users/orders`;
-      const ordersResponse = await fetch(ordersUrl, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${userToken}`,
-        },
-      });
+      let ordersResponse = await fetchWithRetry(
+        ordersUrl,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${userToken}`,
+          },
+        }
+      );
 
       if (!ordersResponse.ok) {
         const errorText = await ordersResponse.text();
@@ -94,24 +109,19 @@ const FeedbackPage = () => {
       }
 
       const ordersResult = await ordersResponse.json();
-      if (ordersResult.status !== "success") {
-        throw new Error(ordersResult.message || "Không thể lấy danh sách đơn hàng");
-      }
-
       const ordersData = ordersResult.data;
-      if (!Array.isArray(ordersData)) {
-        throw new Error("Dữ liệu đơn hàng không hợp lệ");
-      }
 
-      // Fetch reviews
-      const reviewsUrl = `${API_BASE_URL}/product_feedbacks/getAllOrderItem`;
-      const reviewsResponse = await fetch(reviewsUrl, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${userToken}`,
-        },
-      });
+      const userReviewsUrl = `${API_BASE_URL}/users`;
+      let reviewsResponse = await fetchWithRetry(
+        userReviewsUrl,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${userToken}`,
+          },
+        }
+      );
 
       if (!reviewsResponse.ok) {
         const errorText = await reviewsResponse.text();
@@ -119,20 +129,15 @@ const FeedbackPage = () => {
       }
 
       const reviewsResult = await reviewsResponse.json();
-      if (reviewsResult.status !== "success") {
-        throw new Error(reviewsResult.message || "Không thể lấy danh sách đánh giá");
-      }
+      const reviewsData: Review[] = reviewsResult.data?.product_feedbacks || [];
+      setReviews(reviewsData);
 
-      const reviewsData: Review[] = reviewsResult.data;
-
-      // Map orders and attach reviews
       const fetchedOrders: Order[] = ordersData
         .filter((order: any) => order.status?.toLowerCase() === "success")
         .map((order: any) => {
           const orderReviews = reviewsData.filter(
             (review: Review) => review.order_id === order.id?.toString()
           );
-          // Check if there is at least one review with status "active"
           const hasActiveReview = orderReviews.some((review) => review.status === "active");
           return {
             id: order.id?.toString() || "",
@@ -142,7 +147,7 @@ const FeedbackPage = () => {
               ? new Date(order.created_at).toISOString().split("T")[0]
               : new Date().toISOString().split("T")[0],
             totalAmount: order.total_amount || 0,
-            isReviewed: hasActiveReview, // Only set to true if there’s an active review
+            isReviewed: hasActiveReview,
             items: (order.items || []).map((item: any) => ({
               id: item.id?.toString() || "",
               quantity: item.quantity || 0,
@@ -158,7 +163,6 @@ const FeedbackPage = () => {
 
       setOrders(fetchedOrders);
     } catch (error: any) {
-      console.error("Fetch data error:", error);
       Swal.fire({
         icon: "error",
         title: "Lỗi",
@@ -166,6 +170,7 @@ const FeedbackPage = () => {
         confirmButtonText: "OK",
       });
       setOrders([]);
+      setReviews([]);
     } finally {
       setIsLoading(false);
     }
@@ -175,25 +180,21 @@ const FeedbackPage = () => {
     fetchData();
   }, [router]);
 
-  // Refetch data when redirected with refresh=true
   useEffect(() => {
     if (refresh) {
       fetchData();
-      // Clear the query parameter to prevent continuous refetching
       router.replace("/feedback", undefined, { shallow: true });
     }
   }, [refresh, router]);
-
-  const filteredOrders =
-    selectedTab === "Chưa đánh giá"
-      ? orders.filter((order) => !order.isReviewed)
-      : orders.filter((order) => order.isReviewed);
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(price);
+
+  const pendingOrders = orders.filter((order) => !order.isReviewed);
+  const reviewedOrders = orders.filter((order) => order.isReviewed);
 
   if (isLoading) {
     return <div className="text-center py-8">Đang tải danh sách phản hồi...</div>;
@@ -205,130 +206,152 @@ const FeedbackPage = () => {
         <h1 className="text-2xl font-semibold mb-6 text-pink-500">Phản Hồi Đơn Hàng</h1>
 
         <div className="mb-6">
-          <div className="flex flex-nowrap gap-2 overflow-x-auto">
-            {tabs.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => setSelectedTab(tab.value)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
-                  selectedTab === tab.value
-                    ? "bg-pink-500 text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+          <div className="flex border-b">
+            <button
+              className={`px-4 py-2 font-medium ${
+                activeTab === "pending"
+                  ? "border-b-2 border-pink-500 text-pink-500"
+                  : "text-gray-500"
+              }`}
+              onClick={() => setActiveTab("pending")}
+            >
+              Chưa đánh giá ({pendingOrders.length})
+            </button>
+            <button
+              className={`px-4 py-2 font-medium ${
+                activeTab === "reviewed"
+                  ? "border-b-2 border-pink-500 text-pink-500"
+                  : "text-gray-500"
+              }`}
+              onClick={() => setActiveTab("reviewed")}
+            >
+              Đã đánh giá ({reviews.length})
+            </button>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6 text-black">
-          {filteredOrders.length > 0 ? (
-            <div className="space-y-6">
-              {filteredOrders.map((order) => (
-                <div key={order.id} className="border-b pb-4 last:border-b-0">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                      <div>
-                        <span className="font-medium block">Mã đơn hàng: {order.orderNumber}</span>
-                        <div className="text-sm text-gray-600 flex items-center gap-1">
-                          {statusIcons[order.status]}
-                          <span>{order.status}</span>
+          {activeTab === "pending" ? (
+            pendingOrders.length > 0 ? (
+              <div className="space-y-6">
+                {pendingOrders.map((order) => (
+                  <div key={order.id} className="border-b pb-4 last:border-b-0">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-4">
+                        <div>
+                          <span className="font-medium block">Mã đơn hàng: {order.orderNumber}</span>
+                          <div className="text-sm text-gray-600 flex items-center gap-1">
+                            {statusIcons[order.status]}
+                            <span>{order.status}</span>
+                          </div>
+                          <span className="text-sm text-gray-500">Ngày đặt: {order.date}</span>
                         </div>
-                        <span className="text-sm text-gray-500">Ngày đặt: {order.date}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-medium block">{formatPrice(order.totalAmount)}</span>
+                        <Link
+                          href={`/feedback/${order.id}`}
+                          className="inline-flex items-center px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-md text-sm transition-all duration-300"
+                        >
+                          <PenSquare className="w-4 h-4 mr-2" /> Đánh Giá
+                        </Link>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <span className="font-medium block">{formatPrice(order.totalAmount)}</span>
-                      {selectedTab === "Chưa đánh giá" ? (
-                        <Link
-                          href={`/feedback/${order.id}`}
-                          className="text-pink-600 hover:text-pink-800 text-sm flex items-center gap-1"
-                        >
-                          <Star className="w-4 h-4" /> Đánh giá
-                        </Link>
-                      ) : (
-                        <Link
-                          href={`/feedback/${order.id}`}
-                          className="text-pink-600 hover:text-pink-800 text-sm"
-                        >
-                          Xem đánh giá
-                        </Link>
-                      )}
-                    </div>
-                  </div>
 
-                  {/* Display items and reviews */}
-                  {order.items.length > 0 ? (
-                    <div className="space-y-4">
-                      {order.items.map((item) => (
-                        <div key={item.id} className="border-t pt-4">
-                          <div className="flex items-center gap-4 mb-4">
-                            <div>
-                              <span className="font-medium block">{item.product.name}</span>
-                              <span className="text-sm text-gray-500">Số lượng: {item.quantity}</span>
+                    {order.items.length > 0 ? (
+                      <div className="space-y-4">
+                        {order.items.map((item) => (
+                          <div key={item.id} className="border-t pt-4">
+                            <div className="flex items-center gap-4 mb-4">
+                              <div>
+                                <span className="font-medium block">{item.product.name}</span>
+                                <span className="text-sm text-gray-500">Số lượng: {item.quantity}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                      {/* Display reviews for "Đã đánh giá" tab */}
-                      {selectedTab === "Đã đánh giá" && order.reviews && order.reviews.length > 0 ? (
-                        <div className="space-y-4">
-                          {order.reviews
-                            .filter((review) => review.status === "active")
-                            .map((review) => (
-                              <div key={review.id} className="border-t pt-4">
-                                <div className="mb-2">
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Đánh giá sao
-                                  </label>
-                                  <div className="flex gap-2">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                      <Star
-                                        key={star}
-                                        className={`w-6 h-6 ${
-                                          star <= review.rating
-                                            ? "text-yellow-400 fill-yellow-400"
-                                            : "text-gray-300"
-                                        }`}
-                                      />
-                                    ))}
-                                  </div>
-                                </div>
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Nhận xét
-                                  </label>
-                                  <p className="text-sm text-gray-600">{review.comment || "Không có nhận xét"}</p>
-                                </div>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  Đánh giá vào: {new Date(review.created_at).toLocaleString("vi-VN")}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  Cập nhật vào: {new Date(review.updated_at).toLocaleString("vi-VN")}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  Trạng thái: {review.status}
-                                </p>
-                              </div>
-                            ))}
-                        </div>
-                      ) : selectedTab === "Đã đánh giá" ? (
-                        <p className="text-gray-500 text-sm">Chưa có đánh giá cho đơn hàng này.</p>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">Không có sản phẩm trong đơn hàng.</p>
-                  )}
-                </div>
-              ))}
-            </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500">Không có sản phẩm trong đơn hàng.</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">Bạn chưa có đơn hàng nào cần đánh giá.</p>
+            )
           ) : (
-            <p className="text-gray-500">
-              {selectedTab === "Chưa đánh giá"
-                ? "Bạn chưa có đơn hàng nào cần đánh giá."
-                : "Bạn chưa có đơn hàng nào đã đánh giá."}
-            </p>
+            reviews.length > 0 ? (
+              <div className="space-y-8">
+                {reviews
+                  .filter((review) => review.status === "active")
+                  .map((review) => {
+                    const sku = review.sku || {};
+                    const variantValues = sku.variant_values || [];
+                    const reviewImages = sku.image_url ? [sku.image_url] : [];
+
+                    return (
+                      <div
+                        key={review.id}
+                        className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-2">
+                            <div className="font-medium text-black hover:text-pink-600 transition-colors duration-300">
+                              Người dùng #{review.user_id}
+                            </div>
+                            <div className="flex items-center">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  className={`w-4 h-4 transition-colors duration-200 ${
+                                    star <= review.rating ? "text-yellow-400" : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {new Date(review.created_at).toLocaleDateString("vi-VN")}
+                          </div>
+                        </div>
+                        <p className="text-black mb-3">{review.comment || "Không có nhận xét"}</p>
+                        <div className="text-sm text-gray-500 space-y-1 mb-4">
+                          <p><span className="font-medium">Tên sản phẩm:</span> {sku.product?.name || "Không xác định"}</p>
+                        </div>
+                        {reviewImages.length > 0 ? (
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {reviewImages.map((image, index) => (
+                              <Link
+                                href={`/product/${review.sku_id}`}
+                                key={`${review.id}-${index}`}
+                                className="block"
+                              >
+                                <div className="relative aspect-square rounded-md overflow-hidden border border-gray-200 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
+                                  <Image
+                                    src={image}
+                                    alt={`Review image ${index + 1}`}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-500 text-sm">Không có ảnh minh họa.</p>
+                        )}
+                        <div className="text-xs text-gray-500 mt-4 space-y-1">
+                          {/* <p><span className="font-medium">Created At:</span> {new Date(review.created_at).toLocaleString("vi-VN")}</p> */}
+                          <p><span className="font-medium"></span> {new Date(review.updated_at).toLocaleString("vi-VN")}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            ) : (
+              <p className="text-gray-500">Bạn chưa có đánh giá nào.</p>
+            )
           )}
         </div>
       </div>
