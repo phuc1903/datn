@@ -183,7 +183,7 @@ class ProductController extends Controller
         $status = mapEnumToArray(ProductStatus::class, $product->status);
 
         $variants = Variant::with('values')->get();
-        $skus = Sku::where('product_id', operator: $product->id)->with('variantValues')->get();
+        $skus = Sku::where('product_id', $product->id)->with('variantValues')->get();
         // dd($productStatus);
         $categories = Category::all();
 

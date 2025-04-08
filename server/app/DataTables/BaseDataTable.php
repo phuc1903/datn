@@ -123,11 +123,11 @@ abstract class BaseDataTable extends DataTable
                 ->text('<i class="fa fa-file-csv"></i> Xuất CSV');
         }
 
-        if ($this->includeBtnPDF) {
-            $buttons[] = Button::make('pdf')
-                ->className('bg-primary text-white border-primary btn-dataTable-custom')
-                ->text('<i class="fa fa-file-pdf"></i> Xuất PDF');
-        }
+        // if ($this->includeBtnPDF) {
+        //     $buttons[] = Button::make('pdf')
+        //         ->className('bg-primary text-white border-primary btn-dataTable-custom')
+        //         ->text('<i class="fa fa-file-pdf"></i> Xuất PDF');
+        // }
 
         if ($this->includeBtnPrint) {
             $buttons[] = Button::make('print')
