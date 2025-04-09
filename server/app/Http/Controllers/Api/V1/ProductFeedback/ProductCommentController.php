@@ -78,7 +78,10 @@ class ProductCommentController extends Controller
 
     public function getProductComments($productId)
     {
-        $comments = ProductComment::where('product_id', $productId)
+        $comments = ProductComment::with([
+            'user',
+            'admin'
+        ])->where('product_id', $productId)
             ->get();
 
         return ResponseSuccess('get Comment successfully',$comments);
