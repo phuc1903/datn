@@ -19,7 +19,10 @@ class ComboController extends Controller
                     $query->with(['product', 'variantValues.variant']) // Load product và variants
                     ->withPivot('quantity'); // Lấy quantity từ bảng trung gian
                 }
-            ])->find($id);
+            ])
+                ->withCount('feedbacks as total_feedbacks')
+                ->withAvg('feedbacks as average_rating', 'rating')
+                ->find($id);
 
             if (!$combo) {
                 return ResponseError('Combo not found', null, 404);
@@ -34,7 +37,15 @@ class ComboController extends Controller
     public function getAllCombo(): JsonResponse
     {
         try {
-            $combos = Combo::all();
+            $combos = Combo::with([
+                'skus' => function ($query) {
+                    $query->with(['product', 'variantValues.variant']) // Load product và variants
+                    ->withPivot('quantity'); // Lấy quantity từ bảng trung gian
+                }
+            ])
+                ->withCount('feedbacks as total_feedbacks')
+                ->withAvg('feedbacks as average_rating', 'rating')
+                ->get();
 
             if ($combos->isEmpty()) {
                 return ResponseError('No Combos be found', null, 404);
@@ -53,6 +64,8 @@ class ComboController extends Controller
             $combos = Combo::whereDate('date_start','>=', $date)
                 ->orderBy('date_start')
                 ->limit(10)
+                ->withCount('feedbacks as total_feedbacks')
+                ->withAvg('feedbacks as average_rating', 'rating')
                 ->get();
             if ($combos->isEmpty()) {
                 return ResponseError('No Combos be found', null, 404);
@@ -71,6 +84,8 @@ class ComboController extends Controller
             $combos = Combo::whereDate('date_end','<=', $date)
                 ->orderBy('date_end')
                 ->limit(10)
+                ->withCount('feedbacks as total_feedbacks')
+                ->withAvg('feedbacks as average_rating', 'rating')
                 ->get();
             if ($combos->isEmpty()) {
                 return ResponseError('No Combos be found', null, 404);

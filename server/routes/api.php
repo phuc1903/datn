@@ -16,6 +16,9 @@ use App\Http\Controllers\Api\V1\Combo\ComboController;
 use App\Http\Controllers\Api\V1\ProductFeedback\ProductCommentController;
 use App\Http\Controllers\Api\V1\Setting\SettingController;
 use App\Http\Controllers\Api\V1\ComboFeedback\ComboFeedbackController;
+use App\Http\Controllers\Api\v1\ComboFeedback\ComboCommentController;
+
+
 // Version 1
 Route::prefix('v1')->group(function () {
     /*
@@ -131,6 +134,20 @@ Route::prefix('v1')->group(function () {
         });
         Route::get('/getProductComment/{id}','getProductComments');
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | ComboCommentController
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('combo_comments')->controller(ComboCommentController::class)->group(function (){
+        Route::middleware(['auth:sanctum','auth.active'])->group(function (){
+            Route::post('/create','create');
+            Route::delete('/{id}','delete');
+        });
+        Route::get('/getComboComment/{id}','getComboComments');
+    });
+
     /*
     |--------------------------------------------------------------------------
     | AuthController
