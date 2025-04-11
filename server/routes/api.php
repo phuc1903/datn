@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\Address\AddressController;
 use App\Http\Controllers\Api\V1\Combo\ComboController;
 use App\Http\Controllers\Api\V1\ProductFeedback\ProductCommentController;
 use App\Http\Controllers\Api\V1\Setting\SettingController;
+use App\Http\Controllers\Api\V1\ComboFeedback\ComboFeedbackController;
 // Version 1
 Route::prefix('v1')->group(function () {
     /*
@@ -102,6 +103,21 @@ Route::prefix('v1')->group(function () {
             Route::delete('/{id}','destroy');
         });
     });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ComboFeedbackController
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('combo_feedbacks')->controller(ComboFeedbackController::class)->group(function (){
+        Route::middleware(['auth:sanctum','auth.active'])->group(function (){
+            Route::post('create','create');
+            Route::post('/{id}/update','update');
+            Route::delete('/{id}','destroy');
+        });
+    });
+
 
     /*
     |--------------------------------------------------------------------------
