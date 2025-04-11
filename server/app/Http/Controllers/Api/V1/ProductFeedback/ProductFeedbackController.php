@@ -34,7 +34,10 @@ class ProductFeedbackController extends Controller
             if (!$user) {
                 return ResponseError('User not found', null, 404);
             }
-            $orderItems = OrderItem::whereHas('order', function ($query) use ($userId) {
+            $orderItems = OrderItem::with([
+                'sku',
+                'combos'
+            ])->whereHas('order', function ($query) use ($userId) {
                 $query->where('user_id', $userId)->where('status', 'success');
             })->orderBy('created_at', 'desc')->get();
             return ResponseSuccess('Get data successfully',$orderItems,200);
