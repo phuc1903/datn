@@ -35,4 +35,9 @@ class Combo extends Model
     {
         return $value ? asset($value) : null;
     }
+    public function feedbacks()
+    {
+        return $this->hasMany(ComboFeedback::class, 'combo_id')
+            ->where('status', \App\Enums\Combo\ComboFeedbackStatus::Active);
+    }
 }
