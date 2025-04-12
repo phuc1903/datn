@@ -186,6 +186,7 @@ const Header: React.FC = () => {
     { id: 3, name: "Về chúng tôi", path: "/about" },
     { id: 4, name: "Liên hệ", path: "/contact" },
     { id: 5, name: "Bài viết", path: "/blog" },
+    { id: 6, name: "Mã giảm giá", path: "/voucher" },
   ];
 
   const renderSearchResults = () => {
