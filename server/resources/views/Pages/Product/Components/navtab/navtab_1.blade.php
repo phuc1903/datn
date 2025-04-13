@@ -28,14 +28,6 @@
             {{-- Nội dung Kiểm kê kho hàng --}}
             <div class="tab-pane fade" id="warehouse-pane-simple" role="tabpanel"
                 aria-labelledby="warehouse-tab" tabindex="0">
-                {{-- <div class="mb-3">
-                    <label for="statusWarehouse" class="form-label fw-bold text-dark-custom">Trạng
-                        thái kho hàng</label>
-                    <select class="form-select selec-custom input-text-custom"
-                        name="statusWarehouse">
-                        <x-form.select.option :options="$statusWarehouse" />
-                    </select>
-                </div> --}}
                 <x-form.input_text label="Số lượng sản phẩm" name="quantity_default" class="numeric" type="number" />
             </div>
         </div>

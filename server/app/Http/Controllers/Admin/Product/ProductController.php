@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\DataTables\Product\ProductDataTable;
 use App\Http\Requests\Admin\Product\ProductRequest;
 use App\Models\Category;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\Variant;
@@ -70,14 +71,14 @@ class ProductController extends Controller
             if ($request->hasFile('thumbnails')) {
                 foreach ($request->file('thumbnails') as $thumbnail) {
                     $imagePath = putImage('product_images/thumbnail', $thumbnail);
-            
+
                     ProductImage::create([
                         'product_id' => $product->id,
                         'image_url' => $imagePath,
                     ]);
                 }
             }
-            
+
 
             if (isset($request->categories)) {
                 foreach ($request->categories as $cate) {
@@ -85,8 +86,8 @@ class ProductController extends Controller
                 }
             }
 
-            if(isset($request->tags)) {
-                foreach($request->tags as $tag) {
+            if (isset($request->tags)) {
+                foreach ($request->tags as $tag) {
                     ProductTag::insert(['product_id' => $product->id, 'tag_id' => $tag]);
                 }
             }
@@ -143,8 +144,6 @@ class ProductController extends Controller
         }
     }
 
-
-
     /**
      * Hàm hỗ trợ upload hình ảnh
      */
@@ -161,9 +160,45 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
+    public function statistic()
     {
-        //
+        $maxQuantity = Cache::remember('max_quantity', 300, fn() => Sku::max('quantity'));
+
+        $maxOrders = Cache::remember('max_orders', 300, function () {
+            return Sku::withCount('orderItems')->orderByDesc('order_items_count')->value('order_items_count');
+        });
+
+        $maxFavorites = Cache::remember('max_favorites', 300, function () {
+            return Sku::with('product.favorites')->get()->max(function ($sku) {
+                return $sku->product->favorites->count();
+            });
+        });
+
+        $skus = Sku::with('product', 'variantValues','product.favorites')->withCount(['orderItems'])->paginate(8);
+
+        $skus->getCollection()->transform(function ($sku) use ($maxQuantity, $maxOrders, $maxFavorites) {
+            $sku->percentQuantity = $maxQuantity > 0 ? round(($sku->quantity / $maxQuantity) * 100, 2) : 0;
+            
+            $sku->percentFavorites = $maxFavorites > 0 ? round(($sku->product->favorites->count() / $maxFavorites) * 100, 2) : 0;
+            
+            $sku->percentOrders = $maxOrders > 0 ? round(($sku->order_items_count / $maxOrders) * 100, 2) : 0;
+
+            return $sku;
+        });
+
+        // dd($skus);
+
+        return view('Pages.Product.Statistic.Index', compact('skus'));
+    }
+
+
+    public function refreshCache()
+    {
+        Cache::forget('max_quantity');
+        Cache::forget('max_orders');
+        Cache::forget('max_favorites');
+
+        return redirect()->route('admin.product.statistic')->with('success', 'Làm mới thống kê thành công');
     }
 
     /**
@@ -174,7 +209,7 @@ class ProductController extends Controller
         $productStatus = ProductStatus::fromValue($product->status);
         $sta = [
             'value' => $productStatus->value,
-            'label' =>  $productStatus->label()
+            'label' => $productStatus->label()
         ];
 
         $product->load('tags', 'images', 'skus.variantValues')->get();
@@ -201,27 +236,27 @@ class ProductController extends Controller
             $productImageIds = $product->images->pluck('id')->toArray();
 
             $deletedImages = array_diff($productImageIds, $request->old_thumbnails);
-    
+
             if (!empty($deletedImages)) {
                 $imagesToDelete = $product->images->whereIn('id', $deletedImages);
-    
+
                 foreach ($imagesToDelete as $image) {
-                    deleteImage($image->image_url); 
-                    $image->delete(); 
+                    deleteImage($image->image_url);
+                    $image->delete();
                 }
             }
 
             if ($request->hasFile('thumbnails')) {
                 foreach ($request->file('thumbnails') as $thumbnail) {
                     $imagePath = putImage('product_images/thumbnail', $thumbnail);
-            
+
                     ProductImage::create([
                         'product_id' => $product->id,
                         'image_url' => $imagePath,
                     ]);
                 }
             }
-    
+
             \DB::beginTransaction();
 
             $product->update([
@@ -244,9 +279,9 @@ class ProductController extends Controller
                 }
             }
 
-            if($request->has('tags')) {
+            if ($request->has('tags')) {
                 ProductTag::where('product_id', $product->id)->delete();
-                foreach($request->tags as $tag) {
+                foreach ($request->tags as $tag) {
                     ProductTag::create([
                         'product_id' => $product->id,
                         'tag_id' => $tag
@@ -310,7 +345,8 @@ class ProductController extends Controller
                     ];
 
                     if ($request->hasFile('image_url')) {
-                        if ($sku->image_url) deleteImage($sku->image_url);
+                        if ($sku->image_url)
+                            deleteImage($sku->image_url);
                         $skuData['image_url'] = putImage('product_images', $request->image_url);
                     } else {
                         $skuData['image_url'] = $sku->image_url ?? config('settings.image_default');
@@ -338,7 +374,8 @@ class ProductController extends Controller
             if (!empty($skusToDelete)) {
                 $skusToDeleteInstances = Sku::whereIn('id', $skusToDelete)->get();
                 foreach ($skusToDeleteInstances as $skuToDelete) {
-                    if ($skuToDelete->image_url) deleteImage($skuToDelete->image_url);
+                    if ($skuToDelete->image_url)
+                        deleteImage($skuToDelete->image_url);
                     $skuToDelete->delete();
                 }
             }

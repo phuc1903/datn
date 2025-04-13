@@ -57,6 +57,11 @@
                     'permission_required' => 'viewProduct',
                 ],
                 [
+                    'label' => 'Thống kê sản phẩm',
+                    'path' => route('admin.product.statistic.index'),
+                    'permission_required' => 'viewProduct',
+                ],
+                [
                     'label' => 'Thêm sản phẩm',
                     'path' => route('admin.product.create'),
                     'permission_required' => 'createProduct',

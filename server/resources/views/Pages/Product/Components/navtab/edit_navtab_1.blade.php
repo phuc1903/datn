@@ -22,26 +22,18 @@
                 tabindex="0">
 
                 <x-form.input_text label="Giá bán thường" name="price"
-                    value="{{ isset($skus[0]->variantValues) ? '' : $skus[0]->price }}" class="price numeric" />
+                    value="{{ count($skus) > 1 ? '' : $skus[0]->price }}" class="price numeric" />
 
                 <x-form.input_text label="Giá khuyến mãi" name="promotion_price"
-                    value="{{ isset($skus[0]->variantValues) ? '' : $skus[0]->promotion_price }}"
+                    value="{{ count($skus) > 1 ? '' : $skus[0]->promotion_price }}"
                     class="price numeric" />
             </div>
 
             {{-- Nội dung Kiểm kê kho hàng --}}
             <div class="tab-pane fade" id="warehouse-pane-simple" role="tabpanel" aria-labelledby="warehouse-tab"
                 tabindex="0">
-                {{-- <div class="mb-3">
-                    <label for="statusWarehouse" class="form-label fw-bold text-dark-custom">Trạng
-                        thái kho hàng</label>
-                    <select class="form-select selec-custom input-text-custom" name="statusWarehouse">
-                        <option value="" selected></option>
-                        <x-form.select.option :options="$statusWarehouse" />
-                    </select>
-                </div> --}}
                 <x-form.input_text label="Số lượng sản phẩm" class="numeric" name="quantity_default"
-                    value="{{isset($skus[0]->variantValues) ? '' : $skus[0]->quantity}}" type="number" />
+                    value="{{count($skus) > 1 ? '' : $skus[0]->quantity}}" type="number" />
             </div>
         </div>
     </div>

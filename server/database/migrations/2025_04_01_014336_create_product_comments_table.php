@@ -3,8 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\Product\ComboCommentStatus;
-use App\Enums\Product\ComboCommentUserStatus;
+use App\Enums\Product\ProductCommentStatus;
+use App\Enums\Product\ProductCommentUserStatus;
 
 return new class extends Migration
 {
@@ -23,8 +23,8 @@ return new class extends Migration
             $table->foreign('admin_id')->references('id')->on('admins')->cascadeOnDelete();
             $table->text('comment');
             $table->unsignedBigInteger('parents_id')->nullable();
-            $table->enum('status',ComboCommentStatus::getValues());
-            $table->enum('anonymous',ComboCommentUserStatus::getValues());
+            $table->enum('status',ProductCommentStatus::getValues());
+            $table->enum('anonymous',ProductCommentUserStatus::getValues());
             $table->timestamps();
         });
     }

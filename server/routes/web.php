@@ -55,6 +55,7 @@ Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function 
         Route::get('{product}/edit', 'edit')->middleware('permission:updateProduct')->name('edit');
         Route::put('{product}', 'update')->middleware('permission:updateProduct')->name('update');
         Route::delete('{product}', 'destroy')->middleware('permission:deleteProduct')->name('destroy');
+        Route::get('/statistic', 'statistic')->middleware('permission:viewProduct')->name('statistic.index');
     });
 
     // Danh mục sản phẩm

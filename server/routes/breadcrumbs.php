@@ -26,7 +26,7 @@ Breadcrumbs::for('admin.dashboard', function (BreadcrumbTrail $trail) {
 Breadcrumbs::macro('resource', function (string $name, string $title, $model) {
     Breadcrumbs::for("admin.{$name}.index", function (BreadcrumbTrail $trail) use ($name, $title) {
         $trail->parent('admin.dashboard');
-        $trail->push($title, route("admin.{$name}.index"));
+        $trail->push('Danh sách '.$title, route("admin.{$name}.index"));
     });
     Breadcrumbs::for("admin.{$name}.create", function (BreadcrumbTrail $trail) use ($name, $title) {
         $trail->parent("admin.{$name}.index");
@@ -41,6 +41,7 @@ Breadcrumbs::macro('resource', function (string $name, string $title, $model) {
 Breadcrumbs::resource('blog', 'Bài viết', Blog::class);
 Breadcrumbs::resource('user', 'Khách hàng', User::class);
 Breadcrumbs::resource('product', 'Sản phẩm', Product::class);
+Breadcrumbs::resource('product.statistic', 'Thống kê sản phẩm', Product::class);
 Breadcrumbs::resource('variant', 'Thuộc tính', Variant::class);
 Breadcrumbs::resource('feedback-product', 'Đánh giá sản phẩm', ProductFeedback::class);
 Breadcrumbs::resource('category', 'Danh mục sản phẩm', Category::class);

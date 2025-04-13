@@ -1,9 +1,4 @@
 <div class="mb-3">
-    <select class="form-select" aria-label="Default select example">
-        <option selected>Chọn thời gian thống kê đơn hàng</option>
-        <option value="0">Theo tuần</option>
-        <option value="1">Theo tháng</option>
-    </select>
 </div>
 
 <canvas id="orderChart"></canvas>

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1\ProductFeedback;
 
-use App\Enums\Product\ComboCommentStatus;
-use App\Enums\Product\ComboCommentUserStatus;
+use App\Enums\Product\ProductCommentStatus;
+use App\Enums\Product\ProductCommentUserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Product\CreateCommentRequest;
 use App\Models\ProductComment;
@@ -33,8 +33,8 @@ class ProductCommentController extends Controller
                 'user_id'=>$userId,
                 'parents_id'=>$request->parents_id,
                 'comment'=>$request->comment,
-                'status'=> ComboCommentStatus::Active,
-                'anonymous'=>$request->anonymous ? ComboCommentUserStatus::Enable : ComboCommentUserStatus::Disable,
+                'status'=> ProductCommentStatus::Active,
+                'anonymous'=>$request->anonymous ? ProductCommentUserStatus::Enable : ProductCommentUserStatus::Disable,
             ]);
 
             DB::commit();
