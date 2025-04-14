@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
@@ -16,6 +16,19 @@ import Blogs from "@/components/home/Blogs";
 import ProductCard from "@/components/home/ProductCard";
 import HotProductCard from "@/components/home/HotProductCard";
 import { useProducts } from "@/hooks/useProducts";
+import ComboCard from "@/components/home/ComboCard";
+
+interface Combo {
+  id: number;
+  name: string;
+  image_url: string;
+  price: number;
+  promotion_price: number;
+  date_end: string;
+  date_start: string;
+  quantity: number;
+  slug: string;
+}
 
 export default function HomePage() {
   const {
@@ -27,6 +40,10 @@ export default function HomePage() {
     userFavorites,
     setUserFavorites
   } = useProducts();
+
+  const [combos, setCombos] = useState<Combo[]>([]);
+  const [comingSoonCombos, setComingSoonCombos] = useState<Combo[]>([]);
+  const [loadingCombos, setLoadingCombos] = useState(true);
 
   const [showVariantPopup, setShowVariantPopup] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -46,6 +63,33 @@ export default function HomePage() {
       toast.addEventListener("mouseleave", Swal.resumeTimer);
     },
   });
+
+  useEffect(() => {
+    const fetchCombos = async () => {
+      try {
+        const [nearlyEndResponse, nearlyStartResponse] = await Promise.all([
+          fetch(`${API_BASE_URL}/combos/nearly-end`),
+          fetch(`${API_BASE_URL}/combos/nearly-start`)
+        ]);
+
+        const nearlyEndData = await nearlyEndResponse.json();
+        const nearlyStartData = await nearlyStartResponse.json();
+
+        if (nearlyEndData.status === "success") {
+          setCombos(nearlyEndData.data);
+        }
+        if (nearlyStartData.status === "success") {
+          setComingSoonCombos(nearlyStartData.data);
+        }
+      } catch (error) {
+        console.error("Error fetching combos:", error);
+      } finally {
+        setLoadingCombos(false);
+      }
+    };
+
+    fetchCombos();
+  }, []);
 
   const handleToggleFavorite = async (productId: string): Promise<void> => {
     const token = Cookies.get("accessToken");
@@ -185,6 +229,51 @@ export default function HomePage() {
       <HeroSlider />
       <Categories />
 
+      {/* Flash Sale Combo Section */}
+      {(!loadingCombos && combos.length > 0) && (
+        <section className="w-full px-4 py-12 bg-gradient-to-r from-pink-500 to-red-500">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2">Flash Sale Combo</h2>
+                <p className="text-pink-100">Ưu đãi có hạn - Nhanh tay sở hữu ngay!</p>
+              </div>
+              <Link href="/combos" className="text-white hover:text-pink-100 font-medium">
+                Xem tất cả
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {combos.slice(0, 4).map((combo) => (
+                <ComboCard key={combo.id} combo={combo} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Coming Soon Combo Section */}
+      {(!loadingCombos && comingSoonCombos.length > 0) && (
+        <section className="w-full px-4 py-12 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">Combo Sắp Mở Bán</h2>
+                <p className="text-gray-600">Đừng bỏ lỡ những ưu đãi sắp tới!</p>
+              </div>
+            </div>
+            {comingSoonCombos.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {comingSoonCombos.slice(0, 4).map((combo) => (
+                  <ComboCard key={combo.id} combo={combo} isComingSoon />
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-600 text-lg">Hiện không có combo nào, hãy theo dõi!</p>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Best Sellers Section */}
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
@@ -228,28 +317,45 @@ export default function HomePage() {
               Xem tất cả
             </Link>
           </div>
-          <Swiper
-            modules={[Navigation, Pagination, Autoplay]}
-            spaceBetween={24}
-            slidesPerView={5}
-            navigation={{ nextEl: ".swiper-button-next-new", prevEl: ".swiper-button-prev-new" }}
-            pagination={{ clickable: true }}
-            autoplay={{ delay: 5000, disableOnInteraction: false }}
-            breakpoints={{ 0: { slidesPerView: 2 }, 768: { slidesPerView: 4 }, 1024: { slidesPerView: 5 } }}
-          >
-            {newProducts.map((product) => (
-              <SwiperSlide key={product.id}>
-                <ProductCard 
-                  product={product}
-                  onAction={handleAction}
-                  onToggleFavorite={handleToggleFavorite}
-                  userFavorites={userFavorites}
-                />
-              </SwiperSlide>
-            ))}
-            <div className="swiper-button-prev-new text-pink-600" />
-            <div className="swiper-button-next-new text-pink-600" />
-          </Swiper>
+          <div className="relative">
+            <Swiper
+              modules={[Navigation, Pagination, Autoplay]}
+              spaceBetween={24}
+              slidesPerView={5}
+              navigation={{
+                nextEl: ".swiper-button-next-new",
+                prevEl: ".swiper-button-prev-new"
+              }}
+              pagination={{ clickable: true }}
+              autoplay={{ delay: 5000, disableOnInteraction: false }}
+              breakpoints={{
+                0: { slidesPerView: 2 },
+                768: { slidesPerView: 4 },
+                1024: { slidesPerView: 5 }
+              }}
+            >
+              {newProducts.map((product) => (
+                <SwiperSlide key={product.id}>
+                  <ProductCard
+                    product={product}
+                    onAction={handleAction}
+                    onToggleFavorite={handleToggleFavorite}
+                    userFavorites={userFavorites}
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            <button className="swiper-button-prev-new absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-md">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6 text-pink-600">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button className="swiper-button-next-new absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-md">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6 text-pink-600">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
         </div>
       </section>
 

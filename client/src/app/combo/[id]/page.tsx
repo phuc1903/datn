@@ -57,6 +57,24 @@ interface CartItem {
   quantity: number;
 }
 
+interface Comment {
+  id: number;
+  combo_id: number;
+  user_id: number;
+  comment: string;
+  parents_id: number | null;
+  status: string;
+  anonymous: string;
+  created_at: string;
+  updated_at: string;
+  user?: {
+    first_name: string;
+    last_name: string;
+  };
+  replies?: Comment[];
+  isOrphan?: boolean;
+}
+
 export default function ComboDetail() {
   const { id } = useParams();
   const router = useRouter();
@@ -70,6 +88,16 @@ export default function ComboDetail() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  
+  // Thêm state cho comments
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isReplyAnonymous, setIsReplyAnonymous] = useState(false);
+  const [expandedComments, setExpandedComments] = useState<Set<number>>(new Set());
 
   const token = Cookies.get("accessToken");
 
@@ -80,7 +108,7 @@ export default function ComboDetail() {
       setLoading(true);
       try {
         // Fetch combo details
-        const comboResponse = await fetch(`http://127.0.0.1:8000/api/v1/combos/detail/${id}`, {
+        const comboResponse = await fetch(`${API_BASE_URL}/combos/detail/${id}`, {
           method: "GET",
         });
         if (!comboResponse.ok) throw new Error("Failed to fetch combo");
@@ -102,6 +130,30 @@ export default function ComboDetail() {
           );
           setIsWishlisted(isInWishlist);
         }
+
+        // Fetch comments
+        try {
+          const commentsResponse = await fetch(`${API_BASE_URL}/combo_comments/getComboComment/${parseInt(id as string)}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+            },
+          });
+
+          if (commentsResponse.ok) {
+            const commentsData = await commentsResponse.json();
+            const hierarchicalComments = processComments(commentsData.data);
+            setComments(hierarchicalComments);
+          } else {
+            console.warn(`Không thể lấy bình luận: ${commentsResponse.status}`);
+            setComments([]);
+          }
+        } catch (error) {
+          console.error("Lỗi khi lấy bình luận:", error);
+          setComments([]);
+        }
+
       } catch (error) {
         console.error(error);
         toast.error("Không thể tải thông tin combo.");
@@ -113,6 +165,298 @@ export default function ComboDetail() {
 
     fetchComboAndWishlist();
   }, [id, token]);
+
+  // Hàm xử lý dữ liệu comment thành cấu trúc phân cấp
+  const processComments = (comments: Comment[]): Comment[] => {
+    const commentMap = new Map<number, Comment>();
+    const rootComments: Comment[] = [];
+    const orphanComments: Comment[] = [];
+
+    // Tạo map cho tất cả comments
+    comments.forEach(comment => {
+      commentMap.set(comment.id, {
+        ...comment,
+        replies: []
+      });
+    });
+
+    // Phân loại comments
+    comments.forEach(comment => {
+      const processedComment = commentMap.get(comment.id);
+      if (!processedComment) return;
+
+      if (comment.parents_id === null) {
+        rootComments.push(processedComment);
+      } else {
+        const parentComment = commentMap.get(comment.parents_id);
+        if (parentComment) {
+          if (!parentComment.replies) {
+            parentComment.replies = [];
+          }
+          parentComment.replies.push(processedComment);
+        } else {
+          orphanComments.push(processedComment);
+        }
+      }
+    });
+
+    // Thêm orphan comments vào cuối danh sách root
+    orphanComments.forEach(comment => {
+      rootComments.push({
+        ...comment,
+        isOrphan: true
+      });
+    });
+
+    return rootComments;
+  };
+
+  // Hàm đếm tổng số replies
+  const countTotalReplies = (comment: Comment): number => {
+    let count = comment.replies?.length || 0;
+    comment.replies?.forEach(reply => {
+      count += countTotalReplies(reply);
+    });
+    return count;
+  };
+
+  // Hàm toggle hiển thị replies
+  const toggleReplies = (commentId: number) => {
+    const newExpandedComments = new Set(expandedComments);
+    if (expandedComments.has(commentId)) {
+      newExpandedComments.delete(commentId);
+    } else {
+      newExpandedComments.add(commentId);
+    }
+    setExpandedComments(newExpandedComments);
+  };
+
+  // Hàm gửi comment mới
+  const handleSubmitComment = async (comment: string, parentId: number | null = null) => {
+    if (!token) {
+      toast.error("Vui lòng đăng nhập để bình luận!");
+      router.push("/login");
+      return;
+    }
+
+    if (!comment.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/combo_comments/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          combo_id: parseInt(id as string),
+          comment: comment.trim(),
+          parents_id: parentId,
+          anonymous: parentId ? isReplyAnonymous : isAnonymous
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Không thể gửi bình luận");
+      }
+
+      // Refresh lại danh sách comment
+      const commentsResponse = await fetch(`${API_BASE_URL}/combo_comments/getComboComment/${parseInt(id as string)}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      });
+
+      if (commentsResponse.ok) {
+        const commentsData = await commentsResponse.json();
+        const hierarchicalComments = processComments(commentsData.data);
+        setComments(hierarchicalComments);
+      }
+
+      // Reset form
+      if (parentId) {
+        setReplyText("");
+        setReplyingTo(null);
+      } else {
+        setNewComment("");
+      }
+
+      toast.success("Đã gửi bình luận của bạn!");
+    } catch (error) {
+      console.error("Lỗi khi gửi bình luận:", error);
+      toast.error("Không thể gửi bình luận. Vui lòng thử lại sau.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Hàm xóa comment
+  const handleDeleteComment = async (commentId: number) => {
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/combo_comments/${commentId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Không thể xóa bình luận");
+      }
+
+      // Refresh lại danh sách comment
+      const commentsResponse = await fetch(`${API_BASE_URL}/combo_comments/getComboComment/${parseInt(id as string)}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      });
+
+      if (commentsResponse.ok) {
+        const commentsData = await commentsResponse.json();
+        const hierarchicalComments = processComments(commentsData.data);
+        setComments(hierarchicalComments);
+      }
+
+      toast.success("Đã xóa bình luận!");
+    } catch (error) {
+      console.error("Lỗi khi xóa bình luận:", error);
+      toast.error("Không thể xóa bình luận. Vui lòng thử lại sau.");
+    }
+  };
+
+  // Hàm render comment
+  const renderComment = (comment: Comment, level: number = 0) => {
+    const totalReplies = countTotalReplies(comment);
+    const isExpanded = expandedComments.has(comment.id);
+    const shouldShowReplies = totalReplies > 0;
+    const visibleReplies = isExpanded ? comment.replies : (comment.replies || []);
+
+    // Hiển thị tên người dùng
+    const displayName = comment.anonymous === "enable" 
+      ? "Người dùng ẩn danh"
+      : `Người dùng ${comment.user_id}`;
+
+    return (
+      <div key={comment.id} className={`${level > 0 ? 'ml-4 mt-4' : 'border-b pb-4'}`}>
+        {comment.isOrphan ? (
+          <div className="text-gray-500 italic mb-2">
+            Bình luận mà người dùng đang trả lời đã bị xóa
+          </div>
+        ) : null}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center space-x-2">
+            {comment.anonymous === "enable" ? (
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <span className="text-gray-600 font-bold">?</span>
+              </div>
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center">
+                <span className="text-pink-600 font-bold">{comment.user_id}</span>
+              </div>
+            )}
+            <div className="font-medium">
+              {displayName}
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-gray-500">
+              {new Date(comment.created_at).toLocaleDateString()}
+            </div>
+            {token && comment.user_id.toString() === Cookies.get("userId") && (
+              <button
+                onClick={() => handleDeleteComment(comment.id)}
+                className="text-red-500 hover:text-red-700"
+              >
+                Xóa
+              </button>
+            )}
+          </div>
+        </div>
+        <p className="text-gray-700 mb-2">{comment.comment}</p>
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+            className="text-sm text-pink-600 hover:text-pink-700"
+          >
+            {replyingTo === comment.id ? "Hủy" : "Trả lời"}
+          </button>
+          {totalReplies > 0 && (
+            <button
+              onClick={() => toggleReplies(comment.id)}
+              className="text-sm text-gray-600 hover:text-gray-800"
+            >
+              {isExpanded ? "Ẩn bớt" : `Xem ${totalReplies} phản hồi`}
+            </button>
+          )}
+        </div>
+
+        {replyingTo === comment.id && (
+          <div className="mt-2 ml-4">
+            <div className="flex items-center mb-2">
+              <input
+                type="checkbox"
+                id={`anonymous-reply-${comment.id}`}
+                checked={isReplyAnonymous}
+                onChange={(e) => setIsReplyAnonymous(e.target.checked)}
+                className="mr-2"
+              />
+              <label htmlFor={`anonymous-reply-${comment.id}`} className="text-sm text-gray-600">
+                Bình luận ẩn danh
+              </label>
+            </div>
+            <textarea
+              rows={2}
+              placeholder="Viết phản hồi..."
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+            />
+            <div className="flex justify-end space-x-2 mt-2">
+              <button
+                onClick={() => {
+                  setReplyingTo(null);
+                  setReplyText("");
+                  setIsReplyAnonymous(false);
+                }}
+                className="text-sm text-gray-600 hover:text-gray-800"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => {
+                  if (replyText.trim()) {
+                    handleSubmitComment(replyText, comment.id);
+                  }
+                }}
+                disabled={isSubmitting || !replyText.trim()}
+                className={`text-sm text-pink-600 hover:text-pink-700 ${
+                  (isSubmitting || !replyText.trim()) ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {isSubmitting ? "Đang gửi..." : "Gửi"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {shouldShowReplies && visibleReplies && visibleReplies.length > 0 && (
+          <div className={`space-y-4 mt-4 ${!isExpanded ? 'hidden' : ''}`}>
+            {visibleReplies.map((reply) => renderComment(reply, level + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const reviews: Review[] = [
     {
@@ -384,7 +728,7 @@ export default function ComboDetail() {
         <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-20 md:mb-8">
           <div className="border-b sticky top-0 bg-white z-10">
             <nav className="flex">
-              {["description", "products", "reviews"].map((tab) => (
+              {["description", "products", "reviews", "comments"].map((tab) => (
                 <button
                   key={tab}
                   className={`px-6 py-4 text-sm font-medium ${
@@ -397,6 +741,7 @@ export default function ComboDetail() {
                   {tab === "description" && "Mô tả"}
                   {tab === "products" && "Sản phẩm trong combo"}
                   {tab === "reviews" && "Đánh giá"}
+                  {tab === "comments" && "Bình luận"}
                 </button>
               ))}
             </nav>
@@ -527,6 +872,45 @@ export default function ComboDetail() {
                 ) : (
                   <p className="text-gray-500">Chưa có đánh giá nào.</p>
                 )}
+              </div>
+            )}
+
+            {activeTab === "comments" && (
+              <div className="space-y-6">
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-center mb-2">
+                    <input
+                      type="checkbox"
+                      id="anonymous-comment"
+                      checked={isAnonymous}
+                      onChange={(e) => setIsAnonymous(e.target.checked)}
+                      className="mr-2"
+                    />
+                    <label htmlFor="anonymous-comment" className="text-sm text-gray-600">
+                      Bình luận ẩn danh
+                    </label>
+                  </div>
+                  <textarea
+                    rows={3}
+                    placeholder="Viết bình luận của bạn..."
+                    className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                  />
+                  <button
+                    onClick={() => handleSubmitComment(newComment)}
+                    disabled={isSubmitting || !newComment.trim()}
+                    className={`self-end px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 ${
+                      (isSubmitting || !newComment.trim()) ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {isSubmitting ? "Đang gửi..." : "Gửi bình luận"}
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  {comments.map((comment) => renderComment(comment))}
+                </div>
               </div>
             )}
           </div>
