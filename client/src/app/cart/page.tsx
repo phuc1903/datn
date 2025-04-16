@@ -5,11 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, X, ChevronRight, CreditCard } from "lucide-react";
 import { API_BASE_URL } from "@/config/config";
-import Cookies from "js-cookie";
+import Cookies from "js-cookie"; // Corrected import
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
 
-// Interfaces remain the same
 interface VariantValue {
   value: string;
 }
@@ -46,22 +45,10 @@ interface Voucher {
   updated_at: string;
 }
 
-interface UserData {
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone_number: string;
-  role?: string;
-  address?: string;
-  carts: CartItem[];
-  vouchers?: Voucher[];
-}
-
 export default function CartPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
-  const [variantOptions, setVariantOptions] = useState<{}>({});
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
 
@@ -71,9 +58,6 @@ export default function CartPage() {
       const email = Cookies.get("userEmail");
 
       if (!userToken || !email) {
-        console.warn("No token or email found, redirecting to login.");
-        Cookies.remove("accessToken");
-        Cookies.remove("userEmail");
         router.push("/login");
         return;
       }
@@ -111,6 +95,12 @@ export default function CartPage() {
         const voucherResult = await voucherResponse.json();
         if (voucherResult.status === "success") {
           setVouchers(voucherResult.data.vouchers || []);
+          // Load previously selected voucher from localStorage
+          const savedVoucher = localStorage.getItem("selectedVoucher");
+          if (savedVoucher) {
+            const parsedVoucher = JSON.parse(savedVoucher);
+            setSelectedVoucher(parsedVoucher);
+          }
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -204,6 +194,16 @@ export default function CartPage() {
 
   const total = subtotal - discount;
 
+  const handleVoucherChange = (voucher: Voucher | null) => {
+    setSelectedVoucher(voucher);
+    // Save selected voucher to localStorage
+    if (voucher) {
+      localStorage.setItem("selectedVoucher", JSON.stringify(voucher));
+    } else {
+      localStorage.removeItem("selectedVoucher");
+    }
+  };
+
   const handleCheckout = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const userToken = Cookies.get("accessToken");
@@ -240,7 +240,9 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow">
-              {cart.length > 0 ? (
+              {loading ? (
+                <div className="p-6 text-center text-gray-600">Đang tải...</div>
+              ) : cart.length > 0 ? (
                 <div className="divide-y divide-gray-200">
                   {cart.map((item) => (
                     <div key={item.id} className="p-6 flex gap-6">
@@ -314,8 +316,9 @@ export default function CartPage() {
                     value={selectedVoucher?.id || ""}
                     onChange={(e) => {
                       const voucher = uniqueVouchers.find((v) => v.id === Number(e.target.value));
-                      setSelectedVoucher(voucher || null);
+                      handleVoucherChange(voucher || null);
                     }}
+                    disabled={loading}
                   >
                     <option value="">Không sử dụng voucher</option>
                     {uniqueVouchers.map((voucher) => (
@@ -343,7 +346,9 @@ export default function CartPage() {
               <Link
                 href="#"
                 className={`w-full mt-6 ${
-                  cart.length > 0 ? "bg-pink-600 hover:bg-purple-500" : "bg-gray-400 cursor-not-allowed"
+                  cart.length > 0 && !loading 
+                    ? "bg-pink-600 hover:bg-purple-500" 
+                    : "bg-gray-400 cursor-not-allowed"
                 } text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center gap-2`}
                 onClick={handleCheckout}
               >
