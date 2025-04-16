@@ -7,6 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import Cookies from "js-cookie";
 import { API_BASE_URL } from "@/config/config";
+import Avatar from 'react-avatar';
 
 interface ProductVariant {
   id: number;
@@ -187,8 +188,19 @@ export default function ProductDetail() {
     const totalReplies = countTotalReplies(comment);
     const isExpanded = expandedComments.has(comment.id);
     const shouldShowReplies = totalReplies > 0;
-    // Không giới hạn số lượng replies hiển thị nếu đã mở rộng
     const visibleReplies = isExpanded ? comment.replies : (comment.replies || []);
+
+    // Hàm xử lý hiển thị tên ẩn danh
+    const getAnonymousName = (firstName: string, lastName: string) => {
+      const firstChar = firstName.charAt(0);
+      const lastChar = lastName.charAt(0);
+      return `${firstChar}**** ${lastChar}*`;
+    };
+
+    // Lấy tên hiển thị
+    const displayName = comment.anonymous === "enable" 
+      ? getAnonymousName(comment.user?.first_name || '', comment.user?.last_name || '')
+      : `${comment.user?.first_name} ${comment.user?.last_name}`;
 
     return (
       <div key={comment.id} className={`${level > 0 ? 'ml-4 mt-4' : 'border-b pb-4'}`}>
@@ -198,8 +210,23 @@ export default function ProductDetail() {
           </div>
         ) : null}
         <div className="flex items-center justify-between mb-2">
-          <div className="font-medium">
-            {comment.anonymous === "enable" ? "Ẩn danh" : `${comment.user?.first_name} ${comment.user?.last_name}`}
+          <div className="flex items-center space-x-2">
+            {comment.anonymous === "enable" ? (
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <span className="text-gray-600 font-bold">?</span>
+              </div>
+            ) : (
+              <Avatar 
+                name={displayName}
+                size="32"
+                round={true}
+                textSizeRatio={2}
+                className="flex-shrink-0"
+              />
+            )}
+            <div className="font-medium">
+              {displayName}
+            </div>
           </div>
           <div className="flex items-center space-x-4">
             <div className="text-sm text-gray-500">
@@ -453,15 +480,8 @@ export default function ProductDetail() {
 
           if (commentsResponse.ok) {
             const commentsData = await commentsResponse.json();
-            // Chuyển đổi dữ liệu comment để thêm thông tin user và xử lý phân cấp
-            const processedComments = commentsData.data.map((comment: Comment) => ({
-              ...comment,
-              user: {
-                first_name: "Người dùng",
-                last_name: comment.user_id.toString()
-              }
-            }));
-            const hierarchicalComments = processComments(processedComments);
+            // Không cần chuyển đổi dữ liệu user nữa vì API đã trả về đầy đủ thông tin
+            const hierarchicalComments = processComments(commentsData.data);
             setComments(hierarchicalComments);
           } else {
             console.warn(`Không thể lấy bình luận: ${commentsResponse.status}`);
@@ -805,14 +825,8 @@ export default function ProductDetail() {
 
       if (commentsResponse.ok) {
         const commentsData = await commentsResponse.json();
-        const processedComments = commentsData.data.map((comment: Comment) => ({
-          ...comment,
-          user: {
-            first_name: "Người dùng",
-            last_name: comment.user_id.toString()
-          }
-        }));
-        const hierarchicalComments = processComments(processedComments);
+        // Không cần chuyển đổi dữ liệu user nữa vì API đã trả về đầy đủ thông tin
+        const hierarchicalComments = processComments(commentsData.data);
         setComments(hierarchicalComments);
       }
 
