@@ -32,7 +32,6 @@ interface CartItem {
 interface CartSummary {
   items: CartItem[];
   subtotal: number;
-  shipping: number;
   total: number;
 }
 
@@ -59,7 +58,7 @@ interface UserAddress {
 }
 
 interface Voucher {
-  id: string; // Đổi từ number sang string
+  id: string;
   title: string;
   description: string;
   quantity: number;
@@ -80,10 +79,8 @@ export default function CheckoutOrder() {
   const [cartSummary, setCartSummary] = useState<CartSummary>({
     items: [],
     subtotal: 0,
-    shipping: 0,
     total: 0,
   });
-  const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
   const [appliedDiscount, setAppliedDiscount] = useState<number>(0);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -103,26 +100,12 @@ export default function CheckoutOrder() {
   const [userAddresses, setUserAddresses] = useState<UserAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
 
-  const uniqueVouchers = useMemo(() => {
-    const seenIds = new Set();
-    return vouchers.filter((voucher) => {
-      if (seenIds.has(voucher.id)) {
-        return false;
-      }
-      seenIds.add(voucher.id);
-      return true;
-    });
-  }, [vouchers]);
-
   useEffect(() => {
     const fetchUserAddresses = async () => {
       const userToken = Cookies.get("accessToken");
       const userEmail = Cookies.get("userEmail");
 
       if (!userToken || !userEmail) {
-        console.warn("No token or email found, redirecting to login.");
-        Cookies.remove("accessToken");
-        Cookies.remove("userEmail");
         router.push("/login");
         return;
       }
@@ -137,7 +120,7 @@ export default function CheckoutOrder() {
         });
 
         if (!response.ok) {
-          throw new Error(`Lỗi lấy địa chỉ: ${response.status} - ${response.statusText}`);
+          throw new Error(`Lỗi lấy địa chỉ: ${response.status}`);
         }
 
         const result = await response.json();
@@ -160,6 +143,11 @@ export default function CheckoutOrder() {
         }
       } catch (error) {
         console.error("Lỗi khi lấy địa chỉ:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Lỗi",
+          text: "Không thể tải địa chỉ. Vui lòng thử lại.",
+        });
       }
     };
 
@@ -172,16 +160,14 @@ export default function CheckoutOrder() {
       const email = Cookies.get("userEmail");
 
       if (!userToken || !email) {
-        console.warn("No token or email found, redirecting to login.");
-        Cookies.remove("accessToken");
-        Cookies.remove("userEmail");
         router.push("/login");
         return;
       }
 
       try {
+        setIsLoading(true);
+
         const cartResponse = await fetch(`${API_BASE_URL}/users/carts`, {
-          method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${userToken}`,
@@ -189,7 +175,7 @@ export default function CheckoutOrder() {
         });
 
         if (!cartResponse.ok) {
-          throw new Error(`Lỗi lấy giỏ hàng: ${cartResponse.status} - ${cartResponse.statusText}`);
+          throw new Error("Failed to fetch cart");
         }
 
         const cartResult = await cartResponse.json();
@@ -199,75 +185,51 @@ export default function CheckoutOrder() {
         if (cartResult.data?.email === email) {
           items = cartResult.data.carts || [];
           subtotal = items.reduce(
-            (sum: number, item: CartItem) => sum + (item.sku?.price || 0) * (item.quantity || 0),
+            (sum, item) => sum + (item.sku?.price || 0) * (item.quantity || 0),
             0
           );
         }
 
-        const voucherResponse = await fetch(`${API_BASE_URL}/users/vouchers`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${userToken}`,
-          },
-        });
-
-        if (!voucherResponse.ok) {
-          throw new Error(`Lỗi lấy voucher: ${voucherResponse.status} - ${voucherResponse.statusText}`);
+        // Load selected voucher from localStorage
+        const savedVoucher = localStorage.getItem("selectedVoucher");
+        let voucher: Voucher | null = null;
+        if (savedVoucher) {
+          voucher = JSON.parse(savedVoucher);
+          setSelectedVoucher(voucher);
         }
 
-        const voucherResult = await voucherResponse.json();
-        if (voucherResult.status === "success") {
-          setVouchers(voucherResult.data.vouchers || []);
-        }
-
-        const shipping = subtotal > 0 ? 30000 : 0;
-        const discount = selectedVoucher
-          ? calculateDiscount(subtotal, selectedVoucher)
-          : appliedDiscount;
+        const discount = voucher ? calculateDiscount(subtotal, voucher) : 0;
         const total = subtotal - discount;
 
-        setCartSummary({ items, subtotal, shipping, total });
+        setCartSummary({ items, subtotal, total });
         setAppliedDiscount(discount);
         setOrderId(`OD-${Date.now()}`);
         setOrderDate(new Date().toISOString().split("T")[0]);
-      } catch (error: unknown) {
-        console.error("Lỗi khi lấy dữ liệu:", error);
+      } catch (error) {
+        console.error("Error fetching data:", error);
         Swal.fire({
           icon: "error",
           title: "Lỗi tải dữ liệu",
-          text: "Không thể tải dữ liệu. Vui lòng thử lại.",
+          text: "Không thể tải dữ liệu đơn hàng. Vui lòng thử lại.",
         });
-        setCartSummary({ items: [], subtotal: 0, shipping: 0, total: 0 });
+        setCartSummary({ items: [], subtotal: 0, total: 0 });
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [router, selectedVoucher]);
+  }, [router]);
 
   const formatPrice = (price: number) => `${(price || 0).toLocaleString()} VND`;
 
   const calculateDiscount = (subtotal: number, voucher: Voucher): number => {
-    if (subtotal < voucher.min_order_value) return 0;
+    if (!voucher || subtotal < voucher.min_order_value) return 0;
     if (voucher.type === "percent") {
       const discountValue = (subtotal * voucher.discount_value) / 100;
       return Math.min(discountValue, voucher.max_discount_value);
     }
     return Math.min(voucher.discount_value, voucher.max_discount_value);
-  };
-
-  const handleVoucherChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const voucherId = e.target.value; // Giữ nguyên dạng chuỗi
-    const voucher = uniqueVouchers.find((v) => v.id === voucherId) || null;
-    setSelectedVoucher(voucher);
-    const discount = voucher ? calculateDiscount(cartSummary.subtotal, voucher) : 0;
-    setAppliedDiscount(discount);
-    setCartSummary((prev) => ({
-      ...prev,
-      total: prev.subtotal + prev.shipping - discount,
-    }));
   };
 
   const handleShippingInfoChange = (
@@ -299,9 +261,6 @@ export default function CheckoutOrder() {
     const userEmail = Cookies.get("userEmail");
 
     if (!userToken || !userEmail) {
-      console.warn("No token or email found, redirecting to login.");
-      Cookies.remove("accessToken");
-      Cookies.remove("userEmail");
       router.push("/login");
       setLoading(false);
       return;
@@ -340,7 +299,7 @@ export default function CheckoutOrder() {
     const orderData = {
       user_email: userEmail,
       orders: orders,
-      voucher_id: selectedVoucher ? selectedVoucher.id : null, // Giữ nguyên dạng chuỗi hoặc null
+      voucher_id: selectedVoucher ? selectedVoucher.id : null,
       address: shippingInfo.address,
       phone_number: shippingInfo.phone_number,
       payment_method: apiPaymentMethod,
@@ -351,10 +310,8 @@ export default function CheckoutOrder() {
       district_code: shippingInfo.district_code,
       ward_code: shippingInfo.ward_code,
       total_amount: cartSummary.total,
-      shipping_fee: cartSummary.shipping,
+      shipping_fee: 0, // No shipping fee
     };
-
-    console.log("Sending order data:", orderData);
 
     try {
       const response = await fetch(`${API_BASE_URL}/orders/create`, {
@@ -369,12 +326,9 @@ export default function CheckoutOrder() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("API Error Response:", errorData);
-        let errorMessage = errorData.message || response.statusText;
-        if (errorData.errors) {
-          errorMessage = Object.values(errorData.errors).flat().join(", ");
-        }
-        throw new Error(`Tạo đơn hàng thất bại: ${response.status} - ${errorMessage}`);
+        throw new Error(
+          `Tạo đơn hàng thất bại: ${errorData.message || response.statusText}`
+        );
       }
 
       if (apiPaymentMethod === "bank") {
@@ -396,6 +350,9 @@ export default function CheckoutOrder() {
           });
         }
 
+        // Clear selected voucher after successful order
+        localStorage.removeItem("selectedVoucher");
+
         Swal.fire({
           title: "Đơn hàng đã được tạo thành công!",
           text: "Bạn muốn tiếp tục mua sắm hay xem đơn hàng?",
@@ -411,16 +368,12 @@ export default function CheckoutOrder() {
           }
         });
       }
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Lỗi khi tạo đơn hàng:", error);
-      let errorMessage = "Có lỗi xảy ra khi tạo đơn hàng.";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
       Swal.fire({
         icon: "error",
         title: "Lỗi!",
-        text: errorMessage,
+        text: error instanceof Error ? error.message : "Có lỗi xảy ra khi tạo đơn hàng.",
       });
     } finally {
       setLoading(false);
@@ -580,28 +533,26 @@ export default function CheckoutOrder() {
 
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Chọn voucher:
+                      Voucher đã áp dụng:
                     </label>
-                    <select
-                      className="w-full p-2 border rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
-                      value={selectedVoucher?.id || ""}
-                      onChange={handleVoucherChange}
-                      disabled={isLoading}
-                    >
-                      <option value="">Không sử dụng voucher</option>
-                      {uniqueVouchers.map((voucher) => (
-                        <option key={voucher.id} value={voucher.id}>
-                          {voucher.title} ({voucher.type === "percent"
-                            ? `${voucher.discount_value}%`
-                            : formatPrice(voucher.discount_value)})
-                        </option>
-                      ))}
-                    </select>
-                    {selectedVoucher && (
-                      <p className="text-sm text-green-600 mt-2">
-                        Giảm: {formatPrice(appliedDiscount)} (Tối thiểu: {formatPrice(selectedVoucher.min_order_value)})
-                      </p>
-                    )}
+                    <div className="p-2 border rounded-md">
+                      {selectedVoucher ? (
+                        <p>
+                          {selectedVoucher.title} (
+                          {selectedVoucher.type === "percent"
+                            ? `${selectedVoucher.discount_value}%`
+                            : formatPrice(selectedVoucher.discount_value)}
+                          )
+                          {cartSummary.subtotal < selectedVoucher.min_order_value && (
+                            <span className="text-red-600 text-sm ml-2">
+                              (Cần thêm {formatPrice(selectedVoucher.min_order_value - cartSummary.subtotal)} để áp dụng)
+                            </span>
+                          )}
+                        </p>
+                      ) : (
+                        <p>Không sử dụng voucher</p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="pt-4">
@@ -610,7 +561,7 @@ export default function CheckoutOrder() {
                       <span>{formatPrice(cartSummary.subtotal)}</span>
                     </div>
                     {appliedDiscount > 0 && (
-                      <div className="flex justify-between text-gray-600">
+                      <div className="flex justify-between text-green-600">
                         <span>Giảm giá</span>
                         <span>-{formatPrice(appliedDiscount)}</span>
                       </div>
@@ -620,16 +571,16 @@ export default function CheckoutOrder() {
                       <span>{formatPrice(cartSummary.total)}</span>
                     </div>
                   </div>
+
+                  <button
+                    onClick={handleCreateOrder}
+                    disabled={isLoading || loading || cartSummary.items.length === 0}
+                    className="bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700 w-full mt-6 disabled:bg-gray-400"
+                  >
+                    {loading ? "Đang xử lý..." : "Đặt hàng"}
+                  </button>
                 </>
               )}
-
-              <button
-                onClick={handleCreateOrder}
-                disabled={isLoading || loading || cartSummary.items.length === 0}
-                className="bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700 w-full mt-6 disabled:bg-gray-400"
-              >
-                {loading ? "Đang xử lý..." : "Đặt hàng"}
-              </button>
             </div>
           </div>
         </div>
