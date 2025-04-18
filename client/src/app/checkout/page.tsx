@@ -103,9 +103,9 @@ export default function CheckoutOrder() {
   useEffect(() => {
     const fetchUserAddresses = async () => {
       const userToken = Cookies.get("accessToken");
-      const userEmail = Cookies.get("userEmail");
+      const userData = Cookies.get("userData");
 
-      if (!userToken || !userEmail) {
+      if (!userToken || !userData) {
         router.push("/login");
         return;
       }
@@ -132,7 +132,7 @@ export default function CheckoutOrder() {
           setSelectedAddressId(defaultAddress.id);
           setShippingInfo({
             full_name: defaultAddress.name,
-            email: userEmail,
+            email: JSON.parse(userData).email,
             address: defaultAddress.address,
             phone_number: defaultAddress.phone_number,
             note: "",
@@ -157,9 +157,9 @@ export default function CheckoutOrder() {
   useEffect(() => {
     const fetchData = async () => {
       const userToken = Cookies.get("accessToken");
-      const email = Cookies.get("userEmail");
+      const userData = Cookies.get("userData");
 
-      if (!userToken || !email) {
+      if (!userToken || !userData) {
         router.push("/login");
         return;
       }
@@ -182,7 +182,8 @@ export default function CheckoutOrder() {
         let items: CartItem[] = [];
         let subtotal = 0;
 
-        if (cartResult.data?.email === email) {
+        const parsedUserData = JSON.parse(userData);
+        if (cartResult.data?.email === parsedUserData.email) {
           items = cartResult.data.carts || [];
           subtotal = items.reduce(
             (sum, item) => sum + (item.sku?.price || 0) * (item.quantity || 0),
@@ -232,6 +233,23 @@ export default function CheckoutOrder() {
     return Math.min(voucher.discount_value, voucher.max_discount_value);
   };
 
+  const clearVoucher = (message: string) => {
+    Swal.fire({
+      icon: "info",
+      title: "Thông báo",
+      text: message,
+    });
+    
+    // Xóa voucher đã lưu
+    localStorage.removeItem("selectedVoucher");
+    setSelectedVoucher(null);
+    
+    // Cập nhật tổng tiền không bao gồm giảm giá
+    const total = cartSummary.subtotal;
+    setCartSummary({...cartSummary, total});
+    setAppliedDiscount(0);
+  };
+
   const handleShippingInfoChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -243,7 +261,7 @@ export default function CheckoutOrder() {
     setSelectedAddressId(address.id);
     setShippingInfo({
       full_name: address.name,
-      email: Cookies.get("userEmail") || "",
+      email: JSON.parse(Cookies.get("userData") || "{}").email || "",
       address: address.address,
       phone_number: address.phone_number,
       note: "",
@@ -258,13 +276,15 @@ export default function CheckoutOrder() {
     setLoading(true);
 
     const userToken = Cookies.get("accessToken");
-    const userEmail = Cookies.get("userEmail");
+    const userData = Cookies.get("userData");
 
-    if (!userToken || !userEmail) {
+    if (!userToken || !userData) {
       router.push("/login");
       setLoading(false);
       return;
     }
+
+    const parsedUserData = JSON.parse(userData);
 
     if (!selectedAddressId) {
       Swal.fire({
@@ -297,7 +317,7 @@ export default function CheckoutOrder() {
     const apiPaymentMethod = paymentMethod === "Tiền mặt" ? "cod" : "bank";
 
     const orderData = {
-      user_email: userEmail,
+      user_email: parsedUserData.email,
       orders: orders,
       voucher_id: selectedVoucher ? selectedVoucher.id : null,
       address: shippingInfo.address,
@@ -326,6 +346,44 @@ export default function CheckoutOrder() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // Kiểm tra nếu đây là thông báo voucher đã sử dụng
+        if (errorData.message) {
+          // Xử lý các lỗi liên quan đến voucher
+          if (errorData.message.includes("Voucher already used")) {
+            clearVoucher("Voucher này đã được sử dụng trước đó. Vui lòng chọn voucher khác.");
+            
+            setLoading(false);
+            return;
+          } else if (errorData.message.includes("Voucher expired")) {
+            clearVoucher("Voucher này đã hết hạn. Vui lòng chọn voucher khác.");
+            
+            setLoading(false);
+            return;
+          } else if (errorData.message.includes("Voucher out of stock")) {
+            clearVoucher("Voucher này đã hết lượt sử dụng. Vui lòng chọn voucher khác.");
+            
+            setLoading(false);
+            return;
+          } else if (errorData.message.includes("Invalid voucher")) {
+            clearVoucher("Mã voucher không hợp lệ. Vui lòng chọn voucher khác.");
+            
+            setLoading(false);
+            return;
+          } else if (errorData.message.includes("Minimum order value")) {
+            clearVoucher("Giá trị đơn hàng chưa đạt mức tối thiểu để sử dụng voucher này.");
+            
+            setLoading(false);
+            return;
+          } else if (errorData.message.toLowerCase().includes("voucher")) {
+            // Xử lý các trường hợp lỗi voucher khác
+            clearVoucher("Có vấn đề với voucher của bạn. Vui lòng chọn voucher khác.");
+            
+            setLoading(false);
+            return;
+          }
+        }
+        
         throw new Error(
           `Tạo đơn hàng thất bại: ${errorData.message || response.statusText}`
         );

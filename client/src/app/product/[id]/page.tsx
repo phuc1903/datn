@@ -1164,12 +1164,7 @@ export default function ProductDetail() {
               <div>
                 <div className="flex justify-between items-center mb-8 text-black">
                   <h3 className="text-lg font-medium">Đánh giá từ khách hàng</h3>
-                  <button
-                    className="text-pink-600 hover:text-pink-700 font-medium transition-colors duration-300"
-                    onClick={() => setShowReviewForm(true)}
-                  >
-                    Viết đánh giá
-                  </button>
+                  
                 </div>
 
                 {showReviewForm && (

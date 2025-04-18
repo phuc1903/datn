@@ -102,6 +102,7 @@ const ReviewPage = () => {
 
   const checkOrderReviewedStatus = async (orderId: string, userToken: string): Promise<boolean> => {
     try {
+      console.log("Kiểm tra trạng thái đánh giá cho order:", orderId);
       const response = await fetchWithRetry(`${API_BASE_URL}/product_feedbacks/getAllOrderItem`, {
         method: "GET",
         headers: {
@@ -110,21 +111,29 @@ const ReviewPage = () => {
         },
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Lỗi khi kiểm tra trạng thái đánh giá:", errorText);
+        throw new Error(`Không thể kiểm tra trạng thái đánh giá: ${response.status}`);
+      }
+
       const responseData = await response.json();
-      if (!response.ok || responseData.status !== "success") {
+      if (!responseData || responseData.status !== "success") {
         throw new Error(responseData.message || "Không thể kiểm tra trạng thái đánh giá");
       }
 
-      const orderItems = responseData.data;
+      const orderItems = responseData.data || [];
       const hasFeedback = orderItems.some(
         (item: any) =>
-          item.order_id.toString() === orderId &&
-          (item.feedback || item.combo_feedback) // Kiểm tra cả combo_feedback
+          item.order_id?.toString() === orderId &&
+          (item.feedback || item.combo_feedback)
       );
+
+      console.log("Kết quả kiểm tra trạng thái đánh giá:", hasFeedback);
       return hasFeedback;
     } catch (error: any) {
       console.error("Lỗi khi kiểm tra trạng thái đánh giá:", error.message);
-      return false;
+      throw error;
     }
   };
 
@@ -136,18 +145,37 @@ const ReviewPage = () => {
       }
 
       const userToken = Cookies.get("accessToken");
-      const userEmail = Cookies.get("userEmail");
+      const userData = Cookies.get("userData");
 
-      if (!userToken || !userEmail) {
-        throw new Error("Vui lòng đăng nhập lại");
+      console.log("Token:", userToken ? "Có token" : "Không có token");
+      console.log("userData:", userData ? "Có userData" : "Không có userData");
+
+      if (!userToken || !userData) {
+        console.log("Không tìm thấy token hoặc userData, chuyển hướng về trang login");
+        router.push("/login");
+        return;
       }
 
-      const isReviewed = await checkOrderReviewedStatus(id as string, userToken);
-      if (isReviewed) {
-        throw new Error("Đơn hàng đã được đánh giá!");
+      try {
+        const parsedUserData = JSON.parse(userData);
+        console.log("parsedUserData:", parsedUserData ? "Parse thành công" : "Parse thất bại");
+        
+        // Tiếp tục xử lý với parsedUserData
+        const isReviewed = await checkOrderReviewedStatus(id as string, userToken);
+        if (isReviewed) {
+          throw new Error("Đơn hàng đã được đánh giá!");
+        }
+      } catch (error) {
+        console.error("Lỗi khi parse userData:", error);
+        Cookies.remove("accessToken");
+        Cookies.remove("userData");
+        router.push("/login");
+        return;
       }
 
+      // Lấy thông tin đơn hàng
       const ordersUrl = `${API_BASE_URL}/users/orders`;
+      console.log("Đang fetch orders từ URL:", ordersUrl);
       const ordersResponse = await fetchWithRetry(ordersUrl, {
         method: "GET",
         headers: {
@@ -156,23 +184,39 @@ const ReviewPage = () => {
         },
       });
 
-      const ordersData = await ordersResponse.json();
-      const orderItems = ordersData.data;
+      if (!ordersResponse.ok) {
+        if (ordersResponse.status === 401) {
+          console.log("Token không hợp lệ (401), chuyển hướng về trang login");
+          Cookies.remove("accessToken");
+          Cookies.remove("userData");
+          router.push("/login");
+          return;
+        }
+        const errorText = await ordersResponse.text();
+        console.error("Lỗi khi lấy danh sách đơn hàng:", errorText);
+        throw new Error(`Không thể lấy danh sách đơn hàng: ${ordersResponse.status}`);
+      }
 
-      const targetOrder = orderItems.find((order: any) => order.id.toString() === id);
+      const ordersData = await ordersResponse.json();
+      if (!ordersData || ordersData.status !== "success") {
+        throw new Error(ordersData.message || "Không thể lấy danh sách đơn hàng");
+      }
+
+      const orderItems = ordersData.data || [];
+      const targetOrder = orderItems.find((order: any) => order.id?.toString() === id);
 
       if (!targetOrder) {
         throw new Error(`Không tìm thấy đơn hàng với ID ${id}`);
       }
 
-      if (targetOrder.status.toLowerCase() !== "success") {
+      if (targetOrder.status?.toLowerCase() !== "success") {
         throw new Error("Chỉ các đơn hàng giao thành công mới có thể được đánh giá");
       }
 
       const items = (targetOrder.items || [])
         .filter((item: any) => item.sku || item.combo)
         .map((item: any) => ({
-          id: item.id.toString(),
+          id: item.id?.toString() || "",
           quantity: item.quantity || 0,
           price: item.price || 0,
           sku_id: item.sku_id ? item.sku_id.toString() : undefined,
@@ -195,10 +239,10 @@ const ReviewPage = () => {
               }
             : undefined,
           feedback: item.feedback || null,
-          combo_feedback: item.combo_feedback || null, // Thêm combo_feedback
+          combo_feedback: item.combo_feedback || null,
         }));
 
-      const feedbacksData: FeedbackForm[] = items.map((item :any) => ({
+      const feedbacksData: FeedbackForm[] = items.map((item: any) => ({
         sku_id: item.sku_id,
         combo_id: item.combo_id,
         rating: 0,
@@ -206,7 +250,7 @@ const ReviewPage = () => {
       }));
 
       const mappedOrder: Order = {
-        id: targetOrder.id.toString(),
+        id: targetOrder.id?.toString() || "",
         orderNumber: targetOrder.orderNumber || `OD-${targetOrder.id}`,
         status: "Giao hàng thành công",
         date: targetOrder.created_at
@@ -220,6 +264,7 @@ const ReviewPage = () => {
       setOrder(mappedOrder);
       setFeedbacks(feedbacksData);
     } catch (error: any) {
+      console.error("Lỗi khi lấy dữ liệu đơn hàng:", error);
       Swal.fire({
         icon: "error",
         title: "Lỗi",
@@ -266,10 +311,26 @@ const ReviewPage = () => {
 
     try {
       const userToken = Cookies.get("accessToken");
-      const userEmail = Cookies.get("userEmail");
+      const userData = Cookies.get("userData");
 
-      if (!userToken || !userEmail) {
-        throw new Error("Vui lòng đăng nhập lại");
+      console.log("Submit - Token:", userToken ? "Có token" : "Không có token");
+      console.log("Submit - userData:", userData ? "Có userData" : "Không có userData");
+
+      if (!userToken || !userData) {
+        console.log("Không tìm thấy token hoặc userData khi submit, chuyển hướng về trang login");
+        router.push("/login");
+        return;
+      }
+
+      let parsedUserData;
+      try {
+        parsedUserData = JSON.parse(userData);
+      } catch (error) {
+        console.error("Lỗi khi parse userData khi submit:", error);
+        Cookies.remove("accessToken");
+        Cookies.remove("userData");
+        router.push("/login");
+        return;
       }
 
       const hasInvalidFeedback = feedbacks.some((feedback) => feedback.rating === 0);
@@ -292,7 +353,7 @@ const ReviewPage = () => {
         formData.append("comment", feedback.comment);
 
         const endpoint = feedback.combo_id
-          ? `${API_BASE_URL}/combo_feedback/create` // Sử dụng endpoint combo_feedback cho combo
+          ? `${API_BASE_URL}/combo_feedback/create`
           : `${API_BASE_URL}/product_feedbacks/create`;
 
         if (feedback.combo_id) {
@@ -300,6 +361,8 @@ const ReviewPage = () => {
         } else {
           formData.append("sku_id", feedback.sku_id!);
         }
+
+        console.log("Đang gửi feedback đến endpoint:", endpoint);
 
         const response = await fetch(endpoint, {
           method: "POST",

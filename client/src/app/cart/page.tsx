@@ -55,14 +55,15 @@ export default function CartPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       const userToken = Cookies.get("accessToken");
-      const email = Cookies.get("userEmail");
+      const userData = Cookies.get("userData");
 
-      if (!userToken || !email) {
+      if (!userToken || !userData) {
         router.push("/login");
         return;
       }
 
       try {
+        const parsedUserData = JSON.parse(userData);
         const cartResponse = await fetch(`${API_BASE_URL}/users/carts`, {
           method: "GET",
           headers: {
@@ -76,7 +77,7 @@ export default function CartPage() {
         }
 
         const cartResult = await cartResponse.json();
-        if (cartResult.data?.email === email) {
+        if (cartResult.data?.email === parsedUserData.email) {
           setCart(cartResult.data.carts || []);
         }
 

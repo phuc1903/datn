@@ -134,7 +134,7 @@ const UserInfo = ({ user, addresses }: { user: UserData; addresses: Address[] })
           value={
             addresses.find((a) => a.default === "default")
               ? `${addresses.find((a) => a.default === "default")?.address}, ${
-                  addresses.find((a) => a.default === "default")?.ward.full_name
+                  addresses.find((a) => a.default === "default")?.ward.total_name
                 }, ${addresses.find((a) => a.default === "default")?.district.full_name}, ${
                   addresses.find((a) => a.default === "default")?.province.full_name
                 }`
@@ -311,7 +311,7 @@ const AddressList = ({ addresses, onDelete }: { addresses: Address[]; onDelete: 
           <div className="flex justify-between items-start">
             <div className="flex-1">
               <p className="mb-1">
-                {addr.name} - {addr.address}, {addr.ward.full_name}, {addr.district.full_name}, {addr.province.full_name}
+                {addr.name} - {addr.address}, {addr.ward.total_name}, {addr.district.full_name}, {addr.province.full_name}
               </p>
               <p className="text-gray-600">SĐT: {addr.phone_number}</p>
               {addr.default === "default" && (
@@ -367,20 +367,14 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchData = async () => {
       const token = Cookies.get("accessToken");
-      const email = Cookies.get("userEmail");
+      const userData = Cookies.get("userData");
 
-      if (!token || !email) return router.push("/login");
+      if (!token || !userData) return router.push("/login");
 
       try {
-        // Fetch user profile
-        const profileRes = await fetch("http://127.0.0.1:8000/api/v1/users", {
-          headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-        });
-        if (!profileRes.ok) throw new Error("Profile fetch failed");
-        const profileData = await profileRes.json();
-        const foundUser = profileData.data.find((u: UserData) => u.email === email);
-        if (!foundUser) throw new Error("User not found");
-        setUser(foundUser);
+        // Parse user data from cookie
+        const user = JSON.parse(userData);
+        setUser(user);
 
         // Fetch addresses
         const addressRes = await fetch("http://127.0.0.1:8000/api/v1/users/addresses", {
