@@ -41,14 +41,19 @@ const Header: React.FC = () => {
   const [selectedResultIndex, setSelectedResultIndex] = useState(-1);
   const [cartCount, setCartCount] = useState(0);
   const [isClient, setIsClient] = useState(false);
+  const [expandedCategory, setExpandedCategory] = useState<number | null>(null);
 
   const searchRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   // Handle click outside to close search results
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+      if (mobileSearchRef.current && !mobileSearchRef.current.contains(event.target as Node)) {
         setShowResults(false);
       }
     };
@@ -73,7 +78,7 @@ const Header: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/v1/categories");
+        const response = await fetch(`${API_BASE_URL}/categories`);
         const result = await response.json();
         if (result.status === "success") {
           const mainCategories = result.data.filter((cat: Category) => cat.parent_id === 0);
@@ -113,7 +118,7 @@ const Header: React.FC = () => {
     if (!searchQuery.trim()) return;
     setIsSearching(true);
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/v1/products");
+      const response = await fetch(`${API_BASE_URL}/products`);
       const data = await response.json();
       const filtered = data.data
         .filter((product: Product) =>
@@ -143,6 +148,15 @@ const Header: React.FC = () => {
       router.push(`/search?query=${encodeURIComponent(searchQuery.trim())}`);
       setShowResults(false);
       setSearchQuery("");
+    }
+  };
+
+  // Toggle category expansion
+  const toggleCategoryExpansion = (categoryId: number) => {
+    if (expandedCategory === categoryId) {
+      setExpandedCategory(null);
+    } else {
+      setExpandedCategory(categoryId);
     }
   };
 
@@ -192,7 +206,7 @@ const Header: React.FC = () => {
   const renderSearchResults = () => {
     if (!showResults || searchResults.length === 0) return null;
     return (
-      <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg overflow-hidden z-50">
+      <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg overflow-hidden z-50 max-h-80 overflow-y-auto">
         {searchResults.map((product, index) => (
           <div
             key={product.id}
@@ -270,7 +284,7 @@ const Header: React.FC = () => {
               ))}
             </nav>
 
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-4 md:space-x-6">
               <div className="hidden md:flex items-center relative" ref={searchRef}>
                 <div className="relative text-black">
                   <input
@@ -303,6 +317,24 @@ const Header: React.FC = () => {
                 {renderSearchResults()}
               </div>
 
+              <div className="md:hidden">
+                <button 
+                  onClick={() => {
+                    setIsMenuOpen(true);
+                    setTimeout(() => {
+                      const searchInput = document.getElementById('mobile-search-input');
+                      if (searchInput) {
+                        searchInput.focus();
+                      }
+                    }, 300);
+                  }}
+                  aria-label="Tìm kiếm" 
+                  className="p-2 hover:text-pink-600 transition-colors"
+                >
+                  <Search className="h-6 w-6" />
+                </button>
+              </div>
+
               <Link href="/cart" className="p-2 hover:text-pink-600 transition-colors relative">
                 <ShoppingBag className="h-6 w-6" />
                 {isClient && cartCount > 0 && (
@@ -316,7 +348,11 @@ const Header: React.FC = () => {
                 <User className="h-6 w-6" />
               </Link>
 
-              <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              <button 
+                className="md:hidden p-1 rounded-md hover:bg-gray-100" 
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                aria-label="Mở menu"
+              >
                 <Menu className="h-6 w-6" />
               </button>
             </div>
@@ -324,68 +360,173 @@ const Header: React.FC = () => {
         </div>
       </header>
 
+      {/* Mobile Menu */}
       <div
-        className={`md:hidden fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300 ${
+        className={`md:hidden fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity duration-300 ${
           isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setIsMenuOpen(false)}
       >
         <div
-          className={`fixed inset-y-0 left-0 w-72 bg-white transform transition-transform duration-300 ease-in-out ${
+          className={`fixed inset-y-0 left-0 w-[85%] max-w-xs bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
             isMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-6 pb-6 pt-[150px]">
-            <div className="mb-6 relative">
-              <input
-                type="text"
-                placeholder="Tìm kiếm sản phẩm..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-pink-300 text-sm"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setSearchResults([]);
-                    setShowResults(false);
-                  }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-              {renderSearchResults()}
+          <div className="flex flex-col h-full">
+            {/* Header của menu */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <Link href="/" className="flex items-center" onClick={() => setIsMenuOpen(false)}>
+                <span className="text-pink-600 font-serif font-bold text-xl">Z</span>
+                <span className="text-gray-700 font-serif font-bold text-xl">BEAUTY</span>
+              </Link>
+              <button 
+                onClick={() => setIsMenuOpen(false)}
+                className="p-2 text-gray-500 hover:text-pink-600 hover:bg-gray-50 rounded-full transition-colors"
+                aria-label="Đóng menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            {staticCategories.map((category) => (
-              <div key={category.id} className="mb-6">
-                <Link
-                  href={category.path}
-                  className="font-medium text-gray-900 hover:text-pink-600 block mb-3"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {category.name}
-                </Link>
-                {category.subcategories && category.subcategories.length > 0 && (
-                  <div className="ml-4 grid grid-cols-2 gap-2">
-                    {category.subcategories.map((sub, index) => (
-                      <Link
-                        key={`${sub.path}-${index}`}
-                        href={sub.path}
-                        className="block text-sm text-gray-600 hover:text-pink-600 hover:bg-pink-50 px-2 py-1 rounded"
-                        onClick={() => setIsMenuOpen(false)}
+            {/* Search box */}
+            <div className="p-4 border-b border-gray-100">
+              <div className="relative" ref={mobileSearchRef}>
+                <div className="flex">
+                  <input
+                    id="mobile-search-input"
+                    type="text"
+                    placeholder="Tìm kiếm sản phẩm..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-l-lg focus:outline-none focus:border-pink-300 text-sm"
+                  />
+                  <button
+                    onClick={handleSearchRedirect}
+                    className="px-3 py-2 bg-pink-600 text-white rounded-r-lg hover:bg-pink-500 transition-colors"
+                  >
+                    <Search className="h-5 w-5" />
+                  </button>
+                </div>
+                
+                {searchQuery && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSearchResults([]);
+                      setShowResults(false);
+                    }}
+                    className="absolute right-14 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 z-10"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+                
+                {showResults && searchResults.length > 0 && (
+                  <div className="absolute left-0 right-0 mt-1 bg-white rounded-lg shadow-lg overflow-hidden z-50 max-h-60 overflow-y-auto">
+                    {searchResults.map((product, index) => (
+                      <div
+                        key={product.id}
+                        className={`flex items-center p-3 hover:bg-gray-50 cursor-pointer ${
+                          index === selectedResultIndex ? "bg-pink-50" : ""
+                        }`}
+                        onClick={() => navigateToProduct(product.id)}
                       >
-                        {sub.name}
-                      </Link>
+                        <div className="relative w-12 h-12 rounded overflow-hidden">
+                          <Image
+                            src={product.images?.[0]?.image_url || "/oxy.jpg"}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="ml-3 flex-1">
+                          <h4 className="text-sm font-medium text-gray-900">{product.name}</h4>
+                          <p className="text-sm text-pink-600">
+                            {product.skus?.[0]?.price.toLocaleString()}đ
+                          </p>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
               </div>
-            ))}
+            </div>
+
+            {/* Navigation */}
+            <div className="flex-1 overflow-y-auto py-2">
+              {staticCategories.map((category) => (
+                <div key={category.id} className="border-b border-gray-100 last:border-b-0">
+                  {category.subcategories && category.subcategories.length > 0 ? (
+                    <div>
+                      <button
+                        className="flex items-center justify-between w-full py-3 px-4 text-left font-medium text-gray-900 hover:text-pink-600 transition-colors"
+                        onClick={() => toggleCategoryExpansion(category.id)}
+                      >
+                        <span>{category.name}</span>
+                        <ChevronDown 
+                          className={`h-4 w-4 transition-transform duration-200 ${
+                            expandedCategory === category.id ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </button>
+                      <div className={`${
+                        expandedCategory === category.id ? 'max-h-96' : 'max-h-0'
+                      } overflow-hidden transition-all duration-300 ease-in-out`}>
+                        <div className="grid grid-cols-2 gap-1 px-4 pb-3">
+                          {category.subcategories.map((sub, index) => (
+                            <Link
+                              key={`${sub.path}-${index}`}
+                              href={sub.path}
+                              className="flex items-center text-sm text-gray-600 hover:text-pink-600 hover:bg-pink-50 p-2 rounded"
+                              onClick={() => setIsMenuOpen(false)}
+                            >
+                              <span className="ml-2">{sub.name}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <Link
+                      href={category.path}
+                      className="block py-3 px-4 font-medium text-gray-900 hover:text-pink-600 hover:bg-pink-50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {category.name}
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Footer links */}
+            <div className="p-4 border-t border-gray-100 bg-gray-50">
+              <div className="flex justify-around">
+                <Link 
+                  href="/profile" 
+                  className="flex flex-col items-center text-gray-700 hover:text-pink-600"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <User className="h-5 w-5 mb-1" />
+                  <span className="text-xs">Tài khoản</span>
+                </Link>
+                <Link 
+                  href="/cart" 
+                  className="flex flex-col items-center text-gray-700 hover:text-pink-600 relative"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <ShoppingBag className="h-5 w-5 mb-1" />
+                  {isClient && cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
+                  <span className="text-xs">Giỏ hàng</span>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
