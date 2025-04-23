@@ -106,13 +106,66 @@ export default function HomePage() {
     try {
       const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({ product_id: productId }),
+        headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify({ product_id: parseInt(productId) }),
       });
 
-      if (!response.ok) throw new Error("Thao tác thất bại");
-
       const result = await response.json();
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Thử refresh token
+          const refreshToken = Cookies.get("refreshToken");
+          if (refreshToken) {
+            const refreshResponse = await fetch(`${API_BASE_URL}/refresh-token`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ refresh_token: refreshToken }),
+            });
+
+            if (refreshResponse.ok) {
+              const refreshData = await refreshResponse.json();
+              Cookies.set("accessToken", refreshData.access_token, { expires: 7 });
+              
+              // Thử lại request với token mới
+              const retryResponse = await fetch(url, {
+                method: "POST",
+                headers: { 
+                  "Content-Type": "application/json", 
+                  "Authorization": `Bearer ${refreshData.access_token}` 
+                },
+                body: JSON.stringify({ product_id: parseInt(productId) }),
+              });
+
+              const retryResult = await retryResponse.json();
+              if (!retryResponse.ok) {
+                throw new Error(retryResult.message || "Thao tác thất bại");
+              }
+
+              if (retryResult.status === "success") {
+                const newFavorites = new Set(userFavorites);
+                if (isFavorited) {
+                  newFavorites.delete(productId);
+                } else {
+                  newFavorites.add(productId);
+                }
+                setUserFavorites(newFavorites);
+                Toast.fire({
+                  icon: "success",
+                  title: isFavorited ? "Đã xóa khỏi danh sách yêu thích" : "Đã thêm vào danh sách yêu thích",
+                });
+              }
+              return;
+            }
+          }
+          throw new Error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại");
+        }
+        throw new Error(result.message || "Thao tác thất bại");
+      }
+
       if (result.status === "success") {
         const newFavorites = new Set(userFavorites);
         if (isFavorited) {
@@ -125,10 +178,15 @@ export default function HomePage() {
           icon: "success",
           title: isFavorited ? "Đã xóa khỏi danh sách yêu thích" : "Đã thêm vào danh sách yêu thích",
         });
+      } else {
+        throw new Error(result.message || "Thao tác thất bại");
       }
     } catch (error) {
       console.error("Favorite error:", error);
-      Toast.fire({ icon: "error", title: "Có lỗi xảy ra. Vui lòng thử lại" });
+      Toast.fire({ 
+        icon: "error", 
+        title: error instanceof Error ? error.message : "Có lỗi xảy ra. Vui lòng thử lại" 
+      });
     }
   };
 

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCartIcon, Heart } from "lucide-react";
+import { ShoppingCartIcon, HeartIcon } from "lucide-react";
 import { Product } from "@/types/product";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
@@ -10,13 +10,14 @@ import { API_BASE_URL } from "@/config/config";
 interface ProductCardProps {
   product: Product;
   onAction: (product: Product, type: "addToCart" | "buyNow", e?: React.MouseEvent) => void;
-  onToggleFavorite: (productId: string) => void;
+  onToggleFavorite: (productId: string) => Promise<void>;
   userFavorites: Set<string>;
 }
 
 const ProductCard = ({ product, onAction, onToggleFavorite, userFavorites }: ProductCardProps) => {
   const router = useRouter();
   const token = Cookies.get("accessToken");
+  const isFavorited = userFavorites.has(product.id);
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     if (!token) {
@@ -113,45 +114,7 @@ const ProductCard = ({ product, onAction, onToggleFavorite, userFavorites }: Pro
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (!token) {
-      Swal.fire({
-        icon: "warning",
-        title: "Bạn cần đăng nhập!",
-        text: "Vui lòng đăng nhập để thêm vào yêu thích.",
-        confirmButtonText: "Đăng nhập",
-      }).then(() => router.push("/login"));
-      return;
-    }
-
-    try {
-      const url = userFavorites.has(product.id) 
-        ? `${API_BASE_URL}/users/remove-favorite`
-        : `${API_BASE_URL}/users/add-favorite`;
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ product_id: parseInt(product.id) }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Lỗi khi cập nhật yêu thích");
-      }
-
-      onToggleFavorite(product.id);
-    } catch (error) {
-      console.error("Lỗi khi cập nhật yêu thích:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Lỗi!",
-        text: "Không thể cập nhật yêu thích. Vui lòng thử lại sau.",
-      });
-    }
+    await onToggleFavorite(product.id);
   };
 
   return (
@@ -166,6 +129,14 @@ const ProductCard = ({ product, onAction, onToggleFavorite, userFavorites }: Pro
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             loading="lazy"
           />
+          <button
+            onClick={handleToggleFavorite}
+            className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+          >
+            <HeartIcon
+              className={`w-5 h-5 ${isFavorited ? "text-red-500 fill-red-500" : "text-gray-500"}`}
+            />
+          </button>
         </div>
       </Link>
       <div className="flex flex-wrap gap-2 mb-3">
@@ -197,13 +168,6 @@ const ProductCard = ({ product, onAction, onToggleFavorite, userFavorites }: Pro
           title="Thêm vào giỏ hàng"
         >
           <ShoppingCartIcon className="w-5 h-5" />
-        </button>
-        <button
-          onClick={handleToggleFavorite}
-          className={`p-2 rounded ${userFavorites.has(product.id) ? "text-red-600" : "text-gray-400"} hover:text-red-700`}
-          title="Thêm vào yêu thích"
-        >
-          <Heart className="w-5 h-5" fill={userFavorites.has(product.id) ? "currentColor" : "none"} />
         </button>
       </div>
     </div>

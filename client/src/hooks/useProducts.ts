@@ -18,12 +18,56 @@ export const useProducts = () => {
     return shuffled.slice(0, Math.min(num, arr.length));
   };
 
+  const refreshToken = async () => {
+    const refreshToken = Cookies.get("refreshToken");
+    if (!refreshToken) return null;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/refresh-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        Cookies.set("accessToken", data.access_token, { expires: 7 });
+        return data.access_token;
+      }
+      return null;
+    } catch (error) {
+      console.error("Lỗi khi làm mới token:", error);
+      return null;
+    }
+  };
+
   const fetchUserFavorites = async (token: string): Promise<void> => {
     try {
       const response = await fetch(`${API_BASE_URL}/users/favorites`, {
         method: "GET",
         headers: { "Authorization": `Bearer ${token}` },
       });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          const newToken = await refreshToken();
+          if (newToken) {
+            const retryResponse = await fetch(`${API_BASE_URL}/users/favorites`, {
+              method: "GET",
+              headers: { "Authorization": `Bearer ${newToken}` },
+            });
+            if (!retryResponse.ok) throw new Error("Failed to fetch favorites after token refresh");
+            
+            const retryData = await retryResponse.json();
+            if (retryData.status === "success" && Array.isArray(retryData.data.favorites)) {
+              setUserFavorites(new Set(retryData.data.favorites.map((item: { id: string }) => item.id)));
+            }
+            return;
+          }
+        }
+        throw new Error(`Failed to fetch favorites: ${response.status}`);
+      }
+      
       const data = await response.json();
       if (data.status === "success" && Array.isArray(data.data.favorites)) {
         setUserFavorites(new Set(data.data.favorites.map((item: { id: string }) => item.id)));
