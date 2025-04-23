@@ -21,11 +21,12 @@ class VoucherController extends Controller
     {
         try {
             $perPage = $request->query('per_page', 10);
-          
+
             $vouchers = Voucher::where('status', VoucherStatus::Active)
+                ->where('ended_date', '>', now())
                 ->paginate($perPage);
 
-            return ResponseSuccess('Get all vouchers', $vouchers, 200);
+            return ResponseSuccess('Get all valid vouchers', $vouchers, 200);
         } catch (\Exception $e) {
             return ResponseError($e->getMessage(), null, 500);
         }
