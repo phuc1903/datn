@@ -19,6 +19,7 @@ interface LoginResponse {
   message: string;
   data: {
     token: string;
+    user: any;
   };
 }
 
@@ -99,7 +100,7 @@ export default function LoginPage() {
         });
 
         Cookies.set("accessToken", result.data.token, { expires: 1 });
-        Cookies.set("userEmail", email, { expires: 1 });
+        Cookies.set("userData", JSON.stringify(result.data.user), { expires: 1 });
 
         router.push("/profile");
       }

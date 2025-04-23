@@ -21,6 +21,29 @@ class ProductFeedbackController extends Controller
     {
         $this->product_feedbacks=$product_feedbacks;
     }
+    public function index()
+    {
+        try {
+            // Lấy tất cả các feedback
+            $productFeedbacks = ProductFeedback::with([
+                'user',
+                'sku.variantValues.variant',
+            ])
+                ->orderByDesc('created_at')
+                ->get(); // Hoặc ->paginate(10)
+
+            if ($productFeedbacks->isEmpty()) {
+                return ResponseError('Không có đánh giá nào', null, 404);
+            }
+
+            return ResponseSuccess('Lấy đánh giá sản phẩm thành công.', $productFeedbacks, 200);
+        } catch (\Exception $e) {
+            \Log::error('Lỗi khi lấy feedback sản phẩm: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return ResponseError('Đã có lỗi xảy ra khi lấy đánh giá sản phẩm.', null, 500);
+        }
+    }
     public function getAllOrderItem()
     {
         try {
@@ -58,7 +81,6 @@ class ProductFeedbackController extends Controller
             if (!$sku) {
                 return ResponseError('Sku is not found', null, 404);
             }
-
             $orderStatusCheck = Order::where('id',$request->order_id)
                 ->where('user_id',\auth()->id())
                 ->where('status',OrderStatus::Success())->exists();
@@ -70,8 +92,6 @@ class ProductFeedbackController extends Controller
             if (!$orderStatusCheck) return  ResponseError('The Order not successfully ',400);
             if (!$orderUserCheck)   return  ResponseError('User dont has this order ',400);
             if (!$orderCheck)       return  ResponseError('The Order not found ',400);
-
-
             $checkOrderItemStatus = OrderItem::where('order_id',$request->order_id)->where('sku_id',$request->sku_id);
             if($checkOrderItemStatus){
                 $checkOrderItemStatus->update(['status'=>OrderItemStatus::Success()]);

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, Package, Truck, CheckCircle, XCircle } from "lucide-react";
+import { ChevronLeft, Package, Truck, CheckCircle, XCircle, Clock } from "lucide-react";
 import Swal from "sweetalert2";
 import Cookies from "js-cookie";
 import { API_BASE_URL } from "@/config/config";
@@ -32,7 +32,7 @@ interface OrderItem {
 interface Order {
   id: string;
   orderNumber: string;
-  status: string;
+  status: OrderStatus;
   date: string;
   items: OrderItem[];
   shipping: number;
@@ -50,6 +50,16 @@ interface Order {
   reason: string;
 }
 
+type OrderStatus = "Chờ thanh toán" | "Cửa hàng đang xử lý" | "Đã giao hàng" | "Giao hàng thành công" | "Đã hủy";
+
+const statusIcons: Record<OrderStatus, JSX.Element> = {
+  "Chờ thanh toán": <Clock className="w-5 h-5 text-yellow-500" />,
+  "Cửa hàng đang xử lý": <Package className="w-5 h-5 text-blue-500" />,
+  "Đã giao hàng": <Truck className="w-5 h-5 text-green-500" />,
+  "Giao hàng thành công": <CheckCircle className="w-5 h-5 text-green-500" />,
+  "Đã hủy": <XCircle className="w-5 h-5 text-red-500" />,
+};
+
 const OrderDetailPage: React.FC = () => {
   const router = useRouter();
   const params = useParams();
@@ -57,20 +67,12 @@ const OrderDetailPage: React.FC = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const statusMap: { [key: string]: string } = {
-    waiting: "Chờ thanh toán",
-    pending: "Cửa hàng đang xử lý",
-    shipped: "Đã giao hàng",
-    success: "Giao hàng thành công",
+  const statusMap: Record<string, OrderStatus> = {
+    pending: "Chờ thanh toán",
+    processing: "Cửa hàng đang xử lý",
+    shipping: "Đã giao hàng",
+    completed: "Giao hàng thành công",
     cancel: "Đã hủy",
-  };
-
-  const statusIcons = {
-    "Chờ thanh toán": <Package className="w-5 h-5 text-yellow-500" />,
-    "Cửa hàng đang xử lý": <Package className="w-5 h-5 text-blue-500" />,
-    "Đã giao hàng": <Truck className="w-5 h-5 text-orange-500" />,
-    "Giao hàng thành công": <CheckCircle className="w-5 h-5 text-green-500" />,
-    "Đã hủy": <XCircle className="w-5 h-5 text-red-500" />,
   };
 
   useEffect(() => {
@@ -78,18 +80,18 @@ const OrderDetailPage: React.FC = () => {
 
     const fetchOrderDetails = async () => {
       const userToken = Cookies.get("accessToken");
-      const userEmail = Cookies.get("userEmail");
+      const userData = Cookies.get("userData");
 
-      if (!userToken || !userEmail) {
-        console.log("Missing token or email, redirecting to login");
+      if (!userToken || !userData) {
+        console.log("Missing token or userData, redirecting to login");
         router.push("/login");
         setIsLoading(false);
         return;
       }
 
       try {
-        const url = `${API_BASE_URL}/orders/${id}`;
-        const response = await fetch(url, {
+        const parsedUserData = JSON.parse(userData);
+        const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -114,10 +116,12 @@ const OrderDetailPage: React.FC = () => {
           throw new Error("Đơn hàng không tồn tại");
         }
 
+        const status = statusMap[orderData.status?.toLowerCase()] || "Chờ thanh toán";
+        
         const fetchedOrder: Order = {
           id: orderData.id?.toString() || "",
           orderNumber: orderData.order_number || `OD-${orderData.id}`,
-          status: statusMap[orderData.status?.toLowerCase()] || "Không xác định",
+          status: status,
           date: orderData.created_at
             ? new Date(orderData.created_at).toISOString().split("T")[0]
             : new Date().toISOString().split("T")[0],
@@ -243,7 +247,7 @@ const OrderDetailPage: React.FC = () => {
                             {item.product.name || "Unknown Product"}
                           </p>
                           <div className="text-sm text-gray-600">
-                            {item.sku?.variant_values?.length > 0
+                            {item.sku?.variant_values && item.sku.variant_values.length > 0
                               ? item.sku.variant_values.map((v) => v.value).join(", ")
                               : "Không có biến thể"}
                           </div>

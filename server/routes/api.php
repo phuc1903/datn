@@ -99,6 +99,7 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('product_feedbacks')->controller(ProductFeedbackController::class)->group(function (){
+        Route::get('/','index');
         Route::middleware(['auth:sanctum','auth.active'])->group(function (){
             Route::get('getAllOrderItem', 'getAllOrderItem');
             Route::post('create','create');

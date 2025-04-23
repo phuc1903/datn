@@ -47,21 +47,19 @@ interface Address {
   ward: { total_name: string };
 }
 
-interface OrderItem {
-  name: string;
-  price: number;
-  quantity: number;
-  variants?: { name: string; value: string }[];
-}
-
 interface Order {
   id: string;
   orderNumber: string;
-  date: string;
   status: string;
-  items: OrderItem[];
-  shipping: number;
+  date: string;
   totalAmount: number;
+  items: {
+    product: {
+      name: string;
+      price: number;
+    };
+    quantity: number;
+  }[];
 }
 
 interface WishlistItem {
@@ -72,6 +70,26 @@ interface WishlistItem {
   originalPrice: number;
   image: string;
   inStock: boolean;
+}
+
+interface Voucher {
+  id: number;
+  title: string;
+  description: string;
+  quantity: number;
+  type: "percent" | "price";
+  discount_value: number;
+  max_discount_value: number;
+  min_order_value: number;
+  status: string;
+  started_date: string;
+  ended_date: string | null;
+  created_at: string;
+  updated_at: string;
+  pivot?: {
+    user_id: number;
+    voucher_id: number;
+  };
 }
 
 // Utility Functions
@@ -133,10 +151,10 @@ const UserInfo = ({ user, addresses }: { user: UserData; addresses: Address[] })
           type="text"
           value={
             addresses.find((a) => a.default === "default")
-              ? `${addresses.find((a) => a.default === "default")?.address}, ${
-                  addresses.find((a) => a.default === "default")?.ward.full_name
-                }, ${addresses.find((a) => a.default === "default")?.district.full_name}, ${
-                  addresses.find((a) => a.default === "default")?.province.full_name
+              ? `${addresses.find((a) => a.default === "default")?.address || ""}, ${
+                  addresses.find((a) => a.default === "default")?.ward?.total_name || ""
+                }, ${addresses.find((a) => a.default === "default")?.district?.full_name || ""}, ${
+                  addresses.find((a) => a.default === "default")?.province?.full_name || ""
                 }`
               : "Chưa cập nhật"
           }
@@ -198,104 +216,120 @@ const Wishlist = ({ items, onRemove }: { items: WishlistItem[]; onRemove: (id: n
 );
 
 const Orders = ({ orders, onCancel }: { orders: Order[]; onCancel: (id: string) => void }) => {
-  const [activeStatus, setActiveStatus] = useState("tất cả");
-  const statusList = [
-    "Tất cả",
-    "Chờ thanh toán",
-    "Cửa hàng đang xử lý",
-    "Đã giao hàng",
-    "Giao hàng thành công",
-    "Đã hủy",
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+
+  const statusMap: { [key: string]: string } = {
+    waiting: "Chờ thanh toán",
+    pending: "Cửa hàng đang xử lý",
+    shipped: "Đã giao hàng",
+    success: "Giao hàng thành công",
+    cancel: "Đã hủy",
+  };
+
+  const statusIcons: Record<string, JSX.Element> = {
+    waiting: <Package className="w-5 h-5 text-yellow-500" />,
+    pending: <Package className="w-5 h-5 text-blue-500" />,
+    shipped: <Truck className="w-5 h-5 text-orange-500" />,
+    success: <CheckCircle className="w-5 h-5 text-green-500" />,
+    cancel: <XCircle className="w-5 h-5 text-red-500" />,
+  };
+
+  const statusFilters = [
+    { label: "Tất cả", value: "all" },
+    { label: "Chờ thanh toán", value: "waiting" },
+    { label: "Cửa hàng đang xử lý", value: "pending" },
+    { label: "Đã giao hàng", value: "shipped" },
+    { label: "Giao hàng thành công", value: "success" },
+    { label: "Đã hủy", value: "cancel" },
   ];
-  const statusIcons = {
-    "Chờ thanh toán": <Package className="w-5 h-5 text-yellow-500" />,
-    "Cửa hàng đang xử lý": <Package className="w-5 h-5 text-blue-500" />,
-    "Đã giao hàng": <Truck className="w-5 h-5 text-orange-500" />,
-    "Giao hàng thành công": <CheckCircle className="w-5 h-5 text-green-500" />,
-    "Đã hủy": <XCircle className="w-5 h-5 text-red-500" />,
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "Chưa có ngày";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Ngày không hợp lệ";
+      return date.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      return "Ngày không hợp lệ";
+    }
   };
 
   const filteredOrders =
-    activeStatus === "tất cả"
+    selectedStatus === "all"
       ? orders
-      : orders.filter((order) => order.status.toLowerCase() === activeStatus.toLowerCase());
+      : orders.filter((order) => order.status === selectedStatus);
 
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4 text-pink-500">Lịch Sử Đơn Hàng</h2>
-      <div className="mb-6 flex flex-wrap gap-2">
-        {statusList.map((status) => (
-          <button
-            key={status}
-            onClick={() => setActiveStatus(status.toLowerCase())}
-            className={`px-3 py-2 rounded-lg text-sm ${
-              activeStatus === status.toLowerCase()
-                ? "bg-pink-600 text-white"
-                : "bg-white text-gray-600 hover:bg-gray-100"
-            }`}
-          >
-            {status}
-          </button>
-        ))}
+
+      <div className="mb-6">
+        <div className="flex flex-nowrap gap-2 overflow-x-auto">
+          {statusFilters.map((filter) => (
+            <button
+              key={filter.value}
+              onClick={() => setSelectedStatus(filter.value)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                selectedStatus === filter.value
+                  ? "bg-pink-500 text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
+              }`}
+            >
+              {filter.value !== "all" && statusIcons[filter.value]}
+              {filter.label}
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="space-y-4">
-        {filteredOrders.map((order) => (
-          <div
-            key={order.id}
-            className="bg-white text-black rounded-lg shadow p-6 hover:shadow-md transition-shadow"
-          >
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-2">
-                {statusIcons[order.status as keyof typeof statusIcons]}
-                <span className="font-medium text-gray-700">{order.status}</span>
-              </div>
-              <span className="text-sm text-gray-500">Mã Đơn: {order.orderNumber}</span>
-            </div>
-            <div className="space-y-2 mb-4">
-              {order.items.map((item, index) => (
-                <div key={index} className="flex justify-between">
+
+      <div className="bg-white rounded-lg shadow p-6 text-black">
+        {filteredOrders.length > 0 ? (
+          <div className="space-y-4">
+            {filteredOrders.map((order) => (
+              <div
+                key={order.id}
+                className="flex items-center justify-between py-4 border-b last:border-b-0"
+              >
+                <div className="flex items-center gap-4">
                   <div>
-                    <span className="font-medium">{item.name}</span>
-                    <div className="text-sm text-gray-600">
-                      {item.variants?.map((v) => `${v.name}: ${v.value}`).join(", ") ||
-                        "Không có biến thể"}
+                    <span className="font-medium block">
+                      Mã đơn hàng: {order.orderNumber}
+                    </span>
+                    <div className="text-sm text-gray-600 flex items-center gap-1">
+                      {statusIcons[order.status]}
+                      <span>{statusMap[order.status]}</span>
                     </div>
-                    <span className="text-sm text-gray-500 ml-2">x{item.quantity}</span>
+                    <span className="text-sm text-gray-500">
+                      Ngày đặt: {formatDate(order.date)}
+                    </span>
                   </div>
-                  <span>{formatPrice(item.price * item.quantity)}</span>
                 </div>
-              ))}
-            </div>
-            <div className="flex justify-between items-center border-t pt-4 text-gray-700">
-              <span className="text-sm text-gray-500">{order.date}</span>
-              <div className="flex flex-col items-end">
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-600">Phí Vận Chuyển:</span>
-                  <span className="font-medium">{formatPrice(order.shipping)}</span>
-                </div>
-                <div className="flex items-center gap-2 text-base font-semibold">
-                  <span className="text-gray-700">Tổng Cộng:</span>
-                  <span className="text-pink-600">{formatPrice(order.totalAmount)}</span>
+                <div className="text-right">
+                  <span className="font-medium block">
+                    {formatPrice(order.totalAmount)}
+                  </span>
+                  <Link
+                    href={`/order/${order.id}`}
+                    className="text-pink-600 hover:text-pink-800 text-sm"
+                  >
+                    Xem sản phẩm
+                  </Link>
                 </div>
               </div>
-            </div>
-            <div className="mt-4 flex justify-end gap-2">
-              {order.status !== "Đã hủy" && order.status !== "Giao hàng thành công" && (
-                <button
-                  className="text-pink-600 hover:text-pink-800"
-                  onClick={() => onCancel(order.id)}
-                >
-                  Hủy Đơn
-                </button>
-              )}
-              <button className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700">
-                Chi Tiết Đơn Hàng
-              </button>
-            </div>
+            ))}
           </div>
-        ))}
-        {!filteredOrders.length && (
-          <div className="text-center text-gray-500 py-8">Không có đơn hàng nào</div>
+        ) : (
+          <p className="text-gray-500">
+            {selectedStatus === "all"
+              ? "Bạn chưa có đơn hàng nào."
+              : `Không có đơn hàng nào ở trạng thái "${statusMap[selectedStatus]}".`}
+          </p>
         )}
       </div>
     </div>
@@ -311,7 +345,7 @@ const AddressList = ({ addresses, onDelete }: { addresses: Address[]; onDelete: 
           <div className="flex justify-between items-start">
             <div className="flex-1">
               <p className="mb-1">
-                {addr.name} - {addr.address}, {addr.ward.full_name}, {addr.district.full_name}, {addr.province.full_name}
+                {addr.name} - {addr.address}, {addr.ward.total_name}, {addr.district.full_name}, {addr.province.full_name}
               </p>
               <p className="text-gray-600">SĐT: {addr.phone_number}</p>
               {addr.default === "default" && (
@@ -339,12 +373,105 @@ const AddressList = ({ addresses, onDelete }: { addresses: Address[]; onDelete: 
   </div>
 );
 
-const Vouchers = () => (
-  <div>
-    <h2 className="text-xl font-semibold mb-4 text-pink-500">Danh sách Voucher</h2>
-    <p>Chưa có voucher nào.</p>
-  </div>
-);
+const Vouchers = () => {
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserVouchers = async () => {
+      const token = Cookies.get("accessToken");
+      if (!token) return;
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/v1/users/vouchers", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        
+        if (data.status === "success" && data.data.vouchers) {
+          setVouchers(data.data.vouchers);
+        }
+      } catch (error) {
+        console.error("Error fetching user vouchers:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserVouchers();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-pink-500"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-4 text-pink-500">Danh sách Voucher</h2>
+      {vouchers.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {vouchers.map((voucher) => (
+            <div
+              key={voucher.id}
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+            >
+              <div className="p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {voucher.title}
+                </h3>
+                <p className="text-gray-600 mb-4">{voucher.description}</p>
+
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Giá trị:</span>
+                    <span className="font-medium text-pink-600">
+                      {voucher.type === "percent"
+                        ? `${voucher.discount_value}%`
+                        : `${voucher.discount_value.toLocaleString()}đ`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Tối đa:</span>
+                    <span className="font-medium">
+                      {voucher.max_discount_value.toLocaleString()}đ
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Đơn tối thiểu:</span>
+                    <span className="font-medium">
+                      {voucher.min_order_value.toLocaleString()}đ
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Hạn sử dụng:</span>
+                    <span className="font-medium">
+                      {voucher.ended_date
+                        ? new Date(voucher.ended_date).toLocaleDateString("vi-VN")
+                        : "Không có hạn"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+          <p className="text-gray-500">Bạn chưa có voucher nào</p>
+          <Link href="/voucher" className="inline-block mt-4 px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600">
+            Khám phá voucher
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ChangePassword = () => (
   <div>
@@ -367,20 +494,14 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchData = async () => {
       const token = Cookies.get("accessToken");
-      const email = Cookies.get("userEmail");
+      const userData = Cookies.get("userData");
 
-      if (!token || !email) return router.push("/login");
+      if (!token || !userData) return router.push("/login");
 
       try {
-        // Fetch user profile
-        const profileRes = await fetch("http://127.0.0.1:8000/api/v1/users", {
-          headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-        });
-        if (!profileRes.ok) throw new Error("Profile fetch failed");
-        const profileData = await profileRes.json();
-        const foundUser = profileData.data.find((u: UserData) => u.email === email);
-        if (!foundUser) throw new Error("User not found");
-        setUser(foundUser);
+        // Parse user data from cookie
+        const user = JSON.parse(userData);
+        setUser(user);
 
         // Fetch addresses
         const addressRes = await fetch("http://127.0.0.1:8000/api/v1/users/addresses", {
@@ -390,9 +511,29 @@ export default function ProfilePage() {
         const addressData = await addressRes.json();
         setAddresses(addressData.data);
 
-        // Load orders from localStorage
-        const savedOrders = localStorage.getItem("orders");
-        if (savedOrders) setOrders(JSON.parse(savedOrders));
+        // Fetch orders
+        const ordersRes = await fetch("http://127.0.0.1:8000/api/v1/users/orders", {
+          headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+        });
+        if (!ordersRes.ok) throw new Error("Orders fetch failed");
+        const ordersData = await ordersRes.json();
+        if (ordersData.data) {
+          const formattedOrders = ordersData.data.map((order: any) => ({
+            id: order.id,
+            orderNumber: order.order_number,
+            status: order.status,
+            date: order.created_at,
+            totalAmount: order.total_amount,
+            items: order.items.map((item: any) => ({
+              product: {
+                name: item.product_name,
+                price: item.price
+              },
+              quantity: item.quantity
+            }))
+          }));
+          setOrders(formattedOrders);
+        }
 
         // Fetch wishlist
         const wishlistRes = await fetch("http://127.0.0.1:8000/api/v1/users/favorites", {

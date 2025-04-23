@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle, Star, PenSquare, Check } from "lucide-react";
 import Swal from "sweetalert2";
@@ -50,7 +50,7 @@ interface Review {
   };
 }
 
-const FeedbackPage = () => {
+const FeedbackContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const refresh = searchParams.get("refresh") === "true";
@@ -96,14 +96,15 @@ const FeedbackPage = () => {
   const fetchData = async () => {
     try {
       const userToken = Cookies.get("accessToken");
-      const userEmail = Cookies.get("userEmail");
+      const userData = Cookies.get("userData");
 
-      if (!userToken || !userEmail) {
+      if (!userToken || !userData) {
         router.push("/login");
         setIsLoading(false);
         return;
       }
 
+      const parsedUserData = JSON.parse(userData);
       const ordersUrl = `${API_BASE_URL}/users/orders`;
       const ordersResponse = await fetchWithRetry(ordersUrl, {
         method: "GET",
@@ -377,6 +378,14 @@ const FeedbackPage = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const FeedbackPage = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <FeedbackContent />
+    </Suspense>
   );
 };
 

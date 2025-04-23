@@ -167,13 +167,26 @@ export default function VoucherPage() {
           confirmButtonColor: "#db2777",
         });
       } else {
-        throw new Error(data.message || "Thu thập voucher thất bại");
+        let errorMessage = "Thu thập voucher thất bại";
+        if (data.message.includes("expired")) {
+          errorMessage = "Voucher đã hết hạn";
+        } else if (data.message.includes("out of stock")) {
+          errorMessage = "Voucher đã hết";
+        }
+        
+        Swal.fire({
+          title: "Thông báo",
+          text: errorMessage,
+          icon: "info",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#db2777",
+        });
       }
     } catch (error) {
       console.error("Error claiming voucher:", error);
       Swal.fire({
         title: "Lỗi!",
-        text: error instanceof Error ? error.message : "Thu thập voucher thất bại",
+        text: "Có lỗi xảy ra khi thu thập voucher",
         icon: "error",
         confirmButtonText: "OK",
         confirmButtonColor: "#db2777",
