@@ -37,7 +37,7 @@ interface OrderItem {
     created_at: string;
     updated_at: string;
   };
-  combo_feedback?: { // Thêm combo_feedback vào interface
+  combo_feedback?: {
     id: string;
     combo_id?: string;
     user_id: string;
@@ -102,8 +102,50 @@ const ReviewPage = () => {
 
   const checkOrderReviewedStatus = async (orderId: string, userToken: string): Promise<boolean> => {
     try {
-      console.log("Kiểm tra trạng thái đánh giá cho order:", orderId);
-      const response = await fetchWithRetry(`${API_BASE_URL}/product_feedbacks/getAllOrderItem`, {
+      // Lấy user_id từ API /users
+      const userResponse = await fetchWithRetry(`${API_BASE_URL}/users`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userToken}`,
+        },
+      });
+
+      const userData = await userResponse.json();
+      if (!userResponse.ok || userData.status !== "success") {
+        throw new Error(userData.message || "Không thể lấy thông tin người dùng");
+      }
+
+      const userId = userData.data.id?.toString();
+      if (!userId) {
+        throw new Error("Không tìm thấy ID người dùng trong dữ liệu");
+      }
+
+      // Kiểm tra feedback qua endpoint /product_feedbacks
+      const feedbackResponse = await fetchWithRetry(`${API_BASE_URL}/product_feedbacks`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userToken}`,
+        },
+      });
+
+      const feedbackData = await feedbackResponse.json();
+      if (feedbackResponse.ok && feedbackData.status === "success") {
+        const hasFeedback = feedbackData.data.some(
+          (feedback: any) =>
+            feedback.order_id.toString() === orderId &&
+            feedback.user_id.toString() === userId
+        );
+        if (hasFeedback) {
+          return true; // Đơn hàng đã được đánh giá bởi người dùng
+        }
+      } else if (feedbackData.status === "error" && feedbackData.code !== 404) {
+        throw new Error(feedbackData.message || "Không thể kiểm tra trạng thái đánh giá");
+      }
+
+      // Kiểm tra thêm qua endpoint /product_feedbacks/getAllOrderItem
+      const orderItemResponse = await fetchWithRetry(`${API_BASE_URL}/product_feedbacks/getAllOrderItem`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -117,23 +159,20 @@ const ReviewPage = () => {
         throw new Error(`Không thể kiểm tra trạng thái đánh giá: ${response.status}`);
       }
 
-      const responseData = await response.json();
-      if (!responseData || responseData.status !== "success") {
-        throw new Error(responseData.message || "Không thể kiểm tra trạng thái đánh giá");
+      const orderItemData = await orderItemResponse.json();
+      if (!orderItemResponse.ok || orderItemData.status !== "success") {
+        throw new Error(orderItemData.message || "Không thể kiểm tra trạng thái đơn hàng");
       }
 
-      const orderItems = responseData.data || [];
-      const hasFeedback = orderItems.some(
+      const orderItems = orderItemData.data;
+      return orderItems.some(
         (item: any) =>
-          item.order_id?.toString() === orderId &&
+          item.order_id.toString() === orderId &&
           (item.feedback || item.combo_feedback)
       );
-
-      console.log("Kết quả kiểm tra trạng thái đánh giá:", hasFeedback);
-      return hasFeedback;
     } catch (error: any) {
       console.error("Lỗi khi kiểm tra trạng thái đánh giá:", error.message);
-      throw error;
+      throw error; // Ném lỗi để xử lý trong fetchOrder
     }
   };
 
@@ -198,12 +237,12 @@ const ReviewPage = () => {
       }
 
       const ordersData = await ordersResponse.json();
-      if (!ordersData || ordersData.status !== "success") {
+      if (ordersData.status !== "success") {
         throw new Error(ordersData.message || "Không thể lấy danh sách đơn hàng");
       }
 
-      const orderItems = ordersData.data || [];
-      const targetOrder = orderItems.find((order: any) => order.id?.toString() === id);
+      const orderItems = ordersData.data;
+      const targetOrder = orderItems.find((order: any) => order.id.toString() === id);
 
       if (!targetOrder) {
         throw new Error(`Không tìm thấy đơn hàng với ID ${id}`);
@@ -226,7 +265,7 @@ const ReviewPage = () => {
                 name: item.sku?.product?.name || "Sản phẩm không xác định",
               }
             : undefined,
-          image_url: item.sku?.image_url || item.combo?.skus[0]?.image_url || "",
+          image_url: item.sku?.image_url || item.combo?.skus?.[0]?.image_url || "",
           sku: item.sku
             ? {
                 variant_details: item.sku?.variant_details || {},
@@ -250,8 +289,8 @@ const ReviewPage = () => {
       }));
 
       const mappedOrder: Order = {
-        id: targetOrder.id?.toString() || "",
-        orderNumber: targetOrder.orderNumber || `OD-${targetOrder.id}`,
+        id: targetOrder.id.toString(),
+        orderNumber: targetOrder.order_number || `OD-${targetOrder.id}`,
         status: "Giao hàng thành công",
         date: targetOrder.created_at
           ? new Date(targetOrder.created_at).toISOString().split("T")[0]
@@ -352,17 +391,15 @@ const ReviewPage = () => {
         formData.append("rating", feedback.rating.toString());
         formData.append("comment", feedback.comment);
 
+        if (feedback.combo_id) {
+          formData.append("combo_id", feedback.combo_id);
+        } else if (feedback.sku_id) {
+          formData.append("sku_id", feedback.sku_id);
+        }
+
         const endpoint = feedback.combo_id
           ? `${API_BASE_URL}/combo_feedback/create`
           : `${API_BASE_URL}/product_feedbacks/create`;
-
-        if (feedback.combo_id) {
-          formData.append("combo_id", feedback.combo_id);
-        } else {
-          formData.append("sku_id", feedback.sku_id!);
-        }
-
-        console.log("Đang gửi feedback đến endpoint:", endpoint);
 
         const response = await fetch(endpoint, {
           method: "POST",
@@ -372,26 +409,25 @@ const ReviewPage = () => {
           body: formData,
         });
 
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          const text = await response.text();
-          throw new Error(
-            `Response không phải JSON (status: ${response.status}): ${text.slice(0, 100)}...`
-          );
-        }
-
         const responseData = await response.json();
         console.log(`Feedback response for ${feedback.combo_id || feedback.sku_id}:`, responseData);
 
         if (!response.ok || responseData.status !== "success") {
-          if (responseData.message === "This Order has already been reviewed" ||
-              responseData.message === "Combo này đã được đánh giá") { // Xử lý lỗi combo đã được đánh giá
-            throw new Error("Đơn hàng đã được đánh giá!");
+          if (responseData.message === "This Product be Fedback") {
+            throw new Error("Sản phẩm hoặc combo này đã được đánh giá!");
+          } else if (responseData.message === "The Order not successfully") {
+            throw new Error("Đơn hàng chưa giao thành công!");
+          } else if (responseData.message === "User dont has this order") {
+            throw new Error("Bạn không sở hữu đơn hàng này!");
+          } else if (responseData.message === "The Order not found") {
+            throw new Error("Không tìm thấy đơn hàng!");
+          } else if (responseData.message === "Sku is not found") {
+            throw new Error("Sản phẩm không tồn tại!");
+          } else {
+            throw new Error(
+              responseData.message || `Không thể gửi đánh giá cho ${feedback.combo_id || feedback.sku_id}`
+            );
           }
-          throw new Error(
-            responseData.message ||
-              `Không thể gửi đánh giá cho ${feedback.combo_id || feedback.sku_id}`
-          );
         }
 
         return responseData;
@@ -414,7 +450,12 @@ const ReviewPage = () => {
         text: error.message || "Không thể gửi đánh giá",
         confirmButtonText: "OK",
       }).then(() => {
-        if (error.message === "Đơn hàng đã được đánh giá!") {
+        if (
+          error.message === "Sản phẩm hoặc combo này đã được đánh giá!" ||
+          error.message === "Đơn hàng chưa giao thành công!" ||
+          error.message === "Bạn không sở hữu đơn hàng này!" ||
+          error.message === "Không tìm thấy đơn hàng!"
+        ) {
           router.push("/feedback?switchTab=reviewed");
         }
       });
@@ -478,7 +519,7 @@ const ReviewPage = () => {
                   <div className="flex items-start gap-4 mb-4">
                     {isCombo ? (
                       <div className="flex gap-2">
-                        {item.combo?.skus.slice(0, 2).map((sku) => (
+                        {item.combo?.skus?.slice(0, 2).map((sku) => (
                           <img
                             key={sku.sku_id}
                             src={sku.image_url || "/fallback-image.png"}
@@ -512,7 +553,7 @@ const ReviewPage = () => {
                         <div className="text-sm text-gray-500">
                           <span className="block">Sản phẩm trong combo:</span>
                           <ul className="list-disc ml-4">
-                            {item.combo?.skus.map((sku) => (
+                            {item.combo?.skus?.map((sku) => (
                               <li key={sku.sku_id}>{sku.product_name}</li>
                             ))}
                           </ul>
@@ -545,6 +586,9 @@ const ReviewPage = () => {
                         />
                       ))}
                     </div>
+                    {feedback.rating === 0 && (
+                      <p className="text-red-500 text-sm mt-1">Vui lòng chọn số sao</p>
+                    )}
                   </div>
 
                   <div>

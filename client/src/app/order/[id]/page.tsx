@@ -19,20 +19,30 @@ interface OrderItem {
   id: string;
   quantity: number;
   price: number;
+  sku_id: string;
   product: {
     name: string;
   };
-  sku: {
-    image_url?: string;
-    variant_values?: VariantValue[];
-  };
+  sku: any;
+  // sku: {
+  //   image_url?: string;
+  //   variant_values?: VariantValue[];
+  // };
 }
+
+// Định nghĩa các trạng thái đơn hàng
+type StatusType =
+  | "Chờ thanh toán"
+  | "Cửa hàng đang xử lý"
+  | "Đã giao hàng"
+  | "Giao hàng thành công"
+  | "Đã hủy";
 
 // Định nghĩa kiểu cho đơn hàng
 interface Order {
   id: string;
   orderNumber: string;
-  status: OrderStatus;
+  status: StatusType;
   date: string;
   items: OrderItem[];
   shipping: number;
@@ -67,12 +77,20 @@ const OrderDetailPage: React.FC = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const statusMap: Record<string, OrderStatus> = {
-    pending: "Chờ thanh toán",
-    processing: "Cửa hàng đang xử lý",
-    shipping: "Đã giao hàng",
-    completed: "Giao hàng thành công",
+  const statusMap: { [key: string]: StatusType } = {
+    waiting: "Chờ thanh toán",
+    pending: "Cửa hàng đang xử lý",
+    shipped: "Đã giao hàng",
+    success: "Giao hàng thành công",
     cancel: "Đã hủy",
+  };
+
+  const statusIcons: Record<StatusType, JSX.Element> = {
+    "Chờ thanh toán": <Package className="w-5 h-5 text-yellow-500" />,
+    "Cửa hàng đang xử lý": <Package className="w-5 h-5 text-blue-500" />,
+    "Đã giao hàng": <Truck className="w-5 h-5 text-orange-500" />,
+    "Giao hàng thành công": <CheckCircle className="w-5 h-5 text-green-500" />,
+    "Đã hủy": <XCircle className="w-5 h-5 text-red-500" />,
   };
 
   useEffect(() => {
@@ -121,7 +139,7 @@ const OrderDetailPage: React.FC = () => {
         const fetchedOrder: Order = {
           id: orderData.id?.toString() || "",
           orderNumber: orderData.order_number || `OD-${orderData.id}`,
-          status: status,
+          status: statusMap[orderData.status?.toLowerCase()] || "Chờ thanh toán",
           date: orderData.created_at
             ? new Date(orderData.created_at).toISOString().split("T")[0]
             : new Date().toISOString().split("T")[0],
@@ -129,6 +147,7 @@ const OrderDetailPage: React.FC = () => {
             id: item.id?.toString() || "",
             quantity: item.quantity || 0,
             price: item.price || 0,
+            sku_id: item.sku_id || "",
             product: {
               name: item.sku?.product?.name || "Sản phẩm không xác định",
             },
@@ -181,7 +200,7 @@ const OrderDetailPage: React.FC = () => {
         router.push("/order");
       });
     }
-  }, [id, router, params]);
+  }, [id, router]);
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("vi-VN", {
@@ -247,8 +266,10 @@ const OrderDetailPage: React.FC = () => {
                             {item.product.name || "Unknown Product"}
                           </p>
                           <div className="text-sm text-gray-600">
-                            {item.sku?.variant_values && item.sku.variant_values.length > 0
-                              ? item.sku.variant_values.map((v) => v.value).join(", ")
+                            {item.sku?.variant_values?.length > 0
+                              ? item.sku.variant_values
+                                  .map((v: VariantValue) => v.value)
+                                  .join(", ")
                               : "Không có biến thể"}
                           </div>
                           <p className="text-sm text-gray-500">x {item.quantity || 0}</p>
