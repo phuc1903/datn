@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Package, Truck, CheckCircle, XCircle } from "lucide-react";
+import { Package, Truck, CheckCircle, XCircle,EyeIcon,XIcon } from "lucide-react";
 import Swal from "sweetalert2";
 import Cookies from "js-cookie";
 import Link from "next/link";
@@ -30,7 +30,7 @@ const OrderListPage = () => {
     cancel: "Đã hủy",
   };
 
-  const statusIcons = {
+  const statusIcons: { [key: string]: React.JSX.Element } = {
     "Chờ thanh toán": <Package className="w-5 h-5 text-yellow-500" />,
     "Cửa hàng đang xử lý": <Package className="w-5 h-5 text-blue-500" />,
     "Đã giao hàng": <Truck className="w-5 h-5 text-orange-500" />,
@@ -108,6 +108,82 @@ const OrderListPage = () => {
     fetchOrders();
   }, [router]);
 
+  const handleCancelOrder = async (orderId: string) => {
+    try {
+      const userToken = Cookies.get("accessToken");
+      if (!userToken) {
+        router.push("/login");
+        return;
+      }
+
+      // Show confirmation dialog with input for reason
+      const { value: reason } = await Swal.fire({
+        title: "Hủy đơn hàng",
+        input: "textarea",
+        inputLabel: "Lý do hủy đơn hàng",
+        inputPlaceholder: "Vui lòng nhập lý do hủy đơn hàng...",
+        inputAttributes: {
+          "aria-label": "Lý do hủy",
+          maxlength: "255",
+        },
+        showCancelButton: true,
+        confirmButtonText: "Xác nhận hủy",
+        cancelButtonText: "Hủy bỏ",
+        inputValidator: (value) => {
+          if (!value) {
+            return "Vui lòng nhập lý do hủy đơn hàng!";
+          }
+          if (value.length > 255) {
+            return "Lý do không được vượt quá 255 ký tự!";
+          }
+          return null;
+        },
+      });
+
+      if (!reason) return;
+
+      const response = await fetch(`${API_BASE_URL}/orders/${orderId}/cancel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userToken}`,
+        },
+        body: JSON.stringify({ reason }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Không thể hủy đơn hàng");
+      }
+
+      const result = await response.json();
+      if (result.status !== "success") {
+        throw new Error(result.message || "Không thể hủy đơn hàng");
+      }
+
+      // Update the order status locally
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === orderId
+            ? { ...order, status: "Đã hủy" }
+            : order
+        )
+      );
+
+      Swal.fire({
+        icon: "success",
+        title: "Thành công",
+        text: "Đơn hàng đã được hủy thành công!",
+      });
+    } catch (error: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Lỗi",
+        text: error.message || "Không thể hủy đơn hàng",
+      });
+    }
+  };
+
   const filteredOrders =
     selectedStatus === "Tất cả"
       ? orders
@@ -171,17 +247,35 @@ const OrderListPage = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="font-medium block">
-                      {formatPrice(order.totalAmount)}
-                    </span>
-                    <Link
-                      href={`/order/${order.id}`}
-                      className="text-pink-600 hover:text-pink-800 text-sm"
-                    >
-                      Xem sản phẩm
-                    </Link>
-                  </div>
+                  <div className="text-right flex flex-col items-end gap-2">
+  <span className="font-medium block">
+    {formatPrice(order.totalAmount)}
+  </span>
+  <div className="relative group">
+    <Link
+      href={`/order/${order.id}`}
+      className="text-pink-600 hover:text-pink-800"
+    >
+      <EyeIcon className="w-5 h-5" />
+    </Link>
+    <span className="absolute right-full mr-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      Xem sản phẩm
+    </span>
+  </div>
+  {order.status === "Cửa hàng đang xử lý" && (
+    <div className="relative group">
+      <button
+        onClick={() => handleCancelOrder(order.id)}
+        className="text-red-600 hover:text-red-800"
+      >
+        <XCircle className="w-5 h-5 text-red-500" />
+      </button>
+      <span className="absolute right-full mr-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        Hủy đơn
+      </span>
+    </div>
+  )}
+</div>
                 </div>
               ))}
             </div>
