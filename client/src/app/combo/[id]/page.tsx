@@ -12,10 +12,33 @@ interface Sku {
   sku_code: string;
   product_id: number;
   image_url: string;
+  price: number;
+  promotion_price: number;
   pivot: {
     combo_id: number;
     sku_id: number;
+    quantity?: number;
   };
+  product?: {
+    id: number;
+    name: string;
+    description: string;
+    short_description: string;
+    status: string;
+  };
+  variant_values?: Array<{
+    id: number;
+    value: string;
+    variant_id: number;
+    pivot: {
+      sku_id: number;
+      variant_value_id: number;
+    };
+    variant?: {
+      id: number;
+      name: string;
+    };
+  }>;
 }
 
 interface Combo {
@@ -720,6 +743,65 @@ export default function ComboDetail() {
                 >
                   Mua ngay
                 </button>
+              </div>
+
+              {/* Thêm phần hiển thị sản phẩm trong combo */}
+              <div className="mt-6 border-t pt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Sản phẩm trong Combo</h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  {combo.skus.map((sku, index) => (
+                    <div key={sku.sku_code} className={`flex items-center py-3 ${index !== combo.skus.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                      <div className="relative w-16 h-16 flex-shrink-0 mr-4">
+                        <Image
+                          src={sku.image_url}
+                          alt={sku.product?.name || sku.sku_code}
+                          width={64}
+                          height={64}
+                          className="rounded-md object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium text-gray-900 truncate">{sku.product?.name || `Sản phẩm #${sku.product_id}`}</h4>
+                        <p className="text-xs text-gray-500 mt-1">Mã SKU: {sku.sku_code}</p>
+                        {sku.variant_values && sku.variant_values.length > 0 && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            {sku.variant_values.map((value, i) => (
+                              <span key={value.id}>
+                                {value.variant?.name}: {value.value}
+                                {i < (sku.variant_values?.length || 0) - 1 ? ', ' : ''}
+                              </span>
+                            ))}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right flex-shrink-0 ml-4">
+                        <p className="text-sm font-medium text-pink-600">
+                          {sku.promotion_price > 0 ? sku.promotion_price.toLocaleString() : sku.price.toLocaleString()}đ
+                        </p>
+                        {sku.promotion_price > 0 && (
+                          <p className="text-xs text-gray-500 line-through">{sku.price.toLocaleString()}đ</p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">x{sku.pivot?.quantity || 1}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="mt-3 pt-3 border-t border-gray-200 flex justify-between">
+                    <span className="text-sm font-medium text-gray-700">Tổng giá trị sản phẩm:</span>
+                    <span className="text-base font-bold text-gray-900">{combo.price.toLocaleString()}đ</span>
+                  </div>
+                  {combo.promotion_price > 0 && (
+                    <div className="mt-1 flex justify-between text-pink-600">
+                      <span className="text-sm font-medium">Giá combo khuyến mãi:</span>
+                      <span className="text-base font-bold">{combo.promotion_price.toLocaleString()}đ</span>
+                    </div>
+                  )}
+                  {combo.promotion_price > 0 && (
+                    <div className="mt-1 flex justify-between">
+                      <span className="text-sm font-medium text-gray-700">Tiết kiệm:</span>
+                      <span className="text-base font-bold text-pink-600">{(combo.price - combo.promotion_price).toLocaleString()}đ</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
