@@ -296,9 +296,7 @@ export default function HomePage() {
                 <h2 className="text-3xl font-bold text-white mb-2">Flash Sale Combo</h2>
                 <p className="text-pink-100">Ưu đãi có hạn - Nhanh tay sở hữu ngay!</p>
               </div>
-              <Link href="/combos" className="text-white hover:text-pink-100 font-medium">
-                Xem tất cả
-              </Link>
+              
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {combos.slice(0, 4).map((combo) => (
@@ -336,7 +334,7 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-3xl font-bold text-gray-800">Sản Phẩm Hot</h2>
-          <Link href="/bestsellers" className="text-pink-600 hover:text-pink-700 font-medium">
+          <Link href="/shop" className="text-pink-600 hover:text-pink-700 font-medium">
             Xem tất cả
           </Link>
         </div>
@@ -371,7 +369,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold text-gray-800">Sản phẩm mới</h2>
-            <Link href="/new-products" className="text-pink-600 hover:text-pink-700 font-medium">
+            <Link href="/shop" className="text-pink-600 hover:text-pink-700 font-medium">
               Xem tất cả
             </Link>
           </div>
@@ -422,7 +420,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold text-gray-800">Dành cho bạn</h2>
-            <Link href="/recommended" className="text-pink-600 hover:text-pink-700 font-medium">
+            <Link href="/shop" className="text-pink-600 hover:text-pink-700 font-medium">
               Xem tất cả
             </Link>
           </div>

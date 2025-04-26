@@ -153,10 +153,10 @@ const ReviewPage = () => {
         },
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
+      if (!orderItemResponse.ok) {
+        const errorText = await orderItemResponse.text();
         console.error("Lỗi khi kiểm tra trạng thái đánh giá:", errorText);
-        throw new Error(`Không thể kiểm tra trạng thái đánh giá: ${response.status}`);
+        throw new Error(`Không thể kiểm tra trạng thái đánh giá: ${orderItemResponse.status}`);
       }
 
       const orderItemData = await orderItemResponse.json();
