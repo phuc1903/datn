@@ -31,7 +31,7 @@ export const useProducts = () => {
 
       if (response.ok) {
         const data = await response.json();
-        Cookies.set("accessToken", data.access_token, { expires: 7 });
+        Cookies.set("accessToken", data.access_token);
         return data.access_token;
       }
       return null;

@@ -128,7 +128,7 @@ export default function HomePage() {
 
             if (refreshResponse.ok) {
               const refreshData = await refreshResponse.json();
-              Cookies.set("accessToken", refreshData.access_token, { expires: 7 });
+              Cookies.set("accessToken", refreshData.access_token);
               
               // Thử lại request với token mới
               const retryResponse = await fetch(url, {
