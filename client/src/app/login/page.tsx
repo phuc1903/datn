@@ -99,8 +99,8 @@ export default function LoginPage() {
           confirmButtonColor: "#db2777",
         });
 
-        Cookies.set("accessToken", result.data.token, { expires: 1 });
-        Cookies.set("userData", JSON.stringify(result.data.user), { expires: 1 });
+        Cookies.set("accessToken", result.data.token);
+        Cookies.set("userData", JSON.stringify(result.data.user));
 
         router.push("/profile");
       }

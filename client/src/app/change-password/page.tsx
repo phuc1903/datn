@@ -24,17 +24,30 @@ export default function ChangePasswordPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const userEmail = Cookies.get("userEmail") || null;
-    const userToken = Cookies.get("accessToken") || null;
+    const fetchUserData = () => {
+      const userToken = Cookies.get("accessToken");
+      const userData = Cookies.get("userData");
 
-    if (!userEmail || !userToken) {
-      router.replace("/login");
-      return;
-    }
+      if (!userToken || !userData) {
+        console.log("Missing token or userData, redirecting to login");
+        router.replace("/login");
+        return;
+      }
 
-    setEmail(userEmail);
-    setToken(userToken);
-    setIsLoading(false);
+      try {
+        const parsedUserData = JSON.parse(userData);
+        setEmail(parsedUserData.email);
+        setToken(userToken);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error parsing userData:", error);
+        Cookies.remove("accessToken");
+        Cookies.remove("userData");
+        router.replace("/login");
+      }
+    };
+
+    fetchUserData();
   }, [router]);
 
   if (isLoading) {
@@ -137,14 +150,14 @@ export default function ChangePasswordPage() {
         confirmButtonColor: "#db2777", // pink-600
       });
 
+      // Xóa cả accessToken và userData như các trang khác
       Cookies.remove("accessToken");
-      Cookies.remove("userEmail");
+      Cookies.remove("userData");
       router.push("/login");
     } catch (error) {
       console.error("Lỗi đổi mật khẩu:", error);
       await Swal.fire({
         title: "Lỗi!",
-        // text: error.message || "Đã xảy ra lỗi khi đổi mật khẩu",
         text: (error as any).message || "Đã xảy ra lỗi khi đổi mật khẩu",
         icon: "error",
         confirmButtonColor: "#db2777", // pink-600
