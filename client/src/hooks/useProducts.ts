@@ -80,8 +80,16 @@ export const useProducts = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const productsRes = await fetch(`${API_BASE_URL}/products`);
-        const productsData = await productsRes.json();
+        const [productsRes, favoritesRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/products`),
+          fetch(`${API_BASE_URL}/products/most-favorites`)
+        ]);
+
+        const [productsData, favoritesData] = await Promise.all([
+          productsRes.json(),
+          favoritesRes.json()
+        ]);
+
         const filteredProducts = productsData.data?.filter((product: Product) => product.status !== "out_of_stock") || [];
         
         setInStockProducts(filteredProducts);
@@ -93,9 +101,6 @@ export const useProducts = () => {
         setHotProducts(getRandomItems(filteredProducts.filter((p: Product) => p.is_hot), 4));
         setNewProducts(getRandomItems(sortedProducts, 10));
         setRecommended(getRandomItems(filteredProducts, 10));
-
-        const favoritesRes = await fetch(`${API_BASE_URL}/products/most-favorites`);
-        const favoritesData = await favoritesRes.json();
         setFavoriteProducts(getRandomItems(favoritesData.data || [], 10));
 
         const token = Cookies.get("accessToken");

@@ -17,6 +17,7 @@ import ProductCard from "@/components/home/ProductCard";
 import HotProductCard from "@/components/home/HotProductCard";
 import { useProducts } from "@/hooks/useProducts";
 import ComboCard from "@/components/home/ComboCard";
+import { useCategoriesAndBlogs } from "@/hooks/useCategoriesAndBlogs";
 
 interface Combo {
   id: number;
@@ -38,12 +39,13 @@ export default function HomePage() {
     favoriteProducts,
     loading,
     userFavorites,
-    setUserFavorites
-  } = useProducts();
-
-  const [combos, setCombos] = useState<Combo[]>([]);
-  const [comingSoonCombos, setComingSoonCombos] = useState<Combo[]>([]);
-  const [loadingCombos, setLoadingCombos] = useState(true);
+    setUserFavorites,
+    combos,
+    comingSoonCombos,
+    loadingCombos,
+    categories,
+    blogs
+  } = useCategoriesAndBlogs();
 
   const [showVariantPopup, setShowVariantPopup] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -64,32 +66,82 @@ export default function HomePage() {
     },
   });
 
-  useEffect(() => {
-    const fetchCombos = async () => {
-      try {
-        const [nearlyEndResponse, nearlyStartResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/combos/nearly-end`),
-          fetch(`${API_BASE_URL}/combos/nearly-start`)
-        ]);
+  const variantOptions = (product: Product) => {
+    const options: Record<string, Set<string>> = {};
+    product?.skus.forEach((sku) => {
+      sku.variant_values.forEach((variant) => {
+        if (!options[variant.variant.name]) options[variant.variant.name] = new Set();
+        options[variant.variant.name].add(variant.value);
+      });
+    });
+    return options;
+  };
 
-        const nearlyEndData = await nearlyEndResponse.json();
-        const nearlyStartData = await nearlyStartResponse.json();
+  const handleVariantChange = (e: React.MouseEvent<HTMLButtonElement>, variantName: string, value: string) => {
+    e.stopPropagation();
+    const newSelectedVariants = { ...selectedVariants, [variantName]: value };
+    setSelectedVariants(newSelectedVariants);
 
-        if (nearlyEndData.status === "success") {
-          setCombos(nearlyEndData.data);
-        }
-        if (nearlyStartData.status === "success") {
-          setComingSoonCombos(nearlyStartData.data);
-        }
-      } catch (error) {
-        console.error("Error fetching combos:", error);
-      } finally {
-        setLoadingCombos(false);
-      }
+    const matchedSku = selectedProduct?.skus.find((sku) =>
+      sku.variant_values.every(
+        (variant) => newSelectedVariants[variant.variant.name] === variant.value || !newSelectedVariants[variant.variant.name]
+      )
+    );
+    if (matchedSku) setSelectedSku(matchedSku);
+    setQuantity(1);
+  };
+
+  const handleAction = (product: Product, type: "addToCart" | "buyNow", e?: React.MouseEvent): void => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setSelectedProduct(product);
+    setSelectedSku(product.skus ? product.skus[0] : null);
+    setSelectedVariants({});
+    setQuantity(1);
+    setActionType(type);
+    setShowVariantPopup(true);
+  };
+
+  const handleConfirmAction = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (!selectedSku || !selectedProduct) return;
+
+    const cartItem: CartItem = {
+      sku_id: selectedSku.id,
+      name: selectedProduct.name,
+      image_url: selectedSku.image_url || selectedProduct.image_url,
+      price: selectedSku.promotion_price > 0 ? selectedSku.promotion_price : selectedSku.price,
+      quantity: quantity,
+      variants: selectedSku?.variant_values?.map((variant) => ({
+        name: variant.variant.name,
+        value: variant.value,
+      })) || [],
     };
 
-    fetchCombos();
-  }, []);
+    if (actionType === "addToCart") {
+      const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+      const existingItem = storedCart.find((item: CartItem) => item.sku_id === selectedSku.id);
+      let updatedCart;
+
+      if (existingItem) {
+        updatedCart = storedCart.map((item: CartItem) =>
+          item.sku_id === selectedSku.id
+            ? { ...item, quantity: Math.min(item.quantity + quantity, selectedSku.quantity) }
+            : item
+        );
+      } else {
+        updatedCart = [...storedCart, cartItem];
+      }
+
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+    } else if (actionType === "buyNow") {
+      console.log("Buy Now:", cartItem);
+    }
+
+    setShowVariantPopup(false);
+  };
 
   const handleToggleFavorite = async (productId: string): Promise<void> => {
     const token = Cookies.get("accessToken");
@@ -190,83 +242,6 @@ export default function HomePage() {
     }
   };
 
-  const variantOptions = (product: Product) => {
-    const options: Record<string, Set<string>> = {};
-    product?.skus.forEach((sku) => {
-      sku.variant_values.forEach((variant) => {
-        if (!options[variant.variant.name]) options[variant.variant.name] = new Set();
-        options[variant.variant.name].add(variant.value);
-      });
-    });
-    return options;
-  };
-
-  const handleVariantChange = (e: React.MouseEvent<HTMLButtonElement>, variantName: string, value: string) => {
-    e.stopPropagation();
-    const newSelectedVariants = { ...selectedVariants, [variantName]: value };
-    setSelectedVariants(newSelectedVariants);
-
-    const matchedSku = selectedProduct?.skus.find((sku) =>
-      sku.variant_values.every(
-        (variant) => newSelectedVariants[variant.variant.name] === variant.value || !newSelectedVariants[variant.variant.name]
-      )
-    );
-    if (matchedSku) setSelectedSku(matchedSku);
-    setQuantity(1);
-  };
-
-  const handleAction = (product: Product, type: "addToCart" | "buyNow", e?: React.MouseEvent): void => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    setSelectedProduct(product);
-    setSelectedSku(product.skus ? product.skus[0] : null);
-    setSelectedVariants({});
-    setQuantity(1);
-    setActionType(type);
-    setShowVariantPopup(true);
-  };
-
-  const handleConfirmAction = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    if (!selectedSku || !selectedProduct) return;
-
-    const cartItem: CartItem = {
-      sku_id: selectedSku.id,
-      name: selectedProduct.name,
-      image_url: selectedSku.image_url || selectedProduct.image_url,
-      price: selectedSku.promotion_price > 0 ? selectedSku.promotion_price : selectedSku.price,
-      quantity: quantity,
-      variants: selectedSku?.variant_values?.map((variant) => ({
-        name: variant.variant.name,
-        value: variant.value,
-      })) || [],
-    };
-
-    if (actionType === "addToCart") {
-      const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-      const existingItem = storedCart.find((item: CartItem) => item.sku_id === selectedSku.id);
-      let updatedCart;
-
-      if (existingItem) {
-        updatedCart = storedCart.map((item: CartItem) =>
-          item.sku_id === selectedSku.id
-            ? { ...item, quantity: Math.min(item.quantity + quantity, selectedSku.quantity) }
-            : item
-        );
-      } else {
-        updatedCart = [...storedCart, cartItem];
-      }
-
-      localStorage.setItem("cart", JSON.stringify(updatedCart));
-    } else if (actionType === "buyNow") {
-      console.log("Buy Now:", cartItem);
-    }
-
-    setShowVariantPopup(false);
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -296,7 +271,6 @@ export default function HomePage() {
                 <h2 className="text-3xl font-bold text-white mb-2">Flash Sale Combo</h2>
                 <p className="text-pink-100">Ưu đãi có hạn - Nhanh tay sở hữu ngay!</p>
               </div>
-              
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {combos.slice(0, 4).map((combo) => (
