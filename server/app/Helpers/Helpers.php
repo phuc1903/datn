@@ -1,5 +1,8 @@
 <?php
 
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+
 if (!function_exists('ResponseError')) {
     function ResponseError($message, $errors = null, $httpCode = 400)
     {
@@ -89,9 +92,52 @@ if (!function_exists('hasCompleteMailConfig')) {
     }
 }
 
-if(!function_exists('checkDataUpdate')) {
-    function checkDataUpdate(array $newData, array $oldData) {
+if (!function_exists('checkDataUpdate')) {
+    function checkDataUpdate(array $newData, array $oldData)
+    {
         $check = empty(array_diff_assoc($newData, $oldData));
         return $check;
+    }
+}
+
+if (!function_exists('deleteImage')) {
+    function deleteImage($image = null)
+    {
+        if (!$image) {
+            return false;
+        }
+
+        $checkImageStorage = Str::contains($image, asset(''));
+
+        $imagePath = $checkImageStorage ? str_replace(asset(''), '', $image) : $image;
+
+        if (Str::contains($imagePath, 'storage/')) {
+            $imagePath = str_replace('storage/', '', $imagePath);
+        }
+
+        if (Storage::disk('public')->exists($imagePath)) {
+            Storage::disk('public')->delete($imagePath);
+            return true;
+        }
+
+        return false;
+    }
+}
+
+
+if (!function_exists('putImage')) {
+    function putImage($folder, $image)
+    {
+        $imagePath = Storage::disk('public')->put($folder, $image);
+
+        return 'storage/' . $imagePath;
+    }
+}
+
+if (!function_exists('isJson')) {
+    function isJson($string)
+    {
+        json_decode($string);
+        return (json_last_error() === JSON_ERROR_NONE && is_array(json_decode($string, true)));
     }
 }

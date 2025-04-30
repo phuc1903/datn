@@ -32,12 +32,11 @@ class VariantController extends Controller
      */
     public function store(VariantRequest $request)
     {
-        // dd($request);
         try {
             $variant = Variant::create(['name' => $request->name]);
-    
-            if($request->has('variants') && is_array($request->variants)) {
-                foreach($request->variants as $value) {
+
+            if ($request->has('variants') && is_array($request->variants)) {
+                foreach ($request->variants as $value) {
                     VariantValue::create([
                         'variant_id' => $variant->id,
                         'value' => $value['value'] ?? null,
@@ -45,7 +44,7 @@ class VariantController extends Controller
                 };
             };
             return redirect()->route('admin.variant.index')->with('success', 'Thêm thuộc tính thành công');
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
@@ -55,7 +54,8 @@ class VariantController extends Controller
      */
     public function show(Variant $variant)
     {
-        //
+        $variant->load('values');
+        return response()->json(['type' => 'success', 'values' => $variant->values]);
     }
 
     /**
@@ -63,16 +63,37 @@ class VariantController extends Controller
      */
     public function edit(Variant $variant)
     {
-        //
+        $variant->load('values');
+        // dd($variant);
+        return view('Pages.Product.Variant.Edit', compact('variant'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Variant $variant)
+    public function update(VariantRequest $request, Variant $variant)
     {
-        //
+        try {
+
+            $variant->update(['name' => $request->name]);
+
+            if ($request->has('variants') && is_array($request->variants)) {
+                VariantValue::where('variant_id', $variant->id)->delete();
+
+                foreach ($request->variants as $value) {
+                    VariantValue::create([
+                        'variant_id' => $variant->id,
+                        'value' => $value['value'] ?? null,
+                    ]);
+                }
+            }
+
+            return redirect()->back()->with('success', 'Cập nhật thuộc tính thành công');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -87,7 +108,7 @@ class VariantController extends Controller
             }
 
             return redirect()->route('admin.variant.index')->with('success', 'Xóa biến thể thành công');
-        }catch(\Exception $e) {
+        } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }

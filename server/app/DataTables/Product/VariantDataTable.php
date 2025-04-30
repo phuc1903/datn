@@ -17,21 +17,11 @@ class VariantDataTable extends BaseDataTable
     protected string $routeName = 'variant';
     protected string $tableId = 'variant-table';
 
-    /**
-     * Get the query source of dataTable.
-     */
-    // public function query(): QueryBuilder
-    // {
-    //     return Variant::query()
-    //     ->leftJoin('variant_value', 'variants.id', '=', 'variant_value.variant_id')
-    //     ->select('variants.name', 'variants.created_at', 'variants.updated_at', 'variant_value.value')
-    //     ->groupBy('variant.name', 'variant.created_at', 'variant.updated_at', 'variant_value.value')
-    //     ;
-    // }
+
     public function query(): QueryBuilder
     {
         return Variant::query()
-            ->with('values') // Eager Load các giá trị liên quan
+            ->with('values')
             ->select('variants.id', 'variants.name', 'variants.created_at', 'variants.updated_at');
     }
 
@@ -42,7 +32,6 @@ class VariantDataTable extends BaseDataTable
     protected function extraColumns(): array
     {
         return [
-            // Column::make('avatar')->title('Ảnh đại diện')->orderable(false)->searchable(false),
             Column::make('name')->title('Tên thuộc tính')->width(200),
             Column::computed('values')->title('Các biến thể')
         ];

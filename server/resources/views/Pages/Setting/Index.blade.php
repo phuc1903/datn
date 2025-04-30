@@ -1,35 +1,25 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="row setting">
-        <div class="col-8">
-            <div class="card">
-                <div class="card-header">
-                    Thương hiệu
-                </div>
-                <div class="card-body">
-                    <div class="d-flex gap-3">
-                        <form action="">
+    <h1 class="mb-5 text-dark-custom">Cài đặt chung</h1>
 
-                            <x-form.input_text label="Tên website"/>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-4">
-            <div class="card">
-                <div class="card-header">
-                    Logo 
-                </div>
-                <div class="card-body">
-                    <div class="d-flex flex-column gap-3 justify-content-center">
-                        <x-image.index alt="test" class="avatar-setting mx-auto"/>
-                        <input type="file" id="image-upload" name="image-upload" hidden>
-                        <x-button.index label="Tải logo" class="mx-auto" id="upload-image" />
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="mb-5 tab-dashboard">
+        <ul class="nav nav-tabs" id="tabDashboard" role="tablist">
+            <x-tab.nav_item label="Cài đặt chung" id="settingGeneral" active />
+            <x-tab.nav_item label="Cài đặt logo" id="logo" />
+            <x-tab.nav_item label="Cài đặt Footer" id="footer" />
+            <x-tab.nav_item label="Cài đặt Về chúng tôi" id="about" />
+            <x-tab.nav_item label="Cài đặt Liên hệ" id="contact" />
+        </ul>
+
+        <div class="tab-content mt-5" id="tabDashboardContent">
+            @include('Pages.Setting.tab_content.General', ['id' => 'settingGeneral'])
+            @include('Pages.Setting.tab_content.Logo', ['id' => 'logo'])
+            @include('Pages.Setting.tab_content.Footer', ['id' => 'footer'])
+            @include('Pages.Setting.tab_content.About', ['id' => 'about'])
+            @include('Pages.Setting.tab_content.Contact', ['id' => 'contact'])
+        </div>,
     </div>
+
 @endsection
+

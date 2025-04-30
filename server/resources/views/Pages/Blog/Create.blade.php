@@ -10,8 +10,8 @@
                         <h3 class="title">Thêm bài viết</h3>
                     </div>
                     <div class="card-body">
-                        <x-form.input_text label="Tiêu đề bài viết" name="title" />
-                        <x-form.input_text label="Slug" name="slug" />
+                        <x-form.input_text label="Tiêu đề bài viết" name="title" id="name" />
+                        <x-form.input_text label="Slug" name="slug" id="slug" />
                         <div class="form-floating mb-3">
                             <textarea class="form-control input-text-custom @error('short_description') is-invalid @enderror"
                                 name="short_description" placeholder="Leave a comment here"
@@ -29,6 +29,19 @@
                                     {{ $message }}
                                 </div>
                             @enderror
+                    </div>
+                </div>
+                <div class="card card-custom mb-3">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between">
+                            <h3 class="title">Chọn sản phẩm gắn vào bài viết</h3>
+                            <x-button.index label="Thêm sản phẩm" data-bs-toggle="modal" data-bs-target="#choseProducts" />
+                            @include('Pages.Blog.Modal.Product', ['products' => $products])
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="product-list">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -103,3 +116,4 @@
         });
     </script>
 @endpush
+

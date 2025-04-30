@@ -6,10 +6,12 @@ use App\DataTables\Order\OrderDataTable;
 use App\Enums\Order\OrderPaymentMethod;
 use App\Enums\Order\OrderStatus;
 use App\Http\Controllers\Controller;
-use App\Models\order;
-use App\Models\OrderItem;
-use App\Models\Product;
-use App\Models\User;
+use App\Http\Requests\Admin\Order\OrderRequest;
+use App\Jobs\SendChangeStatusOrderJob;
+use App\Models\District;
+use App\Models\Order;
+use App\Models\Province;
+use App\Models\Ward;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -19,7 +21,10 @@ class OrderController extends Controller
      */
     public function index(OrderDataTable $dataTables)
     {
-        return $dataTables->render('Pages.Order.Index');
+        $provinces = Province::all();
+        $districts = District::all();
+        $wards = Ward::all();
+        return $dataTables->render('Pages.Order.Index', compact('provinces', 'districts', 'wards'));
     }
 
     /**
@@ -28,27 +33,7 @@ class OrderController extends Controller
     public function create()
     {
 
-        $users = User::all();
-        $products = Product::with('skus', 'skus.variantValues.variant', 'skus.variantValues.variant')->paginate(7);
-
-        // dd($products);
-
-        $status = collect(OrderStatus::getValues())
-            ->map(fn($value) => [
-                'label' => OrderStatus::fromValue($value)->label(),
-                'value' => $value,
-            ])
-            ->values()
-            ->toArray();
-        $paymentMethod = collect(OrderPaymentMethod::getValues())
-            ->map(fn($value) => [
-                'label' => OrderPaymentMethod::fromValue($value)->label(),
-                'value' => $value,
-            ])
-            ->values()
-            ->toArray();
-
-        return view('Pages.Order.Create', ['users' => $users, 'status' => $status, 'paymentMethod' => $paymentMethod, 'products' => $products]);
+        return redirect()->back()->with('error', 'Bạn không thể tạo đơn hàng');
     }
 
     /**
@@ -56,7 +41,7 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        return redirect()->back()->with('error', 'Bạn không thể tạo đơn hàng');
     }
 
     /**
@@ -72,15 +57,37 @@ class OrderController extends Controller
      */
     public function edit(order $order)
     {
-        $orderShow = $order->load('user', 'items', 'items.product');
+        $orderShow = $order->load('user', 'items', 'items.sku', 'items.sku.product', 'items.sku.variantValues');
+        // dd($orderShow);
 
         $orderStatus = OrderStatus::fromValue($orderShow->status);
         $orderPayment = OrderPaymentMethod::fromValue($orderShow->payment_method);
+        $checkStastus = $order->status === OrderStatus::Cancel;
+        $checkStatusSuccess = $order->status === OrderStatus::Success;
 
         // dd($orderStatus->value);
 
         $statusList = collect(OrderStatus::getValues())
-            ->filter(fn($status) => $status !== $orderStatus->value)
+        ->filter(function ($status) use ($orderStatus) {
+            if ($orderStatus->value === OrderStatus::Waiting) {
+                return $status === OrderStatus::Cancel;
+            }
+            if ($orderStatus->value === OrderStatus::Pending) {
+                return in_array($status, [OrderStatus::Shipped, OrderStatus::Cancel]);
+            }
+            if ($orderStatus->value === OrderStatus::Shipped) {
+                return in_array($status, [OrderStatus::Success, OrderStatus::Cancel]);
+            }
+            if ($orderStatus->value === OrderStatus::Success) {
+                return false;
+            }
+
+            if($orderStatus->value === OrderStatus::Cancel){
+                return false;
+            }
+
+            return $status !== $orderStatus->value;
+            })
             ->map(fn($value) => [
                 'label' => OrderStatus::fromValue($value)->label(),
                 'value' => $value,
@@ -98,7 +105,6 @@ class OrderController extends Controller
             ->values()
             ->toArray();
 
-        // dd($paymentList);
 
         return view('Pages.Order.Edit', [
             'order' => $orderShow,
@@ -108,6 +114,8 @@ class OrderController extends Controller
             'paymentActive' => $orderPayment->label(),
             'statusActiveValue' => $orderStatus->value,
             'paymentActiveValue' => $orderPayment->value,
+            'checkStatus' => $checkStastus,
+            'checkStatusSuccess' => $checkStatusSuccess
         ]);
     }
 
@@ -115,30 +123,51 @@ class OrderController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, order $order)
+    public function update(OrderRequest $request, Order $order)
     {
-        // $paymentMethod = OrderPaymentMethod::fromValue($request->payment_method) ?? OrderPaymentMethod::fromLabel($request->payment_method);;
-        $status = OrderStatus::fromValue($request->status) ?? OrderStatus::fromLabel($request->status);
+        try {
+            
+            $newStatus = OrderStatus::fromValue($request->status);
 
-        $order->update([
-            // "reason" => $request->reason,
-            // "full_name" => $request->full_name,
-            // "email" => $request->email,
-            // "phone_number" => $request->phone_number,
-            // "address" => $request->address,
-            "status" => $status,
-            // "payment_method" => $paymentMethod,
-        ]);
+            if (!$newStatus) {
+                return redirect()->back()->with('error', 'Trạng thái không hợp lệ.');
+            }
 
-        return redirect()->back()->with('success', 'Cập nhật trạng thái thành công');
-    }
+            if($order->status === OrderStatus::Success && $request->status === OrderStatus::Cancel) {
+                return redirect()->back()->with('error', 'Đơn đã thành công không thể hủy');
+            }
 
-    public function destroyProductItem(OrderItem $orderItem)
-    {
-        dd('Xóa sản phẩm');
-        // $orderItem->delete();
+            if ($request->has('status') && $request->status === OrderStatus::Cancel) {
+                if ($order->status === OrderStatus::Success) {
+                    return redirect()->back()->with('error', 'Đơn đã hoàn thành! Không thể hủy đơn.');
+                }
 
-        // return redirect()->back()->with('success', 'Xóa sản phẩm thành công');
+                if (!$request->has('reason') || empty($request->reason)) {
+                    return redirect()->back()->with('error', 'Vui lòng nhập lý do hủy.');
+                }
+            }
+
+            $currentStatus = OrderStatus::fromValue($order->status);
+
+            if (!$currentStatus->canTransitionTo($newStatus)) {
+                return redirect()->back()->with('error', 'Không thể chuyển trạng thái này.');
+            }
+
+            $order->update([
+                "status" => $newStatus,
+                "reason" => $request->reason,
+            ]);
+
+            $reason = $request->status === OrderStatus::Cancel ? $request->reason : null;
+
+            $orderSendMail = $order->load('items', 'voucher');
+
+            dispatch(new SendChangeStatusOrderJob(['order' => $orderSendMail, 'status' => $newStatus->label(), 'reason' => $reason] ));
+
+            return redirect()->back()->with('success', 'Cập nhật trạng thái thành công.');
+        }catch(\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -146,6 +175,6 @@ class OrderController extends Controller
      */
     public function destroy(order $order)
     {
-        return redirect()->route('admin.order.index')->with('info', 'Không thể xóa đơn hàng');
+        return redirect()->back()->with('error', 'Bạn không được phép xóa đơn hàng');
     }
 }

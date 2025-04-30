@@ -26,6 +26,7 @@ return new class extends Migration
             $table->enum('status', UserStatus::getValues())->default(UserStatus::Active);
             $table->enum('sex', UserSex::getValues())->default(UserSex::Other);
             $table->rememberToken();
+            $table->string('google_id')->nullable();
             $table->timestamps();
         });
     }

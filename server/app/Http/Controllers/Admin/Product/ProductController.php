@@ -5,16 +5,20 @@ namespace App\Http\Controllers\Admin\Product;
 use App\Enums\Product\ProductStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ProductCategory;
+use App\Models\ProductImage;
+use App\Models\ProductTag;
 use Illuminate\Http\Request;
 use App\DataTables\Product\ProductDataTable;
 use App\Http\Requests\Admin\Product\ProductRequest;
 use App\Models\Category;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\Variant;
 use App\Models\Product;
 use App\Models\Sku;
 use App\Models\SkuVariant;
+use App\Models\Tag;
 
 class ProductController extends Controller
 {
@@ -37,19 +41,20 @@ class ProductController extends Controller
 
         $categories = Category::all();
 
+        $tags = Tag::all();
+
         $categoryTree = flattenCategories($categories);
 
         // dd($variants);
 
-        return view('Pages.Product.Create', ['productStatus' => $productStatusData, 'variants' => $variants, 'categories' => $categoryTree]);
+        return view('Pages.Product.Create', ['productStatus' => $productStatusData, 'variants' => $variants, 'categories' => $categoryTree, 'tags' => $tags]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
-        // dd($request);
         try {
             \DB::beginTransaction();
 
@@ -63,9 +68,27 @@ class ProductController extends Controller
                 'slug' => $request->slug ? Str::slug($request->slug) : Str::slug($request->name),
             ]);
 
+            if ($request->hasFile('thumbnails')) {
+                foreach ($request->file('thumbnails') as $thumbnail) {
+                    $imagePath = putImage('product_images/thumbnail', $thumbnail);
+
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'image_url' => $imagePath,
+                    ]);
+                }
+            }
+
+
             if (isset($request->categories)) {
                 foreach ($request->categories as $cate) {
                     ProductCategory::insert(['product_id' => $product->id, 'category_id' => $cate]);
+                }
+            }
+
+            if (isset($request->tags)) {
+                foreach ($request->tags as $tag) {
+                    ProductTag::insert(['product_id' => $product->id, 'tag_id' => $tag]);
                 }
             }
 
@@ -88,7 +111,29 @@ class ProductController extends Controller
                             ]);
                         }
                     }
+
+                    if (isset($requst->statusWarehouse)) {
+                        $product->update([
+                            'status' => $request->statusWarehouse,
+                        ]);
+                    }
                 }
+            } else {
+                $skuData = [
+                    'product_id' => $product->id,
+                    'sku_code' => "SKU-" . strtoupper(Str::random(8)) . $product->id,
+                    'price' => $request->price,
+                    'promotion_price' => $request->promotion_price,
+                    'quantity' => $request->quantity_default,
+                ];
+
+                if ($request->hasFile('image_url')) {
+                    $skuData['image_url'] = putImage('product_images', $request->image_url);
+                } else {
+                    $skuData['image_url'] = config('settings.image_default');
+                }
+
+                Sku::create($skuData);
             }
 
             \DB::commit();
@@ -98,8 +143,6 @@ class ProductController extends Controller
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
-
-
 
     /**
      * Hàm hỗ trợ upload hình ảnh
@@ -117,9 +160,45 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
+    public function statistic()
     {
-        //
+        $maxQuantity = Cache::remember('max_quantity', 300, fn() => Sku::max('quantity'));
+
+        $maxOrders = Cache::remember('max_orders', 300, function () {
+            return Sku::withCount('orderItems')->orderByDesc('order_items_count')->value('order_items_count');
+        });
+
+        $maxFavorites = Cache::remember('max_favorites', 300, function () {
+            return Sku::with('product.favorites')->get()->max(function ($sku) {
+                return $sku->product->favorites->count();
+            });
+        });
+
+        $skus = Sku::with('product', 'variantValues','product.favorites')->withCount(['orderItems'])->paginate(8);
+
+        $skus->getCollection()->transform(function ($sku) use ($maxQuantity, $maxOrders, $maxFavorites) {
+            $sku->percentQuantity = $maxQuantity > 0 ? round(($sku->quantity / $maxQuantity) * 100, 2) : 0;
+            
+            $sku->percentFavorites = $maxFavorites > 0 ? round(($sku->product->favorites->count() / $maxFavorites) * 100, 2) : 0;
+            
+            $sku->percentOrders = $maxOrders > 0 ? round(($sku->order_items_count / $maxOrders) * 100, 2) : 0;
+
+            return $sku;
+        });
+
+        // dd($skus);
+
+        return view('Pages.Product.Statistic.Index', compact('skus'));
+    }
+
+
+    public function refreshCache()
+    {
+        Cache::forget('max_quantity');
+        Cache::forget('max_orders');
+        Cache::forget('max_favorites');
+
+        return redirect()->route('admin.product.statistic')->with('success', 'Làm mới thống kê thành công');
     }
 
     /**
@@ -130,8 +209,11 @@ class ProductController extends Controller
         $productStatus = ProductStatus::fromValue($product->status);
         $sta = [
             'value' => $productStatus->value,
-            'label' =>  $productStatus->label()
+            'label' => $productStatus->label()
         ];
+
+        $product->load('tags', 'images', 'skus.variantValues')->get();
+        // dd($product);
 
         $status = mapEnumToArray(ProductStatus::class, $product->status);
 
@@ -140,15 +222,41 @@ class ProductController extends Controller
         // dd($productStatus);
         $categories = Category::all();
 
-        return view('Pages.Product.Edit', compact('product', 'variants', 'skus', 'categories', 'status', 'sta'));
+        $tags = Tag::all();
+
+        return view('Pages.Product.Edit', compact('product', 'variants', 'skus', 'categories', 'status', 'sta', 'tags'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
+    public function update(ProductRequest $request, Product $product)
     {
         try {
+            $productImageIds = $product->images->pluck('id')->toArray();
+
+            $deletedImages = array_diff($productImageIds, $request->old_thumbnails);
+
+            if (!empty($deletedImages)) {
+                $imagesToDelete = $product->images->whereIn('id', $deletedImages);
+
+                foreach ($imagesToDelete as $image) {
+                    deleteImage($image->image_url);
+                    $image->delete();
+                }
+            }
+
+            if ($request->hasFile('thumbnails')) {
+                foreach ($request->file('thumbnails') as $thumbnail) {
+                    $imagePath = putImage('product_images/thumbnail', $thumbnail);
+
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'image_url' => $imagePath,
+                    ]);
+                }
+            }
+
             \DB::beginTransaction();
 
             $product->update([
@@ -171,6 +279,16 @@ class ProductController extends Controller
                 }
             }
 
+            if ($request->has('tags')) {
+                ProductTag::where('product_id', $product->id)->delete();
+                foreach ($request->tags as $tag) {
+                    ProductTag::create([
+                        'product_id' => $product->id,
+                        'tag_id' => $tag
+                    ]);
+                }
+            }
+
             $existingSkus = $product->skus->pluck('id')->toArray();
             $newSkus = [];
 
@@ -179,8 +297,9 @@ class ProductController extends Controller
                     $sku = Sku::where('product_id', $product->id)
                         ->whereHas('skuVariants', function ($query) use ($variantData) {
                             $query->whereIn('variant_value_id', $variantData['variant_values'] ?? []);
-                        })
+                        }, '=', count($variantData['variant_values'] ?? []))
                         ->first();
+
 
                     if (!$sku) {
                         $sku = Sku::create([
@@ -198,7 +317,7 @@ class ProductController extends Controller
                             'quantity' => $variantData['quantity'] ?? 0,
                             'image_url' => $request->hasFile("variants.$key.image")
                                 ? $this->uploadImage($request, "variants.$key.image", $sku->image_url)
-                                : $sku->image_url, 
+                                : $sku->image_url,
                         ]);
                     }
 
@@ -215,13 +334,55 @@ class ProductController extends Controller
                         }
                     }
                 }
+            } else {
+                $sku = $product->skus->first();
+
+                if ($sku) {
+                    $skuData = [
+                        'price' => $request->price ?? 0,
+                        'promotion_price' => $request->promotion_price ?? 0,
+                        'quantity' => $request->quantity_default ?? 0,
+                    ];
+
+                    if ($request->hasFile('image_url')) {
+                        if ($sku->image_url)
+                            deleteImage($sku->image_url);
+                        $skuData['image_url'] = putImage('product_images', $request->image_url);
+                    } else {
+                        $skuData['image_url'] = $sku->image_url ?? config('settings.image_default');
+                    }
+
+                    $sku->update($skuData);
+                    $newSkus[] = $sku->id;
+                } else {
+                    $sku = Sku::create([
+                        'product_id' => $product->id,
+                        'sku_code' => "SKU-" . strtoupper(Str::random(8)) . $product->id,
+                        'price' => $request->price ?? 0,
+                        'promotion_price' => $request->promotion_price ?? 0,
+                        'quantity' => $request->quantity_default ?? 0,
+                        'image_url' => $request->hasFile('image_url')
+                            ? putImage('product_images', $request->image_url)
+                            : config('settings.image_default'),
+                    ]);
+
+                    $newSkus[] = $sku->id;
+                }
             }
 
             $skusToDelete = array_diff($existingSkus, $newSkus);
-            Sku::whereIn('id', $skusToDelete)->delete();
+            if (!empty($skusToDelete)) {
+                $skusToDeleteInstances = Sku::whereIn('id', $skusToDelete)->get();
+                foreach ($skusToDeleteInstances as $skuToDelete) {
+                    if ($skuToDelete->image_url)
+                        deleteImage($skuToDelete->image_url);
+                    $skuToDelete->delete();
+                }
+            }
+
 
             \DB::commit();
-            return redirect()->route('admin.product.index')->with('success', 'Sản phẩm đã được cập nhật thành công!');
+            return redirect()->back()->with('success', 'Sản phẩm đã được cập nhật thành công!');
         } catch (\Exception $e) {
             \DB::rollBack();
             return redirect()->back()->with('error', $e->getMessage());
@@ -274,4 +435,5 @@ class ProductController extends Controller
 
         return $flattened;
     }
+
 }

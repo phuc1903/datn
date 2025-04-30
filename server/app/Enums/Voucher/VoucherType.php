@@ -30,4 +30,21 @@ final class VoucherType extends Enum
             default => "<span class='badge text-bg-info text-white'>Không xác định</span>",
         };
     }
+
+    public static function getKeyValuePairs(): array
+    {
+        return [
+            self::Percent => self::getLabel(self::Percent),
+            self::Price => self::getLabel(self::Price),
+        ];
+    }
+
+    public static function getLabel(string $value): string
+    {
+        return match ($value) {
+            self::Percent => 'Theo phần trăm',
+            self::Price => 'Theo tiền cụ thể',
+            default => 'Không xác định',
+        };
+    }
 }

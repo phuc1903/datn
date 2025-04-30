@@ -13,6 +13,8 @@ class Voucher extends Model
     protected $guarded = [];
 
     protected $casts = [
+        'started_at' => 'datetime',
+        'ended_at' => 'datetime',
         'random_flag' => 'boolean',
         'voucher_status' => VoucherStatus::class,
         'voucher_type' => VoucherType::class,
@@ -22,9 +24,8 @@ class Voucher extends Model
     {
         return $this->belongsToMany(User::class, 'user_vouchers');
     }
-
-    public function productVoucher()
+    public function orders()
     {
-        return $this->hasMany(ProductVoucher::class, 'voucher_id');
+        return $this->hasMany(Order::class, 'voucher_id');
     }
 }

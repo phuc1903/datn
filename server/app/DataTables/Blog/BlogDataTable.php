@@ -30,10 +30,10 @@ class BlogDataTable extends BaseDataTable
     public function extraColumns(): array
     {
         return [
-            Column::make('image_url')->title('Ảnh')->orderable(false)->searchable(false),
+            Column::make('image_url')->title('Ảnh')->orderable(false)->searchable(false)->addClass("no-search"),
             Column::make('title')->title('Tiêu đề'),
             Column::make('short_description')->title('Mô tả ngắn'),
-            Column::make('status')->title('Trạng thái'),
+            Column::make('status')->title('Trạng thái')->addClass("no-search"),
         ];
     }
 

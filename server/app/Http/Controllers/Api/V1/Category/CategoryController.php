@@ -21,7 +21,7 @@ class CategoryController extends Controller
     public function index(){
         try {
             // Lấy tất cả các danh mục cùng với danh mục con của chúng
-            $categories = $this->category->select('id', 'name', 'short_description', 'parent_id', 'slug')->get();
+            $categories = $this->category->select('id', 'name', 'short_description', 'parent_id', 'slug', 'image')->get();
             if ($categories) {
                 return ResponseSuccess('Get Categories successfully',$categories,200);
             } else {

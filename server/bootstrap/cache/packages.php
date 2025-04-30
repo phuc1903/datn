@@ -1,9 +1,32 @@
 <?php return array (
+  'barryvdh/laravel-snappy' => 
+  array (
+    'aliases' => 
+    array (
+      'PDF' => 'Barryvdh\\Snappy\\Facades\\SnappyPdf',
+      'SnappyImage' => 'Barryvdh\\Snappy\\Facades\\SnappyImage',
+    ),
+    'providers' => 
+    array (
+      0 => 'Barryvdh\\Snappy\\ServiceProvider',
+    ),
+  ),
   'bensampo/laravel-enum' => 
   array (
     'providers' => 
     array (
       0 => 'BenSampo\\Enum\\EnumServiceProvider',
+    ),
+  ),
+  'diglactic/laravel-breadcrumbs' => 
+  array (
+    'aliases' => 
+    array (
+      'Breadcrumbs' => 'Diglactic\\Breadcrumbs\\Breadcrumbs',
+    ),
+    'providers' => 
+    array (
+      0 => 'Diglactic\\Breadcrumbs\\ServiceProvider',
     ),
   ),
   'laravel/sail' => 
@@ -18,6 +41,17 @@
     'providers' => 
     array (
       0 => 'Laravel\\Sanctum\\SanctumServiceProvider',
+    ),
+  ),
+  'laravel/socialite' => 
+  array (
+    'aliases' => 
+    array (
+      'Socialite' => 'Laravel\\Socialite\\Facades\\Socialite',
+    ),
+    'providers' => 
+    array (
+      0 => 'Laravel\\Socialite\\SocialiteServiceProvider',
     ),
   ),
   'laravel/tinker' => 
@@ -43,6 +77,17 @@
     'providers' => 
     array (
       0 => 'Livewire\\LivewireServiceProvider',
+    ),
+  ),
+  'maatwebsite/excel' => 
+  array (
+    'aliases' => 
+    array (
+      'Excel' => 'Maatwebsite\\Excel\\Facades\\Excel',
+    ),
+    'providers' => 
+    array (
+      0 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
     ),
   ),
   'nesbot/carbon' => 
@@ -75,6 +120,13 @@
     'providers' => 
     array (
       0 => 'Spatie\\LaravelIgnition\\IgnitionServiceProvider',
+    ),
+  ),
+  'spatie/laravel-permission' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Spatie\\Permission\\PermissionServiceProvider',
     ),
   ),
   'yajra/laravel-datatables-buttons' => 

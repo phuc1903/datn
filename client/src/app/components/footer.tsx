@@ -1,9 +1,17 @@
 'use client'; // Đảm bảo thêm dòng này để sử dụng client-side tính năng nếu cần
 
 import Link from 'next/link';
-import { Facebook, Instagram, Twitter } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Clock, Phone } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 
 const Footer = () => {
+  const { getSetting } = useSettings();
+  const contactSetting = getSetting('Contact');
+  const footerHouseOpen = getSetting('FooterHouseOpen');
+  const footerComplaints = getSetting('FooterComplaints');
+  
+  const contactInfo = contactSetting ? JSON.parse(contactSetting.value) : null;
+
   return (
     <footer className="bg-gray-800 text-white py-8">
       <div className="container mx-auto px-4">
@@ -62,26 +70,74 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Địa chỉ */}
+          {/* Địa chỉ và thông tin liên hệ */}
           <div>
             <h3 className="font-semibold text-lg text-gray-300">Liên hệ</h3>
-            <p className="mt-4 text-gray-400 text-sm">
-              Địa chỉ: 1234 Đường ABC, Thành phố XYZ, Việt Nam
-            </p>
-            <p className="mt-2 text-gray-400 text-sm">
-              Email: support@mycosmetics.com
-            </p>
-            <p className="mt-2 text-gray-400 text-sm">
-              Số điện thoại: +84 123 456 789
-            </p>
+            <div className="mt-4 space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="flex items-center justify-center w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex-shrink-0">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-gray-400 text-sm">
+                  {contactInfo?.Address || '49 Trần Hưng Đạo, Phường Tân Thành, Quận Tân Phú'}
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="flex items-center justify-center w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex-shrink-0">
+                  <Clock className="h-5 w-5" />
+                </div>
+                <p className="text-gray-400 text-sm">
+                  {footerHouseOpen?.value || 'Từ 9:00 - 21:30 tất cả các ngày trong tuần'}
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="flex items-center justify-center w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex-shrink-0">
+                  <Phone className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">
+                    {contactInfo?.Phone || '0377461482'}
+                  </p>
+                  <p className="text-gray-400 text-sm mt-1">
+                    {contactInfo?.Email || 'zbeautyshop@gmail.com'}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Dòng bản quyền */}
-        <div className="mt-8 border-t border-gray-700 pt-4 text-center text-gray-400 text-sm">
-          <p>&copy; 2025 Zbeauty. Tất cả quyền được bảo vệ.</p>
+        {/* Dòng bản quyền và khiếu nại */}
+        <div className="mt-8 border-t border-gray-700 pt-4">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <p className="text-gray-400 text-sm">
+              &copy; 2025 Zbeauty. Tất cả quyền được bảo vệ.
+            </p>
+            <div className="flex items-center gap-2 text-gray-400 text-sm">
+              <Phone className="h-4 w-4" />
+              <span>Hotline khiếu nại: {footerComplaints?.value || '0377461482'}</span>
+            </div>
+          </div>
         </div>
-
       </div>
     </footer>
   );

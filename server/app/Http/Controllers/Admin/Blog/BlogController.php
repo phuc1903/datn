@@ -7,7 +7,10 @@ use App\Enums\Blog\BlogStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Blog\BlogRequest;
 use App\Models\Blog;
+use App\Models\BlogProduct;
 use App\Models\BlogTag;
+use App\Models\Product;
+use App\Models\Sku;
 use App\Models\Tag;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -26,11 +29,12 @@ class BlogController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
+        $products = Product::with('skus')->get();
         $status = BlogStatus::getKeyValuePairs();
         $tags = Tag::all();
-        return view('Pages.Blog.Create', ['status' => $status, 'tags' => $tags]);
+        return view('Pages.Blog.Create', compact('status', 'tags', 'products'));
     }
 
     /**
@@ -38,7 +42,6 @@ class BlogController extends Controller
      */
     public function store(BlogRequest $request)
     {
-        // dd($request);
         try {
             $data = [
                 'title' => $request->title,
@@ -54,13 +57,10 @@ class BlogController extends Controller
                 $data['slug'] = Str::slug($request->title);
             }
 
-            $path = null;
-
             if ($request->hasFile('image_url')) {
-                $path = Storage::disk('public')->put('blog_images', $request->image_url);
-                $data['image_url'] = '/storage/' . $path;
+                $data['image_url'] = putImage('blog_images', $request->image_url);
             } else {
-                $data['image_url'] = config(key: 'settings.image_default');
+                $data['image_url'] = config('settings.image_default');
             }
 
             $blog = Blog::create($data);
@@ -71,6 +71,14 @@ class BlogController extends Controller
                 }
             }
 
+            if (isset($request->products) && !empty($request->products)) {
+                foreach ($request->products as $product) {
+                    BlogProduct::create([
+                        'product_id' => $product,
+                        'blog_id' => $blog->id,
+                    ]);
+                }
+            }
 
             return redirect()->route('admin.blog.index')->with('success', 'Thêm bài viết thành công');
         } catch (\Exception $e) {
@@ -98,7 +106,11 @@ class BlogController extends Controller
         ];
 
         $status = mapEnumToArray(BlogStatus::class, $blog->status);
-        return view('Pages.Blog.Edit', ['blog' => $blog, 'status' => $status, 'sta' => $sta]);
+
+        $blog->load('products', 'products.skus');
+        $products = Product::with('skus')->get();
+
+        return view('Pages.Blog.Edit', compact('blog', 'status', 'sta', 'products'));
     }
 
     /**
@@ -107,13 +119,6 @@ class BlogController extends Controller
     public function update(BlogRequest $request, Blog $blog)
     {
         try {
-
-            $dataCheck = ['title', 'short_description', 'description', 'slug', 'status', 'image_url'];
-            $check = checkDataUpdate($request->only($dataCheck), $blog->only($dataCheck));
-
-            if ($check) {
-                return redirect()->back()->with('info', 'Có vẻ dữ liệu không thay đổi');
-            }
 
             $data = [
                 'title' => $request->title,
@@ -143,8 +148,31 @@ class BlogController extends Controller
 
             $blog->update($data);
 
+            if (isset($request->products)) {
+                $currentProductIds = BlogProduct::where('blog_id', $blog->id)->pluck('product_id')->toArray();
+            
+                if (!empty(array_diff($request->products, $currentProductIds)) || !empty(array_diff($currentProductIds, $request->products))) {
+                    
+                    BlogProduct::where('blog_id', $blog->id)->whereNotIn('product_id', $request->products)->delete();
+            
+                    $newProducts = array_diff($request->products, $currentProductIds);
+                    $insertData = [];
+                    
+                    foreach ($newProducts as $productId) {
+                        $insertData[] = [
+                            'blog_id' => $blog->id,
+                            'product_id' => $productId,
+                        ];
+                    }
+            
+                    if (!empty($insertData)) {
+                        BlogProduct::insert($insertData);
+                    }
+                }
+            }
+            
 
-            return redirect()->route('admin.blog.index')->with('success', 'Thêm bài viết thành công');
+            return redirect()->back()->with('success', 'Cập nhật bài viết thành công');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
@@ -157,19 +185,18 @@ class BlogController extends Controller
     {
         try {
 
-            if (Str::contains($blog->image_url, 'storage')) {
-                $path = str_replace('storage/', '', $blog->image_url);
-                Storage::disk('public')->delete($path);
-            }
+            deleteImage($blog->image_url);
 
             $blog->delete();
+
             if ($request->ajax()) {
                 return response()->json(['type' => 'success', 'redirect' => route('admin.blog.index')]);
             }
 
-            return redirect()->route('admin.slider.index')->with('success', 'Xóa slider thành công');
+            return redirect()->route('admin.blog.index')->with('success', 'Xóa blog thành công');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
+
 }

@@ -14,13 +14,13 @@ return new class extends Migration
     {
         Schema::create('blogs', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('admin_id');
             $table->string('title');
             $table->string('slug');
             $table->text('description');
             $table->mediumText('short_description');
             $table->string('image_url');
             $table->enum('status', BlogStatus::getValues())->default(BlogStatus::Draft);
-            $table->unsignedBigInteger('admin_id');
             $table->foreign('admin_id')->references('id')->on('admins')->onDelete('cascade');
             $table->timestamps();
         });

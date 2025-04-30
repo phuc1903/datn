@@ -7,11 +7,7 @@ use App\Enums\Slide\SlideStatus;
 use App\Models\Slider;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
 use Yajra\DataTables\EloquentDataTable;
-use Yajra\DataTables\Html\Builder as HtmlBuilder;
-use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
-use Yajra\DataTables\Html\Editor\Editor;
-use Yajra\DataTables\Html\Editor\Fields;
 
 class SliderDataTable extends BaseDataTable
 {
@@ -20,7 +16,7 @@ class SliderDataTable extends BaseDataTable
     protected bool $includeCreatedAt = true;
     protected bool $includeUpdatedAt = true;
 
-    protected int $orderBy = 6;
+    protected int $orderBy = 5;
 
     /**
      * Get the query source of dataTable.
@@ -33,10 +29,10 @@ class SliderDataTable extends BaseDataTable
     public function extraColumns(): array
     {
         return [
-            Column::make('image_url')->title('Ảnh')->orderable(false)->searchable(false),
+            Column::make('image_url')->title('Ảnh')->orderable(false)->searchable(false)->addClass("no-search"),
             Column::make('name')->title('Tên danh mục'),
             Column::make('priority')->title('Ưu tiên'),
-            Column::make('status')->title('Trạng thái'),
+            Column::make('status')->title('Trạng thái')->addClass("no-search"),
         ];
     }
 

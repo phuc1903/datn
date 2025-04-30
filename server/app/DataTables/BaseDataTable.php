@@ -13,14 +13,21 @@ use Carbon\Carbon;
 abstract class BaseDataTable extends DataTable
 {
     protected bool $includeAction = true;
-    protected bool $includeCreatedAt = false;
-    protected bool $includeUpdatedAt = false;
+    protected bool $includeCreatedAt = true;
+    protected bool $includeUpdatedAt = true;
     protected string $routeName = '';
     protected string $tableId = '';
 
     protected int $orderBy = 2;
 
     protected bool $deleteItem = true;
+
+    protected bool $includeBtnExcel = true;
+    protected bool $includeBtnCSV = true;
+    protected bool $includeBtnPDF = true;
+    protected bool $includeBtnPrint = true;
+    protected bool $includeBtnReset = true;
+    protected bool $includeBtnReload = true;
 
     /**
      * Build the DataTable class.
@@ -51,7 +58,6 @@ abstract class BaseDataTable extends DataTable
             $editableColumns[] = 'updated_at';
         }
 
-        // Thêm các cột có chỉnh sửa từ customizeDataTable()
         $editableColumns = array_merge($editableColumns, $this->getEditableColumns());
 
         return $dataTable
@@ -89,24 +95,62 @@ abstract class BaseDataTable extends DataTable
         return $this->builder()
             ->setTableId($this->tableId)
             ->columns($this->getColumns())
-            ->minifiedAjax()
+            ->minifiedAjax('', null, [
+                'provinces' => "$('#provinces').val();",
+                'districts' => "$('#districts').val();",
+                'wards' => "$('#wards').val();",
+            ])
+            ->dom('Brtip')
             ->orderBy($this->orderBy)
             ->selectStyleSingle()
-            ->parameters($this->getLanguageSettings())
+            ->parameters($this->parametersSettings())
             ->buttons($this->getButtons());
     }
 
     protected function getButtons(): array
     {
-        return [
-            // Button::make('excel'),
-            // Button::make('csv'),
-            // Button::make('pdf'),
-            Button::make('print'),
-            Button::make('reset'),
-            Button::make('reload')
-        ];
+        $buttons = [];
+
+        if ($this->includeBtnExcel) {
+            $buttons[] = Button::make('excel')
+                ->className('bg-primary text-white border-primary btn-dataTable-custom')
+                ->text('<i class="fa fa-file-excel"></i> Xuất Excel');
+        }
+
+        if ($this->includeBtnCSV) {
+            $buttons[] = Button::make('csv')
+                ->className('bg-primary text-white border-primary btn-dataTable-custom')
+                ->text('<i class="fa fa-file-csv"></i> Xuất CSV');
+        }
+
+        // if ($this->includeBtnPDF) {
+        //     $buttons[] = Button::make('pdf')
+        //         ->className('bg-primary text-white border-primary btn-dataTable-custom')
+        //         ->text('<i class="fa fa-file-pdf"></i> Xuất PDF');
+        // }
+
+        if ($this->includeBtnPrint) {
+            $buttons[] = Button::make('print')
+                ->className('bg-primary text-white border-primary btn-dataTable-custom')
+                ->text('<i class="fa fa-print"></i> In');
+        }
+
+        if ($this->includeBtnReset) {
+            $buttons[] = Button::make('reset')
+                ->className('bg-primary text-white border-primary btn-dataTable-custom')
+                ->text('<i class="fa fa-undo"></i> Reset');
+        }
+
+        if ($this->includeBtnReload) {
+            $buttons[] = Button::make('reload')
+                ->className('bg-primary text-white border-primary btn-dataTable-custom')
+                ->text('<i class="fa fa-sync"></i> Cập nhật');
+        }
+
+        return $buttons;
     }
+
+
 
     /**
      * Get action buttons.
@@ -117,7 +161,7 @@ abstract class BaseDataTable extends DataTable
         $deleteUrl = route('admin.' . $this->routeName . '.destroy', $row->id);
 
         $buttons = '<div class="d-flex gap-2">
-        <a class="btn btn-warning text-white" href="' . $editUrl . '">Sửa</a>';
+        <a class="btn btn-warning text-white" href="' . $editUrl . '">Xem</a>';
 
         if (!$this->deleteItem) {
             $buttons .= '<form action="' . $deleteUrl . '" method="POST" class="d-inline">
@@ -126,7 +170,7 @@ abstract class BaseDataTable extends DataTable
         </form>';
         } else {
             $buttons .= '<button type="button" class="btn btn-danger text-white deleteItem" 
-            data-route-delete="' . $deleteUrl . '" data-id-table="'.$this->tableId.'">Xóa</button>';
+            data-route-delete="' . $deleteUrl . '" data-id-table="' . $this->tableId . '">Xóa</button>';
         }
 
         $buttons .= '</div>';
@@ -135,7 +179,7 @@ abstract class BaseDataTable extends DataTable
     }
 
 
-    protected function getLanguageSettings(): array
+    protected function parametersSettings(): array
     {
         return [
             'language' => [
@@ -152,8 +196,55 @@ abstract class BaseDataTable extends DataTable
                     'previous' => 'Về sau'
                 ]
             ],
-            'theme' => 'bootstrap5'
+            'theme' => 'bootstrap5',
+            'initComplete' => 'function() {
+                const table = this.api();
+
+                const $thead = $(table.table().header());
+
+                const $filterRow = $thead.find("tr").clone().addClass("filter");
+
+                $filterRow.find("th").each(function() {
+                    const $currentTh = $(this);
+
+                    if (!$currentTh.hasClass("no-search")) {
+
+                        const input = $(`<input type="text" class="form-control form-control-sm" placeholder="Tìm kiếm ${$currentTh.text()}" /> `);
+                        $currentTh.html(input);
+
+                        $(input).on("click", function(event) {
+                            event.stopPropagation();
+                        });
+
+                        $(input).on("keyup change clear", function() {
+                            if (table.column($currentTh.index()).search() !== this.value) {
+                                table.column($currentTh.index()).search(this.value).draw();
+                            }
+                        });
+
+                    } else {
+                        $currentTh.empty();
+                    }
+
+                });
+
+                $thead.append($filterRow);
+
+
+                $("#provinces, #districts, #wards").on("change", function() {
+                    const provinces = $("#provinces").val();
+                    const districts = $("#districts").val();
+                    const wards = $("#wards").val();
+                    table.ajax.reload();
+                });
+
+            }'
         ];
+    }
+
+    protected function getSearchColumn(): array
+    {
+        return [];
     }
 
     /**
@@ -162,18 +253,18 @@ abstract class BaseDataTable extends DataTable
     protected function getColumns(): array
     {
         $columns = [
-            Column::make('DT_RowIndex')->title('STT')->orderable(false)->searchable(false),
+            Column::make('DT_RowIndex')->title('STT')->orderable(false)->searchable(false)->addClass('no-search'),
         ];
 
         // Thêm cột đặc trưng của bảng con trước
         $columns = array_merge($columns, $this->extraColumns());
 
         if ($this->includeCreatedAt) {
-            $columns[] = Column::make('created_at')->title('Ngày tạo')->width(150);
+            $columns[] = Column::make('created_at')->title('Ngày tạo')->width(150)->addClass('no-search');
         }
 
         if ($this->includeUpdatedAt) {
-            $columns[] = Column::make('updated_at')->title('Ngày cập nhật')->width(150);
+            $columns[] = Column::make('updated_at')->title('Ngày cập nhật')->width(150)->addClass('no-search');
         }
 
         if ($this->includeAction) {
@@ -182,7 +273,7 @@ abstract class BaseDataTable extends DataTable
                 ->exportable(false)
                 ->printable(false)
                 ->width(60)
-                ->addClass('text-center');
+                ->addClass('text-center no-search');
         }
 
         return $columns;
