@@ -16,9 +16,85 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthenticatorController extends Controller
 {
+    public function loginGoogle()
+    {
+        $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
+        return ResponseSuccess('Please redirect to url', ['url' => $url]);
+    }
+
+    public function handleGoogleCallback(Request $request)
+    {
+        try {
+            // Handle the OAuth callback
+            $code = $request->get('code');
+            if (!$code) {
+                throw new \Exception('Không nhận được mã xác thực từ Google');
+            }
+    
+            // Get the user data from the token
+            $googleUser = Socialite::driver('google')->stateless()->user();
+            
+            // Find existing user by Google ID or email
+            $user = User::where('google_id', $googleUser->id)
+            ->orWhere('email', $googleUser->email)
+            ->first();
+            
+            // If user doesn't exist, create a new one
+            if (!$user) {
+                $user = User::create([
+                    'google_id' => $googleUser->id,
+                    'email' => $googleUser->email,
+                    'first_name' => $googleUser->user['given_name'] ?? '',
+                    'last_name' => $googleUser->user['family_name'] ?? '',
+                    'phone_number' => 'N/A', 
+                    'password' => bcrypt(uniqid()),
+                    'status' => UserStatus::Active
+                ]);
+            } else {
+                // Update the Google ID if the user registered with email but is now using Google login
+                if (empty($user->google_id)) {
+                    $user->google_id = $googleUser->id;
+                    $user->save();
+                }
+            }
+            
+            // Generate token
+            $token = $user->createToken($user->email)->plainTextToken;
+            
+            // Get the frontend redirect URL from config
+            $redirectUrl = env('GOOGLE_REDIRECT_URL_TO_FRONTEND');
+            
+            // Add token and user info as query parameters
+            $redirectUrl .= '?token=' . $token;
+            $redirectUrl .= '&email=' . urlencode($user->email);
+            $redirectUrl .= '&firstName=' . urlencode($user->first_name);
+            $redirectUrl .= '&lastName=' . urlencode($user->last_name);
+            $redirectUrl .= '&status=success';
+            
+            // Redirect to frontend with token and user info
+            return redirect($redirectUrl);
+        } catch (\Exception $e) {
+            // Đơn giản hóa thông báo lỗi
+            $errorMessage = 'Đăng nhập Google thất bại';
+            
+            // Nếu là lỗi cụ thể, cung cấp thông tin rõ ràng hơn
+            if (stripos($e->getMessage(), 'invalid_grant') !== false) {
+                $errorMessage = 'Phiên đăng nhập đã hết hạn, vui lòng thử lại';
+            }
+            
+            // Redirect về frontend với thông báo lỗi đơn giản
+            $redirectUrl = env('GOOGLE_REDIRECT_URL_TO_FRONTEND');
+            $redirectUrl .= '?status=error';
+            $redirectUrl .= '&Message=' . urlencode($errorMessage);
+            
+            return redirect($redirectUrl);
+        }
+    }
+    
 
     /*
     |--------------------------------------------------------------------------
@@ -39,6 +115,11 @@ class AuthenticatorController extends Controller
             // Trạng thái hoạt động
             if ($user->status !== UserStatus::Active) {
                 return ResponseError('User is not active', NULL, 401);
+            }
+
+            // Tạo tài khoản bằng Google_id thì chỉ cho phép đăng nhập bằng Google
+            if (!empty($user->google_id)) {
+                return ResponseError('User registered by Google, please login with Google', NULL, 400);
             }
 
             // Mật khẩu không hợp lệ

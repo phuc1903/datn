@@ -8,59 +8,46 @@ use Illuminate\Http\Request;
 
 class SettingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+   
     public function index()
     {
-        return view('Pages.Setting.Index');
+        $settings = Setting::all()->pluck('value', 'name')->map(function ($value) {
+            if (is_string($value) && json_decode($value) !== null) {
+                return json_decode($value, true);
+            }
+            return $value;
+        });
+
+        return view('Pages.Setting.Index', compact('settings'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        //
+        try {
+            foreach ($request->except('_token') as $key => $value) {
+                if ($request->hasFile($key)) {
+                    $existingImage = Setting::where('name', $key)->first();
+                    if ($existingImage && !empty($existingImage->value)) {
+                        deleteImage($existingImage->value);
+                    }
+                    $value = putImage('config_images', $request->file($key));
+                } elseif (is_array($value)) {
+                    $value = json_encode($value);
+                }
+
+                Setting::updateOrCreate(
+                    ['name' => $key],
+                    ['value' => $value]
+                );
+            }
+            return redirect()->back()->with('success', 'Cập nhật thành công');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Setting $setting)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Setting $setting)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Setting $setting)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Setting $setting)
-    {
-        //
-    }
 }

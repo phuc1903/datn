@@ -94,7 +94,6 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    padding: .5rem 1rem
 }
 
 .navbar .container,
@@ -581,15 +580,6 @@ a:focus {
     display: flex
 }
 
-#wrapper #content-wrapper {
-    background-color: #f8f9fc;
-    width: 100%;
-    overflow-x: hidden
-}
-
-#wrapper #content-wrapper #content {
-    flex: 1 0 auto
-}
 
 .scroll-to-top {
     position: fixed;
@@ -1105,7 +1095,13 @@ a:focus {
 
 .sidebar {
     width: 8rem;
-    min-height: 100vh
+    min-height: 100vh;
+    overflow-y: scroll;
+    z-index: 999;
+}
+
+.content-wrapper {
+    margin-left: 8rem;
 }
 
 .sidebar .nav-item {
@@ -1152,7 +1148,7 @@ a:focus {
 .sidebar .nav-item .collapsing .collapse-inner {
     padding: .5rem 0;
     min-width: 10rem;
-    font-size: .85rem;
+    font-size: 1rem;
     margin: 0 0 1rem 0
 }
 
@@ -1219,7 +1215,7 @@ a:focus {
 
 .sidebar.toggled {
     width: 0 !important;
-    overflow: hidden
+    overflow-y: scroll;
 }
 
 .sidebar.toggled #sidebarToggle::after {
@@ -1296,6 +1292,10 @@ a:focus {
         width: 18rem !important
     }
 
+    #content-wrapper {
+        margin-left: 18rem !important;
+    }
+
     .sidebar .nav-item .collapse {
         position: relative;
         left: 0;
@@ -1366,8 +1366,12 @@ a:focus {
     }
 
     .sidebar.toggled {
-        overflow: visible;
+        overflow-y: scroll;
         width: 6.5rem !important
+    }
+
+    #content-wrapper.toggled {
+        margin-left: 6.5rem !important;
     }
 
     .sidebar.toggled .nav-item .collapse {

@@ -30,4 +30,21 @@ final class VoucherStatus extends Enum
             default => "<span class='badge text-bg-info text-white'>Không xác định</span>",
         };
     }
+
+    public static function getKeyValuePairs(): array
+    {
+        return [
+            self::Active => self::getLabel(self::Active),
+            self::Hidden => self::getLabel(self::Hidden),
+        ];
+    }
+
+    public static function getLabel(string $value): string
+    {
+        return match ($value) {
+            self::Active => 'Đang hoạt động',
+            self::Hidden => 'Đang ẩn',
+            default => 'Không xác định',
+        };
+    }
 }

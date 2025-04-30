@@ -51,40 +51,40 @@ class DatabaseSeeder extends Seeder
         | - user
         |
         */
-        User::factory()->create([
-            'first_name' => 'Hữu Hiệp',
-            'last_name' => 'Trần',
-            'phone_number' => '(+84) 1234-5678',
-            'email' => 'admin@gmail.com',
-            'password' => bcrypt('user'),
-            'status' => 'active',
-            'sex' => 'male',
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
+         User::factory()->create([
+             'first_name' => 'Hữu Hiệp',
+             'last_name' => 'Trần',
+             'phone_number' => '(+84) 1234-5678',
+             'email' => 'admin@gmail.com',
+             'password' => bcrypt('user'),
+             'status' => 'active',
+             'sex' => 'male',
+             'created_at' => now(),
+             'updated_at' => now()
+         ]);
 
         /*
         |--------------------
         | Tạo các seeders khác
         |--------------------
          */
-        $this->call([
+         $this->call([
             AdminSeeder::class,
             UserSeeder::class,
             WalletSeeder::class,
-            CategorySeeder::class,
-            TagSeeder::class,
+             CategorySeeder::class,
+             TagSeeder::class,
 
-            VariantSeeder::class,
-            ProductSeeder::class,
-            ProductImageSeeder::class,
-            ProductFeedbackSeeder::class,
-            ProductTagSeeder::class,
-            ProductCategorySeeder::class,
+             VariantSeeder::class,
+             ProductSeeder::class,
+             ProductImageSeeder::class,
+             ProductTagSeeder::class,
+             ProductCategorySeeder::class,
 
             OrderSeeder::class,
-            VoucherSeeder::class,
-            UserVoucherSeeder::class,
+            ProductFeedbackSeeder::class,
+             VoucherSeeder::class,
+             UserVoucherSeeder::class,
             OrderVoucherSeeder::class,
 
             UserAddressSeeder::class,
@@ -96,6 +96,6 @@ class DatabaseSeeder extends Seeder
             BlogProductSeeder::class,
 
             SliderSeeder::class,
-        ]);
+         ]);
     }
 }

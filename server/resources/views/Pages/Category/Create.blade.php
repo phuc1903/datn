@@ -10,7 +10,7 @@
                         <h3 class="title">Thêm danh mục</h3>
                     </div>
                     <div class="card-body">
-                        <x-form.input_text label="Tên danh mục" name="name" />
+                        <x-form.input_text label="Tên danh mục" name="name" id="name" />
                         <div class="mb-3">
                             <label for="" class="form-label fw-bold text-dark-custom">Danh mục cha</label>
                             <select class="form-select selec-custom input-text-custom" name="parent_id" id="parent_id">
@@ -25,7 +25,7 @@
                             </select>
                         </div>
 
-                        <x-form.input_text label="Slug" name="slug" />
+                        <x-form.input_text label="Slug" name="slug" id="slug" />
 
                         <div class="form-floating mb-3">
                             <textarea class="form-control input-text-custom @error('short_description') is-invalid @enderror"

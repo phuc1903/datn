@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import Swal from "sweetalert2";
+import { API_BASE_URL } from "@/config/config";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -23,17 +24,30 @@ export default function ChangePasswordPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const userEmail = Cookies.get("userEmail") || null;
-    const userToken = Cookies.get("accessToken") || null;
+    const fetchUserData = () => {
+      const userToken = Cookies.get("accessToken");
+      const userData = Cookies.get("userData");
 
-    if (!userEmail || !userToken) {
-      router.replace("/login");
-      return;
-    }
+      if (!userToken || !userData) {
+        console.log("Missing token or userData, redirecting to login");
+        router.replace("/login");
+        return;
+      }
 
-    setEmail(userEmail);
-    setToken(userToken);
-    setIsLoading(false);
+      try {
+        const parsedUserData = JSON.parse(userData);
+        setEmail(parsedUserData.email);
+        setToken(userToken);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error parsing userData:", error);
+        Cookies.remove("accessToken");
+        Cookies.remove("userData");
+        router.replace("/login");
+      }
+    };
+
+    fetchUserData();
   }, [router]);
 
   if (isLoading) {
@@ -108,7 +122,7 @@ export default function ChangePasswordPage() {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/v1/auth/change-password", {
+      const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -136,14 +150,14 @@ export default function ChangePasswordPage() {
         confirmButtonColor: "#db2777", // pink-600
       });
 
+      // Xóa cả accessToken và userData như các trang khác
       Cookies.remove("accessToken");
-      Cookies.remove("userEmail");
+      Cookies.remove("userData");
       router.push("/login");
     } catch (error) {
       console.error("Lỗi đổi mật khẩu:", error);
       await Swal.fire({
         title: "Lỗi!",
-        // text: error.message || "Đã xảy ra lỗi khi đổi mật khẩu",
         text: (error as any).message || "Đã xảy ra lỗi khi đổi mật khẩu",
         icon: "error",
         confirmButtonColor: "#db2777", // pink-600

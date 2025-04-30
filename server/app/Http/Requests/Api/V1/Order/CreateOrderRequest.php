@@ -23,7 +23,6 @@ class CreateOrderRequest extends FormRequest
             'note' => 'nullable|string|max:255',
             'voucher_id' => 'nullable|numeric',
             'orders' => 'required|array|min:1',
-            'orders.*.sku_id' => 'required|numeric',
             'orders.*.quantity' => 'required|integer|min:1',
         ];
     }

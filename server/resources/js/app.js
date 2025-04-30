@@ -12,28 +12,150 @@ import "laravel-datatables-vite";
 import TomSelect from "tom-select";
 import "tom-select/dist/css/tom-select.css";
 
-window.Swal = Swal;
-window.toastr = toastr;
+import Chart from "chart.js/auto";
 
-document.addEventListener("DOMContentLoaded", function () {
-    new TomSelect("#attribute", {
-        persist: false,
-        createOnBlur: true,
-        create: true,
+window.Swal = Swal;
+window.TomSelect = TomSelect;
+window.toastr = toastr;
+window.Chart = Chart;
+
+// chose sku in combo
+$(document).ready(function() {
+
+    var addedSkuIds = [];
+    $('.sku.loadData').each(function() {
+        var skuId = $(this).data('sku-id');
+        addedSkuIds.push(skuId);
+    });
+
+    $('.modal-body .add-sku-combo').each(function() {
+        var skuId = $(this).data('sku-id');
+        
+        if (addedSkuIds.includes(skuId)) {
+            $(this).prop('disabled', true).text("Đã thêm");
+        }
+    });
+
+    $('.add-sku-combo').on('click', function() {
+        var skuId = $(this).data('sku-id'); 
+
+        var sku = $(this).closest('.sku'); 
+        var skuName = sku.find('.name-sku-combo').text();
+        var skuPrice = sku.find('.price-sku-combo').html();
+        var skuImage = sku.find('.image-sku-combo').attr('src');
+        var variantValues = sku.find('.variant-values').text();
+
+        var skuDiv = `<div class="sku p-3 border-bottom" data-sku-id="${skuId}">
+            <div class="d-flex justify-content-between">
+                <input hidden name="skus[]" value="${skuId}" />
+                <div class="content d-flex">
+                    <image class="image-sku-combo" src="${skuImage}" alt="${skuName}" />
+                    <div class="ms-2">
+                        <p class="name-sku-combo mb-2 line-champ-2 text-dark-custom">${skuName}</p>
+                        ${variantValues ? `<span class="badge bg-secondary">${variantValues}</span>` : ''}
+                        <span class="price-sku-combo fs-5 d-block mt-2 text-dark-custom">${skuPrice}</span>
+                    </div>
+                </div>
+                <div class="button-warp ms-2">
+                    <button class="remove-sku-combo">Xóa</button>
+                </div>
+            </div>
+        </div>`;
+
+        $('#sku-list').append(skuDiv);
+
+        $(this).prop('disabled', true).text('Đã thêm');
+
+        $('#choseSkus').modal('hide');
+    });
+
+    $(document).on('click', '.remove-sku-combo', function() {
+        var skuId = $(this).closest('.sku').data('sku-id');
+
+        $('.add-sku-combo').each(function() {
+            var buttonSkuId = $(this).data('sku-id');
+            if (buttonSkuId === skuId) {
+                $(this).prop('disabled', false).text('Thêm');
+            }
+        });
+
+        $(this).closest('.sku').remove();
     });
 });
 
-$('.accordion-header').on('click', function(e) {
-    if(this.getAttribute('href') === '#') {
+// chose product in blog
+$(document).ready(function() {
+
+    var addedProductIds = [];
+    $('.product.loadData').each(function() {
+        var productId = $(this).data('product-id');
+        addedProductIds.push(productId);
+    });
+
+    $('.modal-body .add-product-blog').each(function() {
+        var productId = $(this).data('product-id');
+        
+        if (addedProductIds.includes(productId)) {
+            $(this).prop('disabled', true).text("Đã thêm");
+        }
+    });
+
+    $('.add-product-blog').on('click', function() {
+        var productId = $(this).data('product-id');
+
+        var product = $(this).closest('.product');
+        var productName = product.find('.name-product-blog').text();
+        var productDescription = product.find('.description-product-blog').text();
+        var productImage = product.find('.image-product-blog').attr('src');
+
+        var productDiv = `<div class="product p-3 border-bottom" data-product-id="${productId}">
+                            <input hidden name="products[]" value="${productId}"/>
+                            <div class="d-flex justify-content-between">
+                                <div class="content d-flex">
+                                    <image class="image-product-blog" src="${productImage}" alt="${productName}" />
+                                    <div class="ms-2">
+                                        <p class="mb-2 line-champ-2 name-product-blog text-dark-custom">${productName}</p>
+                                        <span class="description-product-blog line-champ-2 mt-2 text-dark-custom">${productDescription}</span>
+                                    </div>
+                                </div>
+                                <div class="button-warp ms-2">
+                                    <button class="remove-product-blog">Xóa</button>
+                                </div>
+                            </div>
+                        </div>`;
+
+        $('#product-list').append(productDiv);
+
+        $(this).prop('disabled', true).text('Đã thêm');
+
+        $('#choseProducts').modal('hide');
+    });
+
+    $(document).on('click', '.remove-product-blog', function() {
+        var productId = $(this).closest('.product').data('product-id');
+
+        $('.add-product-blog').each(function() {
+            var buttonSkuId = $(this).data('product-id'); 
+            if (buttonSkuId === productId) {
+                $(this).prop('disabled', false).text('Thêm');
+            }
+        });
+
+        $(this).closest('.product').remove();
+    });
+});
+
+
+$(".accordion-header").on("click", function (e) {
+    if (this.getAttribute("href") === "#") {
         e.preventDefault();
     }
-})
-
+});
 
 // variants
 
 $(document).ready(function () {
-    const routeApi = $('#product-attributes').data('route-api'); 
+    const routeApi = $("#product-attributes").data("route-api");
     let existingSkus = null;
     let attributes = {};
 
@@ -49,7 +171,7 @@ $(document).ready(function () {
                 },
                 error: function (error) {
                     reject(error);
-                }
+                },
             });
         });
     }
@@ -61,7 +183,9 @@ $(document).ready(function () {
             if (existingSkus) {
                 parseExistingSkus(existingSkus);
                 loadExistingAttributes();
-                generateVariants();
+                if (Array.isArray(existingSkus[0].variant_values) && existingSkus[0].variant_values.length > 0) {
+                    generateVariants();
+                }
             }
         } catch (error) {
             // alert(error);
@@ -79,19 +203,24 @@ $(document).ready(function () {
                             price: sku.price || 0,
                             promotion_price: sku.promotion_price || 0,
                             quantity: sku.quantity || 1,
-                            image_url: sku.image_url || ""
+                            image_url: sku.image_url || "",
                         },
-                        variant_values: []
+                        variant_values: [],
                     };
                 }
 
                 let variantValueStr = variant.id.toString();
-                if (!attributes[variant.variant_id].variant_values.includes(variantValueStr)) {
-                    attributes[variant.variant_id].variant_values.push(variantValueStr);
+                if (
+                    !attributes[variant.variant_id].variant_values.includes(
+                        variantValueStr
+                    )
+                ) {
+                    attributes[variant.variant_id].variant_values.push(
+                        variantValueStr
+                    );
                 }
             });
         });
-
     }
 
     loadSkusData();
@@ -100,7 +229,9 @@ $(document).ready(function () {
         $("#attribute-list").empty();
 
         Object.keys(attributes).forEach((attributeId) => {
-            let selectedAttribute = $(`#product-attributes option[value='${attributeId}']`);
+            let selectedAttribute = $(
+                `#product-attributes option[value='${attributeId}']`
+            );
             let attributeName = selectedAttribute.text();
             let attributeData = selectedAttribute.data("vari");
 
@@ -131,9 +262,9 @@ $(document).ready(function () {
                 price: 0,
                 promotion_price: 0,
                 quantity: 1,
-                image_url: ""
+                image_url: "",
             },
-            variant_values: []
+            variant_values: [],
         };
 
         renderAttributeHtml(attributeId, attributeName, attributeData);
@@ -141,12 +272,19 @@ $(document).ready(function () {
 
     function renderAttributeHtml(attributeId, attributeName, attributeData) {
         let selectId = `attribute-values-${attributeId}`;
-        let selectedVariantValues = attributes[attributeId]?.variant_values || [];
+        let selectedVariantValues =
+            attributes[attributeId]?.variant_values || [];
 
         let variantOptions = attributeData.values
-            .map(value => 
-                `<option value="${value.id}" ${selectedVariantValues.includes(value.id.toString()) ? "selected" : ""}>${value.value}</option>`
-            ).join("");
+            .map(
+                (value) =>
+                    `<option value="${value.id}" ${
+                        selectedVariantValues.includes(value.id.toString())
+                            ? "selected"
+                            : ""
+                    }>${value.value}</option>`
+            )
+            .join("");
 
         let newAttribute = `
             <div class="accordion-item" id="attribute-${attributeId}">
@@ -164,7 +302,7 @@ $(document).ready(function () {
                         <select class="form-select attribute-values" id="${selectId}" multiple>
                             ${variantOptions}
                         </select>
-                        <button type="button" class="btn btn-danger remove-attribute mt-2" data-attribute-id="${attributeId}">Xóa</button>
+                        <button type="button" class="btn btn-danger remove-attribute mt-2" data-attribute-id="${attributeId}">Xóa thuộc tính này</button>
                     </div>
                 </div>
             </div>`;
@@ -187,7 +325,9 @@ $(document).ready(function () {
 
     function saveAttributes() {
         $(".attribute-values").each(function () {
-            let attributeId = $(this).attr("id")?.replace("attribute-values-", "");
+            let attributeId = $(this)
+                .attr("id")
+                ?.replace("attribute-values-", "");
             let tomSelectInstance = $(this).data("tomselectInstance");
 
             if (tomSelectInstance) {
@@ -201,44 +341,60 @@ $(document).ready(function () {
 
     function generateVariants() {
         $("#variant-list").empty();
-    
-        let attributeValues = Object.values(attributes).map(attr => attr.variant_values);
-    
-        if (attributeValues.length === 0 || attributeValues.every(val => val.length === 0)) {
+
+        let attributeValues = Object.values(attributes).map(
+            (attr) => attr.variant_values
+        );
+
+        if (
+            attributeValues.length === 0 ||
+            attributeValues.every((val) => val.length === 0)
+        ) {
             toastr.error("Bạn cần chọn ít nhất 1 biến thể!", "Lỗi");
             return;
         }
-    
+
         let combinations = generateCombinations(attributeValues);
         let variantHtml = "";
-    
+
         combinations.forEach((variant, index) => {
-            let variantLabels = variant.map(valueId => {
-                let attributeId = Object.keys(attributes).find(id => attributes[id].variant_values.includes(valueId));
-                return $(`#attribute-values-${attributeId} option[value='${valueId}']`).text();
+            let variantLabels = variant.map((valueId) => {
+                let attributeId = Object.keys(attributes).find((id) =>
+                    attributes[id].variant_values.includes(valueId)
+                );
+                return $(
+                    `#attribute-values-${attributeId} option[value='${valueId}']`
+                ).text();
             });
-    
-            let existingData = existingSkus?.find(sku => {
-                let skuVariantIds = sku.variant_values.map(v => v.id.toString());
-                return JSON.stringify(skuVariantIds.sort()) === JSON.stringify(variant.sort());
+
+            let existingData = existingSkus?.find((sku) => {
+                let skuVariantIds = sku.variant_values.map((v) =>
+                    v.id.toString()
+                );
+                return (
+                    JSON.stringify(skuVariantIds.sort()) ===
+                    JSON.stringify(variant.sort())
+                );
             });
-    
+
             let price = existingData ? existingData.price : 0;
-            let promotion_price = existingData ? existingData.promotion_price : 0;
+            let promotion_price = existingData
+                ? existingData.promotion_price
+                : 0;
             let quantity = existingData ? existingData.quantity : 1;
             let image_url = existingData ? existingData.image_url : "";
-    
+
             let hiddenInputs = `
                 <input type="hidden" class="hidden-price" name="variants[${index}][price]" value="${price}">
                 <input type="hidden" class="hidden-promotion-price" name="variants[${index}][promotion_price]" value="${promotion_price}">
                 <input type="hidden" class="hidden-quantity" name="variants[${index}][quantity]" value="${quantity}">
                 <input type="hidden" class="hidden-image-url" name="variants[${index}][image_url]" value="${image_url}">
             `;
-    
+
             variant.forEach((value, idx) => {
                 hiddenInputs += `<input type="hidden" name="variants[${index}][variant_values][${idx}]" value="${value}">`;
             });
-    
+
             let variantInputs = `
                 <div class="accordion-item" id="variant-${index}">
                     <h2 class="accordion-header" id="heading-${index}">
@@ -250,71 +406,134 @@ $(document).ready(function () {
                     <div id="collapse-${index}" class="accordion-collapse collapse" aria-labelledby="heading-${index}" data-bs-parent="#variant-list">
                         <div class="accordion-body d-flex gap-3">
                           <div class="mb-3">
-                                <img id="preview-image-${index}" src="${image_url ? image_url : '#'}" alt="Ảnh biến thể" style="max-width: 100px; ${image_url ? 'display: block;' : 'display: none;'}"/>
+                                <img id="preview-image-${index}" src="${
+                image_url ? image_url : "#"
+            }" alt="Ảnh biến thể" style="max-width: 100px; ${
+                image_url ? "display: block;" : "display: none;"
+            }"/>
                                 <label class="form-label text-dark-custom">Hình ảnh biến thể</label>
                                 <input type="file" class="form-control variant-image" name="variants[${index}][image]" id="variant-image-${index}"  style="max-width: 100px;">
                             </div>
                             <div class="w-100"> 
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Giá bán (đ)</label>
-                                    <input type="number" class="form-control variant-price" data-index="${index}" value="${price}" min="0" required>
+                                    <input class="form-control variant-price numeric" data-index="${index}" value="${price}" min="0" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Giá khuyến mãi (đ)</label>
-                                    <input type="number" class="form-control variant-promotion-price" data-index="${index}" value="${promotion_price}" min="0">
+                                    <input class="form-control variant-promotion-price numeric" data-index="${index}" value="${promotion_price}" min="0">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label text-dark-custom">Số lượng</label>
-                                    <input type="number" class="form-control variant-quantity" data-index="${index}" value="${quantity}" min="1" required>
+                                    <input class="form-control variant-quantity numeric" type="number" data-index="${index}" value="${quantity}" min="1" required>
                                 </div>   
-                                <button type="button" class="btn btn-danger remove-variant" data-variant-index="${index}">Xóa biến thể</button>
+                                <button type="button" class="btn btn-danger remove-variant" data-variant-index="${index}">Xóa biến thể này</button>
                             </div>
                         </div>
                     </div>
                     ${hiddenInputs}
                 </div>`;
-    
+
             variantHtml += variantInputs;
         });
-    
+
         $("#variant-list").html(variantHtml);
-    
-        $(".variant-price, .variant-promotion-price, .variant-quantity").on("input", function () {
-            let index = $(this).data("index");
-            let price = $(`.variant-price[data-index="${index}"]`).val();
-            let promotion_price = $(`.variant-promotion-price[data-index="${index}"]`).val();
-            let quantity = $(`.variant-quantity[data-index="${index}"]`).val();
-    
-            $(`.hidden-price[name="variants[${index}][price]"]`).val(price);
-            $(`.hidden-promotion-price[name="variants[${index}][promotion_price]"]`).val(promotion_price);
-            $(`.hidden-quantity[name="variants[${index}][quantity]"]`).val(quantity);
-        });
-    
+
+        $(".variant-price, .variant-promotion-price, .variant-quantity").on(
+            "input",
+            function () {
+                let index = $(this).data("index");
+                let price = $(`.variant-price[data-index="${index}"]`).val();
+                let promotion_price = $(
+                    `.variant-promotion-price[data-index="${index}"]`
+                ).val();
+                let quantity = $(
+                    `.variant-quantity[data-index="${index}"]`
+                ).val();
+
+                $(`.hidden-price[name="variants[${index}][price]"]`).val(price);
+                $(
+                    `.hidden-promotion-price[name="variants[${index}][promotion_price]"]`
+                ).val(promotion_price);
+                $(`.hidden-quantity[name="variants[${index}][quantity]"]`).val(
+                    quantity
+                );
+            }
+        );
+
         $(".variant-image").change(function (event) {
             let index = $(this).attr("id").split("-").pop();
             let file = event.target.files[0];
-    
+
             if (file) {
                 let reader = new FileReader();
                 reader.onload = function (e) {
-                    $(`#preview-image-${index}`).attr("src", e.target.result).show();
-                    $(`#variant-image-${index}`).attr("data-image-url", e.target.result);
-                    $(`.hidden-image-url[name="variants[${index}][image_url]"]`).val(e.target.result);
+                    $(`#preview-image-${index}`)
+                        .attr("src", e.target.result)
+                        .show();
+                    $(`#variant-image-${index}`).attr(
+                        "data-image-url",
+                        e.target.result
+                    );
+                    $(
+                        `.hidden-image-url[name="variants[${index}][image_url]"]`
+                    ).val(e.target.result);
                 };
                 reader.readAsDataURL(file);
             }
         });
     }
-    
-    
-    
+
     function generateCombinations(arrays) {
-        return arrays.reduce((acc, curr) => acc.flatMap(a => curr.map(b => [].concat(a, b))), [[]]);
+        return arrays.reduce(
+            (acc, curr) => acc.flatMap((a) => curr.map((b) => [].concat(a, b))),
+            [[]]
+        );
     }
 
     $("#generate-variants").click(generateVariants);
     $("#add-attribute").click(addAttribute);
     $("#save-attributes").click(saveAttributes);
+
+    $(document).on("click", ".remove-attribute", function () {
+        let attributeId = $(this).data("attribute-id");
+        let attributeElement = $(`#attribute-${attributeId}`);
+
+        Swal.fire({
+            title: "Xóa thộc tính",
+            text: "Bạn chắc chắn muốn xóa thuộc tính này?",
+            icon: "error",
+            showCancelButton: true,
+            confirmButtonText: "Xóa",
+            cancelButtonText: "Hủy",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                attributeElement.remove();
+                delete attributes[attributeId];
+                generateVariants();
+                toastr.success("Xóa thuộc tính thành công!", "Thành công");
+            }
+        });
+    });
+
+    $(document).on("click", ".remove-variant", function () {
+        let variantIndex = $(this).data("variant-index");
+        let variantElement = $(`#variant-${variantIndex}`);
+
+        Swal.fire({
+            title: "Xóa biến thể",
+            text: "Bạn chắc chắn muốn xóa biến thể này ?",
+            icon: "error",
+            showCancelButton: true,
+            confirmButtonText: "Xóa",
+            cancelButtonText: "Hủy",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                variantElement.remove();
+                toastr.success("Xóa biến thể thành công!", "Thành công");
+            }
+        });
+    });
 });
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -372,6 +591,7 @@ document.addEventListener("DOMContentLoaded", function () {
     $("#sidebarToggle, #sidebarToggleTop").on("click", function () {
         $("body").toggleClass("sidebar-toggled");
         $(".sidebar").toggleClass("toggled");
+        $('#content-wrapper').toggleClass('toggled');
         $(".accordion-button-custom").addClass("active");
 
         if ($(".sidebar").hasClass("toggled")) {
@@ -392,6 +612,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if ($(window).width() < 480 && !$(".sidebar").hasClass("toggled")) {
             $("body").addClass("sidebar-toggled");
             $(".sidebar").addClass("toggled");
+            $(".#content-wrapper").addClass("toggled");
             $(".accordion-button-custom").addClass("active");
             $(".sidebar .collapse").collapse("hide");
         }
@@ -436,16 +657,117 @@ $(document).ready(function () {
     deleteUser();
     deleteItem();
     addVariantValue();
-    addProductOrder();
-    choseAttribute();
+    formatPriceMain();
+    addSlug();
+    selectedModules();
+    checkSkusCombo();
+    checkQuantity();
+    uploadThumbnailProduct();
 
-    
+    function addSlug() {
+        function createSlug(str) {
+            return str
+                .toLowerCase()
+                .replace(/á|à|ả|ã|ạ|ă|ắ|ằ|ẳ|ẵ|ặ|â|ấ|ầ|ẩ|ẫ|ậ|ä|æ/g, 'a')
+                .replace(/é|è|ẻ|ẽ|ẹ|ê|ế|ề|ể|ễ|ệ|ë/g, 'e')
+                .replace(/i|í|ì|ỉ|ĩ|ị|ï/g, 'i')
+                .replace(/ó|ò|ỏ|õ|ọ|ô|ố|ồ|ổ|ỗ|ộ|ơ|ớ|ờ|ở|ỡ|ợ|ö/g, 'o')
+                .replace(/ú|ù|ủ|ũ|ụ|ư|ứ|ừ|ử|ữ|ự|ü/g, 'u')
+                .replace(/ý|ỳ|ỷ|ỹ|ỵ|ÿ/g, 'y')
+                .replace(/đ/g, 'd')
+                .replace(/[^a-z0-9\- ]/g, '') 
+                .replace(/ +/g, '-') 
+                .replace(/--+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
 
-    function choseAttribute() {
-        let selectedAttributes = [1, 2, 3, 4, 5];
-        const getAttribute = document.getElementById("getAttributes");
-        const buttonGetAttribute = document.getElementById("addAttribute");
-        const attributeList = document.getElementById("attributeList");
+        $('#name').on('keyup', function () {
+            const valueName = $(this).val();
+            const slug = createSlug(valueName);
+            $('#slug').val(slug);
+        });
+    }
+
+    function formatPriceMain() {
+        function formatPrice(number) {
+            number = number.replace(/\D/g, "");
+            return new Intl.NumberFormat("vi-VN").format(number) + " VNĐ";
+        }
+
+        function formatPercent(number) {
+            number = number.replace(/\D/g, "");
+            return number + " %";
+        }
+
+        var type = $("#type").val();
+        var discountField = $('input[name="discount_value"]');
+
+        if (type !== "percent") {
+            $('#max_discount_value').hide();
+            $('#max_discount_value').find('.value').val(null);
+        } else {
+            $('#max_discount_value').show();
+        }
+
+        $("#type").change(function () {
+            var type = $(this).val();
+
+            discountField.val(0);
+
+            if (type == "percent") {
+                discountField.removeClass("price").addClass("percent");
+                discountField.val(discountField.val().replace("VNĐ", ""));
+
+                $('#max_discount_value').show();
+            } else {
+                discountField.removeClass("percent").addClass("price");
+                discountField.val(discountField.val().replace("%", ""));
+
+                $('#max_discount_value').hide();
+                $('#max_discount_value').find('.value').val(null);
+            }
+        });
+        
+
+        $(".price").on("keyup", function () {
+            let input = $(this).val();
+            $(this).val(formatPrice(input));
+        });
+
+        $('.price').each(function () {
+            let input = $(this).val();
+            if (input) {
+                $(this).val(formatPrice(input));
+            }
+        })
+
+        $('.percent').each(function () {
+            let input = $(this).val();
+            if (input) {
+                $(this).val(formatPercent(input));
+            }
+        })
+
+        $('input[name="discount_value"]').on("keyup", function () {
+            var input = $(this).val();
+            if ($(this).hasClass("price")) {
+                $(this).val(formatPrice(input));
+            }
+            if ($(this).hasClass("percent")) {
+                $(this).val(formatPercent(input));
+            }
+        });
+
+        $("form").on("submit", function () {
+            $(".price").each(function () {
+                let rawPrice = $(this).val().replace(/\D/g, "");
+                $(this).val(rawPrice);
+            });
+            $(".percent").each(function () {
+                let rawPercent = $(this).val().replace("%", "");
+                $(this).val(rawPercent);
+            });
+        });
     }
 
     function addAddress() {
@@ -593,8 +915,6 @@ $(document).ready(function () {
                             ),
                         },
                         success: function (response) {
-                            console.log("success");
-
                             if (response.type === "success") {
                                 Swal.fire({
                                     title: "Xóa thành công",
@@ -605,9 +925,7 @@ $(document).ready(function () {
                                 });
                             }
                         },
-                        error: function (error) {
-                            console.log(error);
-                        },
+                        error: function (error) {},
                     });
                 }
             });
@@ -615,7 +933,7 @@ $(document).ready(function () {
     }
 
     function deleteItem() {
-        $(document).on("click",".deleteItem" ,function (e) {
+        $(document).on("click", ".deleteItem", function (e) {
             e.preventDefault();
 
             const button = $(this);
@@ -642,19 +960,17 @@ $(document).ready(function () {
                         },
                         success: function (response) {
                             if (response.type === "success") {
-                                let table = $("#"+idTable).DataTable(); 
-                                let row = button.closest("tr"); 
+                                let table = $("#" + idTable).DataTable();
+                                let row = button.closest("tr");
                                 table.row(row).remove().draw(false);
                                 Swal.fire({
                                     title: "Xóa thành công",
                                     icon: "success",
                                     confirmButtonText: "Đồng ý",
-                                })
+                                });
                             }
                         },
-                        error: function (error) {
-                            console.log(error);
-                        },
+                        error: function (error) {},
                     });
                 }
             });
@@ -663,26 +979,44 @@ $(document).ready(function () {
 
     function addVariantValue() {
         const variantContainer = $("#VariantValue");
-        const variantsDatabase = variantContainer.data("variants") || [];
+        const routeApi = variantContainer.data("route");
+        let variantsDatabase = [];
 
         const variantTemplate = () => ({
-            label: "Tên biến thể",
             value: "",
             name: "value",
         });
 
-        let variants =
-            Array.isArray(variantsDatabase) && variantsDatabase.length > 0
+        function getVariants(variantsDatabase) {
+            return Array.isArray(variantsDatabase) &&
+                variantsDatabase.length > 0
                 ? variantsDatabase.map((variant) => ({
                       name: "value",
                       value: variant.value || "",
                   }))
                 : [variantTemplate()];
+        }
+
+        let variants = [];
+
+        $.ajax({
+            url: routeApi,
+            method: "GET",
+            dataType: "json",
+            cache: false,
+            success: function (data) {
+                variantsDatabase = data["values"] || [];
+
+                variants = getVariants(variantsDatabase);
+
+                render();
+            },
+            error: function (error) {},
+        });
 
         function saveCurrentValues() {
             $(".variant").each(function () {
                 const index = $(this).data("index");
-
                 $(this)
                     .find("input")
                     .each(function () {
@@ -698,13 +1032,13 @@ $(document).ready(function () {
             return `<div class="variant mb-4 border-bottom border-primary" data-index="${index}">
                         <h5 class="title">Biến thể ${index + 1}</h5>
                         <div class="mb-3">
-                            <label class="form-label">${variant.label}</label>
+                            <label class="form-label">Tên biến thể</label>
                             <input type="text" class="form-control" 
                                 name="variants[${index}][${variant.name}]" 
                                 data-index="${index}" 
                                 data-name="${variant.name}" 
                                 value="${variant.value}" 
-                                placeholder="${variant.label}">
+                                placeholder="Tên biến thể">
                         </div>
                         <button type="button" class="btn btn-danger text-white mb-3 d-flex ms-auto delete_value" data-index="${index}">Xóa biến thể này</button>
                     </div>`;
@@ -749,11 +1083,104 @@ $(document).ready(function () {
                 variants.push(variantTemplate());
                 render();
             });
-
-        render();
     }
 
-    function addProductOrder() {
-        const buttonAdd = $("#add-product-order");
+    function selectedModules() {
+        $('.form-check-input[id^="module-"]').on('change', function() {
+            let moduleId = $(this).val();
+            let isChecked = $(this).prop('checked'); 
+
+            $('.module-' + moduleId).prop('checked', isChecked);
+        });
+
+        $('.form-check-input[name="permissions[]"]').on('change', function() {
+            let moduleId = $(this).attr('class').match(/module-(\d+)/)[1];
+            let allPermissions = $('.module-' + moduleId); 
+            let allChecked = allPermissions.length === allPermissions.filter(':checked').length; 
+
+            $('#module-' + moduleId).prop('checked', allChecked);
+        });
     }
+
+    function checkSkusCombo() {
+        $('.sku-combo').on("click", function (e) {
+            if ($(e.target).is(".check-skus")) {
+                return;
+            }
+    
+            var checkbox = $(this).find(".check-skus");
+
+
+            checkbox.prop("checked", !checkbox.prop("checked"));
+
+            var parentProductBlog = $(e.target).closest('.product-blog');
+            if (parentProductBlog.length) {
+                if (checkbox.prop("checked")) {
+                    parentProductBlog.addClass('active');
+                } else {
+                    parentProductBlog.removeClass('active');
+                }
+            }
+        });
+    }
+
+    function checkQuantity() {
+        $(document).on('keypress', '.numeric', function (e) {
+            let charCode = e.which ? e.which : e.keyCode;
+            if (charCode < 48 || charCode > 57) {
+                e.preventDefault();
+            }
+        });
+    
+        $(document).on('blur change', '.numeric', function () {
+            let val = parseInt($(this).val().toString().trim());
+    
+            if (isNaN(val) || val < 1) {
+                $(this).val(1);
+            }
+        });
+    }
+
+
+    function uploadThumbnailProduct() {
+        $(document).on('click', '.close-btn', function() {
+            $(this).closest('.image-container').remove();
+        });
+        
+        function imagePreview(name) {
+            return `
+                <div class="col image-container" id="image-${name}">
+                    <input type="file" id="upload-${name}" name="thumbnails[]" hidden />
+                    <img class="w-100 h-100" id="preview-${name}" src="" alt="Image Preview" />
+                    <button type="button" class="close-btn"><i class="bi bi-x"></i></button>
+                </div>
+            `;
+        }
+    
+        $("#uploadThumbnaiProduct").on('click', function() {
+            const name = new Date().getTime();
+            
+            $("#thumbnails").append(imagePreview(name));
+            
+            const fileInput = $(`#upload-${name}`);
+            
+            fileInput[0].click();
+            
+            fileInput.on('change', function(event) {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+            
+                reader.onload = function(e) {
+                    $(`#preview-${name}`).attr("src", e.target.result);
+                };
+            
+                if (file) {
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    }
+    
+    
+    
 });

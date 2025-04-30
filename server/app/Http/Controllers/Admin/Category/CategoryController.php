@@ -7,7 +7,7 @@ use App\Enums\Category\CategoryStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Category\CategoryRequest;
 use App\Models\Category;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -39,27 +39,24 @@ class CategoryController extends Controller
     {
         // dd($request);
         try {
+            if ($request->hasFile('image')) {
+                // $path = Storage::disk('public')->put('category_images', $request->image);
+                $pathImage = putImage('category_images',$request->image);
+            } else {
+                $pathImage = config('settings.image_default');
+            }
             $data = [
                 'name' => $request->name,
                 'short_description' => $request->short_description,
                 'status' => $request->status,
                 'parent_id' => $request->parent_id,
-                'image' => 'đasadasd',
+                'image' => $pathImage,
             ];
 
             if (isset($request->slug) && !empty($request->slug)) {
                 $data['slug'] = $request->slug;
             } else {
                 $data['slug'] = Str::slug($request->name);
-            }
-
-            $path = null;
-
-            if ($request->hasFile('image')) {
-                $path = Storage::disk('public')->put('category_images', $request->image);
-                $data['image'] = '/storage/' . $path;
-            } else {
-                $data['image'] = config(key: 'settings.image_default');
             }
 
             Category::create($data);
@@ -138,10 +135,8 @@ class CategoryController extends Controller
     public function destroy(Request $request, Category $category)
     {
         try {
-            if (Str::contains($category->image, 'storage')) {
-                $path = str_replace('storage/', '', $category->image);
-                Storage::disk('public')->delete($path);
-            }
+     
+            deleteImage($category->image);
 
             $category->delete();
 

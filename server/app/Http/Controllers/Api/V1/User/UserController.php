@@ -2,86 +2,55 @@
 
 namespace App\Http\Controllers\Api\V1\User;
 
+use App\Enums\Voucher\VoucherStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Address\AddAddressRequest;
+use App\Http\Requests\Api\V1\Address\PutAddressRequest;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ProductFeedback;
 use App\Models\User;
+use App\Models\UserAddress;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Lấy thông tin toàn bộ Users
-    | Path: api/users
-    |--------------------------------------------------------------------------
-    */
-    public function index()
-    {
-        try {
-            // Eager load các mối quan hệ liên quan
-            $users = User::with('addresses', 'carts.sku.product', 'carts.sku.variantValues', 'favorites.product', 'vouchers.productVoucher', 'wallet', 'productFeedbacks.product', 'orders.items.product', 'orders.items.sku', 'orders.items.sku.variantValues')
-                ->get();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Got all users',
-                'data' => $users
-            ], 200);
-        } catch (\Exception $e) {
-            // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
 
     /*
     |--------------------------------------------------------------------------
-    | Lấy thông tin User theo id
-    | Path: /api/users/{{userId}}
+    | Lấy thông tin User
+    | Path: /api/users/
     |--------------------------------------------------------------------------
     */
-    public function show($userId)
+    public function show()
     {
         try {
+            $user = auth()->user();
+            $userId = $user->id;
+            if(!$user){
+                return ResponseError('Authentication fail',null,400);
+            }
+            if(!$userId){
+                return ResponseError('User Not Found',null,404);
+            }
             // Eager load các mối quan hệ liên quan
-            $users = User::with('addresses',
+            $users = User::with(
+                'addresses',
                 'carts.sku.product',
                 'carts.sku.variantValues',
                 'favorites',
-                'vouchers.productVoucher',
-                'wallet',
-                'productFeedbacks.product',
-                'orders.items.product',
-                'orders.items.sku',
+                'vouchers',
+                'productFeedbacks.sku.product',
+                'orders.items.sku.product',
                 'orders.items.sku.variantValues')
                 ->find($userId);
-
-            // Không tìm thấy User
-            if (!$users) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                    'data' => NULL
-                ], 404);
-            }
-
             // Tìm thấy User
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Got user data',
-                'data' => $users
-            ], 200);
+            return ResponseSuccess('Get data successfully',$users,200);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
+            return ResponseError($e->getMessage(),null,500);
         }
     }
 
@@ -95,7 +64,8 @@ class UserController extends Controller
     {
         try {
             $user = auth()->user(); // Lấy người dùng đang đăng nhập
-            $orders = $user->orders()
+
+            $orders = $user->orders()->with('items', 'items.sku', 'items.sku.product')
                 ->orderBy('created_at', 'desc') // Sắp xếp theo thời gian tạo mới nhất
                 ->get();
             if ($orders) {
@@ -112,39 +82,25 @@ class UserController extends Controller
     /*
     |--------------------------------------------------------------------------
     | Lấy danh sách mã giảm giá User
-    | Path: /api/users/{{userId}}/vouchers
+    | Path: /api/users/vouchers
     |--------------------------------------------------------------------------
     */
-    public function vouchers($userId)
+    public function vouchers()
     {
         try {
-            // Lấy user kèm theo danh sách vouchers
-            $user = User::with('vouchers.productVoucher')->find($userId);
+            $user = Auth::user();
 
-            // Không tìm thấy User
-            if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                    'data' => null
-                ], 404);
-            }
+            $vouchers = User::with(['vouchers' => function ($query) {
+                $query->where('status', VoucherStatus::Active)
+                    ->where('ended_date', '>', now())
+                    ->whereDoesntHave('orders'); // Kiểm tra các voucher chưa xuất hiện trong đơn hàng
+            }])->find($user->id);
 
-            // Trả về danh sách vouchers của user
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Got user vouchers',
-                'data' => $user
-            ], 200);
+            return ResponseSuccess('Got user vouchers', $vouchers);
         } catch (\Exception $e) {
-            // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
+            return ResponseError($e->getMessage(), null, 500);
         }
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -176,7 +132,7 @@ class UserController extends Controller
     /*
     |--------------------------------------------------------------------------
     | Lấy danh sách yêu thích sản phẩm User
-    | Path: /api/users/{{userId}}/favorites
+    | Path: /api/users/favorites
     |--------------------------------------------------------------------------
     */
     public function favorites()
@@ -273,40 +229,157 @@ class UserController extends Controller
         }
     }
 
-
     /*
     |--------------------------------------------------------------------------
-    | Lấy danh sách đánh giả sản phẩm User
-    | Path: /api/users/{{userId}}/product-feedbacks
+    | function address
     |--------------------------------------------------------------------------
     */
-    public function productFeedbacks($userId)
+    public function getAddressUser()
     {
         try {
-            // Lấy user kèm theo danh sách orders
-            $user = User::with('productFeedbacks.product')->find($userId);
-
+            $userId = Auth::id();
             // Không tìm thấy User
-            if (!$user) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'User not found',
-                    'data' => NULL
-                ], 404);
+            if (!$userId) {
+                return ResponseError('User not found',null,404);
             }
 
+            $userAddresses = UserAddress::with(['province', 'district', 'ward'])
+                ->where('user_id', $userId)
+                ->select('id','name','phone_number', 'address', 'province_code', 'district_code', 'ward_code', 'default')
+                ->orderByRaw("CASE WHEN `default` = 'default' THEN 1 ELSE 0 END DESC")
+                ->get();
+
             // Trả về danh sách orders
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Got user product feedbacks',
-                'data' => $user
-            ], 200);
+            return ResponseSuccess('Got user address',$userAddresses);
         } catch (\Exception $e) {
             // Bắt lỗi nếu có ngoại lệ
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
+            return ResponseError($e->getMessage(),null,500);
+        }
+    }
+    public function addAddressUser(AddAddressRequest $request)
+    {
+        try {
+            $userId = Auth::id();
+
+            if (!$userId) {
+                return ResponseError('User not authenticated', null, 401);
+            }
+
+            $user = User::find($userId);
+            if (!$user) {
+                return ResponseError('User not found', null, 404);
+            }
+
+            // Nếu địa chỉ mới được đặt làm mặc định, cập nhật các địa chỉ khác thành 'non-default'
+            if ($request->default === 'default') {
+                UserAddress::where('user_id', $userId)->update(['default' => 'other']);
+            }
+
+            // Thêm địa chỉ mới vào bảng `user_address`
+            $newAddress = UserAddress::create([
+                'user_id' => $userId,
+                'address' => $request->address,
+                'province_code' => $request->province_code,
+                'district_code' => $request->district_code,
+                'ward_code' => $request->ward_code,
+                'name' => $request->name,
+                'phone_number' => $request->phone_number,
+                'default' => $request->default ?? 'other', // Nếu không có, đặt mặc định là 'non-default'
+            ]);
+
+            // Lấy lại danh sách địa chỉ sau khi thêm mới
+            $userAddresses = UserAddress::with(['province', 'district', 'ward'])
+                ->where('user_id', $userId)
+                ->orderByRaw("CASE WHEN `default` = 'default' THEN 1 ELSE 0 END DESC")
+                ->get();
+
+            return ResponseSuccess('Address added successfully', $userAddresses);
+        } catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
+        }
+    }
+    public function updateAddressUser(PutAddressRequest $request)
+    {
+        try {
+
+            $userId = Auth::id();
+
+            if (!$userId) {
+                return ResponseError('User not authenticated', null, 401);
+            }
+
+            $user = User::find($userId);
+            if (!$user) {
+                return ResponseError('User not found', null, 404);
+            }
+
+            $address = UserAddress::where('id', $request->address_id)
+                ->where('user_id', Auth::id()) // Đảm bảo địa chỉ thuộc về user đang đăng nhập
+                ->first();
+            if (!$address) {
+                return ResponseError('User dont have this address', null, 400);
+            }
+
+            // Nếu địa chỉ mới được đặt làm mặc định, cập nhật các địa chỉ khác thành 'other'
+            if ($request->default === 'default') {
+                UserAddress::where('user_id', $userId)->update(['default' => 'other']);
+            }
+
+            // Sửa địa chỉ bảng `user_address`
+            $newAddress = UserAddress::find($address->id)->update([
+                'address' => $request->address,
+                'province_code' => $request->province_code,
+                'district_code' => $request->district_code,
+                'ward_code' => $request->ward_code,
+                'name' => $request->name,
+                'phone_number' => $request->phone_number,
+                'default' => $request->default,
+            ]);
+
+            // Lấy lại danh sách địa chỉ sau khi thêm mới
+            $userAddresses = UserAddress::with(['province', 'district', 'ward'])
+                ->where('user_id', $userId)
+                ->orderByRaw("CASE WHEN `default` = 'default' THEN 1 ELSE 0 END DESC")
+                ->get();
+
+            return ResponseSuccess('Address update successfully', $userAddresses);
+        } catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
+        }
+    }
+    public function deleteAddressUser(Request $request)
+    {
+        try {
+
+            $userId = Auth::id();
+
+            if (!$userId) {
+                return ResponseError('User not authenticated', null, 401);
+            }
+
+            $user = User::find($userId);
+            if (!$user) {
+                return ResponseError('User not found', null, 404);
+            }
+
+            $address = UserAddress::where('id', $request->address_id)
+                ->where('user_id', Auth::id()) // Đảm bảo địa chỉ thuộc về user đang đăng nhập
+                ->first();
+            if (!$address) {
+                return ResponseError('User dont have this address', null, 400);
+            }
+
+            UserAddress::find($address->id)->delete();
+
+            // Lấy lại danh sách địa chỉ sau khi thêm mới
+            $userAddresses = UserAddress::with(['province', 'district', 'ward'])
+                ->where('user_id', $userId)
+                ->orderByRaw("CASE WHEN `default` = 'default' THEN 1 ELSE 0 END DESC")
+                ->get();
+
+            return ResponseSuccess('Address delete successfully', $userAddresses);
+        } catch (\Exception $e) {
+            return ResponseError($e->getMessage(), null, 500);
         }
     }
 }

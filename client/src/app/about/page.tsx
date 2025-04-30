@@ -1,73 +1,50 @@
 import Image from "next/image";
 
-export default function Home() {
+async function getSettings() {
+  try {
+    const res = await fetch('https://test.zbeauty.id.vn/api/v1/settings', {
+      next: { revalidate: 3600 }
+    });
+    
+    if (!res.ok) {
+      throw new Error('Failed to fetch settings');
+    }
+
+    const data = await res.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching settings:', error);
+    return [];
+  }
+}
+
+export default async function About() {
+  const settings = await getSettings();
+  const aboutSetting = settings.find((setting: any) => setting.name === 'About');
+
   return (
-    <main className="bg-gray-50 min-h-screen flex flex-col items-center justify-center">
-      {/* Phần giới thiệu chính */}
-      <section className="max-w-4xl mx-auto text-center p-6">
-        {/* Hero Section */}
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            Chào mừng đến với nền tảng tuyệt vời của chúng tôi
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Khám phá các giải pháp tốt nhất về thiết kế UI/UX, phát triển web, 
-            và nhiều hơn thế nữa. Tất cả đều được thiết kế đẹp mắt và thân thiện với người dùng!
-          </p>
+    <main className="bg-white min-h-screen py-16">
+      <div className="max-w-5xl mx-auto px-6 md:px-8">
+        {/* Gradient banner thay vì sử dụng hình ảnh */}
+        <div className="mb-10 relative h-48 md:h-64 rounded-xl overflow-hidden shadow-xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-pink-400 flex items-center justify-center">
+            <h1 className="text-white text-3xl md:text-4xl font-bold drop-shadow-lg px-4 text-center">
+              Giới thiệu về ZBeauty
+            </h1>
+          </div>
+          <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-20"></div>
         </div>
 
-        {/* Hình ảnh minh họa */}
-        <div className="relative w-full h-80 mb-8">
-  <Image
-    src="/banner/1.jpg" // Thay bằng URL của ảnh bạn muốn
-    alt="Ảnh minh họa"
-    fill // Tương đương với `layout="fill"`
-    className="rounded-lg shadow-md object-cover"
-  />
-</div>
-
-
-        {/* Phần tính năng nổi bật */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-4 bg-white shadow-lg rounded-lg">
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              Thân thiện với người dùng
-            </h3>
-            <p className="text-gray-600">
-              Giao diện trực quan, dễ sử dụng giúp trải nghiệm mượt mà.
-            </p>
-          </div>
-          <div className="p-4 bg-white shadow-lg rounded-lg">
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              Hiệu suất cao
-            </h3>
-            <p className="text-gray-600">
-              Hiệu năng nhanh và ổn định cho trải nghiệm liền mạch.
-            </p>
-          </div>
-          <div className="p-4 bg-white shadow-lg rounded-lg">
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              Dễ dàng tùy chỉnh
-            </h3>
-            <p className="text-gray-600">
-              Các giải pháp phù hợp với nhu cầu cụ thể của bạn.
-            </p>
-          </div>
+        {/* Nội dung giới thiệu */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10">
+          <div 
+            className="prose prose-lg md:prose-xl max-w-none prose-headings:text-pink-700 prose-a:text-pink-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-pink-700 prose-img:rounded-lg prose-img:shadow-md"
+            dangerouslySetInnerHTML={{ 
+              __html: aboutSetting?.value || 'Không tìm thấy nội dung' 
+            }}
+          />
         </div>
-      </section>
-
-      {/* Phần kêu gọi hành động */}
-      <section className="bg-pink-600 w-full text-center py-10 mt-12">
-        <h2 className="text-2xl text-white font-bold mb-4">
-          Sẵn sàng để bắt đầu?
-        </h2>
-        <p className="text-pink-200 mb-6">
-          Đăng ký ngay hôm nay và nâng tầm thiết kế của bạn!
-        </p>
-        <button className="bg-white text-pink-600 px-6 py-2 rounded-lg font-semibold hover:bg-pink-200 transition">
-          Bắt đầu ngay
-        </button>
-      </section>
+      </div>
     </main>
   );
 }

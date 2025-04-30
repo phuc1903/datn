@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { API_BASE_URL } from "@/config/config";
 
 interface Blog {
   id: number;
@@ -19,7 +20,7 @@ const BlogHome = () => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/v1/blogs");
+        const response = await fetch(`${API_BASE_URL}/blogs`);
         const data = await response.json();
         
         if (data?.status === "success") {

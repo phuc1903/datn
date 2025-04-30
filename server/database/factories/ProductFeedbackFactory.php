@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\Product\ProductFeedbackStatus;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductFeedback;
 use App\Models\User;
@@ -23,10 +24,11 @@ class ProductFeedbackFactory extends Factory
     public function definition(): array
     {
         return [
-            'product_id' => Product::inRandomOrder()->first()->id,
+            'sku_id' => Product::inRandomOrder()->first()->id,
             'user_id' => User::inRandomOrder()->first()->id,
+            'order_id' => Order::inRandomOrder()->first()->id,
             'rating' => $this->faker->numberBetween(1, 5),
-            'content' => $this->faker->sentence(),
+            'comment' => $this->faker->sentence(),
             'status' => $this->faker->randomElement(ProductFeedbackStatus::getValues()),
             'created_at' => now(),
             'updated_at' => now()

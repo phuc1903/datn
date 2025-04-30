@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Enums\Product\ProductStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\ProductComment;
 class Product extends Model
 {
     use HasFactory;
@@ -18,9 +18,12 @@ class Product extends Model
 
     public function skus()
     {
-        return $this->hasMany(Sku::class)->select('id', 'sku_code', 'product_id', 'price', 'promotion_price', 'quantity', 'image_url');
+        return $this->hasMany(Sku::class ,'product_id')->select('id', 'sku_code', 'product_id', 'price', 'promotion_price', 'quantity', 'image_url');
     }
-
+    public function comments()
+    {
+        return $this->hasMany(ProductComment::class);
+    }
     // Quan hệ với ảnh sản phẩm
     public function images()
     {
@@ -39,17 +42,24 @@ class Product extends Model
     }
     public function feedbacks()
     {
-        return $this->belongsToMany(User::class, 'product_feedbacks', 'product_id', 'user_id')
-            ->withPivot('rating', 'content')  // Đảm bảo lấy thêm rating và comment
-            ->withTimestamps();  // Lấy timestamps nếu có
+        return $this->hasManyThrough(
+            ProductFeedback::class,      // Model trung gian
+            Sku::class,                // Model liên kết
+            'product_id',             // Khóa ngoại trên bảng `skus` (liên kết với `products`)
+            'sku_id',              // Khóa ngoại trên bảng `product_feedbacks` (liên kết với `skus`)
+            'id',                   // Khóa chính của `products`
+            'id'             // Khóa chính của `skus`
+        );
     }
-
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
 
-
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'product_tags', 'product_id', 'tag_id');
+    }
 
 
 
