@@ -442,7 +442,7 @@ class OrderController extends Controller
                 'items.sku.product' => function ($query) {
                     $query->select('id', 'name', 'description');
                 },
-                'items.combo' => function ($query) {
+                'items.combos' => function ($query) {
                     $query->select('id', 'name', 'description');
                 }
             ])->find($id);
