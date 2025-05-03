@@ -442,6 +442,9 @@ class OrderController extends Controller
                 'items.sku.product' => function ($query) {
                     $query->select('id', 'name', 'description');
                 },
+                'items.sku.product.images' => function ($query) {
+                    $query->select('id', 'image_url','product_id');
+                },
                 'items.combos' => function ($query) {
                     $query->select('id', 'name', 'description');
                 }
