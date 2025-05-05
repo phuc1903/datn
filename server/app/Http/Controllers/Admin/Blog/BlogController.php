@@ -10,7 +10,6 @@ use App\Models\Blog;
 use App\Models\BlogProduct;
 use App\Models\BlogTag;
 use App\Models\Product;
-use App\Models\Sku;
 use App\Models\Tag;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;

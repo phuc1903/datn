@@ -39,14 +39,14 @@
                         <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
                             <i class="fa fa-bars"></i>
                         </button>
-
-                        <x-button type="href" href="{{ config('settings.api_url') }}" label="Documentation API"
-                            icon="bi bi-book" />
+                        
+                        {{-- <x-button type="href" href="{{ config('settings.api_url') }}" label="Documentation API"
+                            icon="bi bi-book" /> --}}
                         <!-- Topbar Navbar -->
                         <ul class="navbar-nav ms-auto">
 
                             <!-- Nav Item - Search Dropdown (Visible Only XS) -->
-                            <li class="nav-item dropdown no-arrow d-sm-none">
+                            {{-- <li class="nav-item dropdown no-arrow d-sm-none">
                                 <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
                                     data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-search fa-fw"></i>
@@ -67,10 +67,10 @@
                                         </div>
                                     </form>
                                 </div>
-                            </li>
+                            </li> --}}
 
                             <!-- Nav Item - Alerts -->
-                            <li class="nav-item dropdown no-arrow mx-1">
+                            {{-- <li class="nav-item dropdown no-arrow mx-1">
                                 <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
                                     data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-bell fa-fw"></i>
@@ -184,9 +184,9 @@
                                     <a class="dropdown-item text-center small text-gray-500" href="#">Read More
                                         Messages</a>
                                 </div>
-                            </li>
+                            </li> --}}
 
-                            <div class="topbar-divider d-none d-sm-block"></div>
+                            {{-- <div class="topbar-divider d-none d-sm-block"></div> --}}
 
                             <!-- Nav Item - User Information -->
                             <li class="nav-item dropdown no-arrow">

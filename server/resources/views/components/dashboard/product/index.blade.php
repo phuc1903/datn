@@ -28,7 +28,7 @@
     @else
         <div class="row row-cols-1 g-3 row-cols-md-2 row-cols-lg-4">
             @foreach ($products as $product)
-                <a class="col d-block" href="{{ route('admin.product.edit', $product->product) }}">
+                <a class="col d-block" href="{{ route('admin.product.show', $product) }}">
                     <div class="mb-3">
                         <div class="card product mb-3">
                             <x-image.index class="mb-3" src="{{ $product->image_url }}" />

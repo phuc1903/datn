@@ -113,8 +113,10 @@ class ComboController extends Controller
             'label' =>  $comboStatus->label()
         ];
 
+        
         $status = mapEnumToArray(ComboStatus::class, $combo->status);
-
+        
+        // dd($combo);
 
         $comboHot = ComboHot::fromValue($combo->is_hot);
         $h = [

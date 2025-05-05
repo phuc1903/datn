@@ -50,6 +50,20 @@ class ProductController extends Controller
         return view('Pages.Product.Create', ['productStatus' => $productStatusData, 'variants' => $variants, 'categories' => $categoryTree, 'tags' => $tags]);
     }
 
+    public function show(Sku $sku)
+    {
+        $sku->load('variantValues', 'product');
+        
+        return view('Pages.Product.Sku', compact('sku'));
+    }
+
+    public function updateSku(Request $request, Sku $sku)
+    {
+        $sku->increment('quantity', $request->quantity_new);
+
+        return redirect()->back()->with('success', "Bạn đã nhập {$request->quantity_new} sản phẩm vào kho thành công");
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -98,7 +112,7 @@ class ProductController extends Controller
                         'product_id' => $product->id,
                         'sku_code' => "SKU-" . strtoupper(Str::random(8)),
                         'price' => $variantData['price'] ?? 0,
-                        'promotion_price' => $variantData['promotion_price'] ?? 0,
+                        'promotion_price' => isset($variantData['promotion_price']) && $variantData['promotion_price'],
                         'quantity' => $variantData['quantity'] ?? 0,
                         'image_url' => $this->uploadImage($request, "variants.$key.image"),
                     ]);
@@ -123,7 +137,7 @@ class ProductController extends Controller
                     'product_id' => $product->id,
                     'sku_code' => "SKU-" . strtoupper(Str::random(8)) . $product->id,
                     'price' => $request->price,
-                    'promotion_price' => $request->promotion_price,
+                    'promotion_price' => isset($request->promotion_price) && $request->promotion_price,
                     'quantity' => $request->quantity_default,
                 ];
 
@@ -183,8 +197,12 @@ class ProductController extends Controller
             
             $sku->percentOrders = $maxOrders > 0 ? round(($sku->order_items_count / $maxOrders) * 100, 2) : 0;
 
+            $sku->quantityFavorites = $sku->product->favorites->count();
+
+            $sku->quantityOrders = $sku->order_items_count;
             return $sku;
         });
+
 
         // dd($skus);
 
@@ -232,14 +250,17 @@ class ProductController extends Controller
      */
     public function update(ProductRequest $request, Product $product)
     {
+        // dd($request);
         try {
             $productImageIds = $product->images->pluck('id')->toArray();
 
-            $deletedImages = array_diff($productImageIds, $request->old_thumbnails);
+            if(isset($productImageIds)) {
 
-            if (!empty($deletedImages)) {
+                $oldThumbnails = is_array($request->old_thumbnails) ? $request->old_thumbnails : [];
+                $deletedImages = array_diff($productImageIds, $oldThumbnails);
+                
                 $imagesToDelete = $product->images->whereIn('id', $deletedImages);
-
+                
                 foreach ($imagesToDelete as $image) {
                     deleteImage($image->image_url);
                     $image->delete();
@@ -306,14 +327,14 @@ class ProductController extends Controller
                             'product_id' => $product->id,
                             'sku_code' => "SKU-" . strtoupper(Str::random(8)),
                             'price' => $variantData['price'] ?? 0,
-                            'promotion_price' => $variantData['promotion_price'] ?? 0,
+                            'promotion_price' => isset($variantData['promotion_price']) && $variantData['promotion_price'],
                             'quantity' => $variantData['quantity'] ?? 0,
                             'image_url' => $this->uploadImage($request, "variants.$key.image"),
                         ]);
                     } else {
                         $sku->update([
                             'price' => $variantData['price'] ?? 0,
-                            'promotion_price' => $variantData['promotion_price'] ?? 0,
+                            'promotion_price' => isset($variantData['promotion_price']) && $variantData['promotion_price'],
                             'quantity' => $variantData['quantity'] ?? 0,
                             'image_url' => $request->hasFile("variants.$key.image")
                                 ? $this->uploadImage($request, "variants.$key.image", $sku->image_url)
@@ -340,14 +361,14 @@ class ProductController extends Controller
                 if ($sku) {
                     $skuData = [
                         'price' => $request->price ?? 0,
-                        'promotion_price' => $request->promotion_price ?? 0,
+                        'promotion_price' => isset($request->promotion_price) && $request->promotion_price,
                         'quantity' => $request->quantity_default ?? 0,
                     ];
 
-                    if ($request->hasFile('image_url')) {
+                    if ($request->hasFile('image')) {
                         if ($sku->image_url)
                             deleteImage($sku->image_url);
-                        $skuData['image_url'] = putImage('product_images', $request->image_url);
+                        $skuData['image_url'] = putImage('product_images', $request->image);
                     } else {
                         $skuData['image_url'] = $sku->image_url ?? config('settings.image_default');
                     }
@@ -359,10 +380,10 @@ class ProductController extends Controller
                         'product_id' => $product->id,
                         'sku_code' => "SKU-" . strtoupper(Str::random(8)) . $product->id,
                         'price' => $request->price ?? 0,
-                        'promotion_price' => $request->promotion_price ?? 0,
+                        'promotion_price' => isset($request->promotion_price) && $request->promotion_price,
                         'quantity' => $request->quantity_default ?? 0,
-                        'image_url' => $request->hasFile('image_url')
-                            ? putImage('product_images', $request->image_url)
+                        'image_url' => $request->hasFile('image')
+                            ? putImage('product_images', $request->image)
                             : config('settings.image_default'),
                     ]);
 

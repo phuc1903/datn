@@ -11,16 +11,65 @@ class SettingController extends Controller
    
     public function index()
     {
-        $settings = Setting::all()->pluck('value', 'name')->map(function ($value) {
-            if (is_string($value) && json_decode($value) !== null) {
-                return json_decode($value, true);
-            }
-            return $value;
-        });
+        $general = Setting::whereIn('name', [
+            'imageActionSignUpHome',
+            'supports',
+            'AnnouncementBar',
+            'NameWebsite',
+            'imageIntroduceVoucher',
+        ])->pluck('value', 'name')->toArray();
 
-        return view('Pages.Setting.Index', compact('settings'));
+        if (isset($general['supports']) && is_string($general['supports'])) {
+            $general['supports'] = json_decode($general['supports'], true);
+        }
+
+        return view('Pages.Setting.Index', ['settings' => $general]);
     }
 
+    public function logo()
+    {
+        $logos = Setting::whereIn('name', [
+                'logoHeaderLightMode',
+                'logoHeaderDarkMode',
+                'logoFooterLightMode',
+                'logoFooterDarkMode',
+                'IconSite',
+            ])
+            ->pluck('value', 'name')
+            ->toArray();
+
+        return view('Pages.Setting.Logo', compact('logos'));
+    }
+
+    public function footer()
+    {
+        $footer = Setting::whereIn('name', [
+                'FooterHouseOpen',
+                'FooterComplaints',
+                'FooterSlogan',
+                'FooterAddresses',
+            ])
+            ->pluck('value', 'name')
+            ->toArray();
+
+        return view('Pages.Setting.Footer', compact('footer'));
+    }
+
+    public function about()
+    {
+        $about = Setting::where('name', 'About')->value('value');
+
+        return view('Pages.Setting.About', compact('about'));
+    }
+
+    public function contact()
+    {
+        $contact = Setting::where('name', 'Contact')->value('value');
+
+        $contact = json_decode($contact, true); // Giải mã JSON thành mảng
+
+        return view('Pages.Setting.Contact', compact('contact'));
+    }
 
     /**
      * Store a newly created resource in storage.

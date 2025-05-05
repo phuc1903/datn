@@ -56,6 +56,9 @@ Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function 
         Route::put('{product}', 'update')->middleware('permission:updateProduct')->name('update');
         Route::delete('{product}', 'destroy')->middleware('permission:deleteProduct')->name('destroy');
         Route::get('/statistic', 'statistic')->middleware('permission:viewProduct')->name('statistic.index');
+
+        Route::get('/sku/{sku}', 'show')->middleware('permission:viewProduct')->name('show');
+        Route::put('/sku/{sku}', 'updateSku')->middleware('permission:updateProduct')->name('sku.update');
     });
 
     // Danh mục sản phẩm
@@ -193,6 +196,11 @@ Route::prefix('/admin')->as('admin.')->middleware('auth:admin')->group(function 
         // chung
         Route::get('/', 'index')->middleware('permission:viewSetting')->name('index');
         Route::post('/', 'store')->middleware('permission:createSetting')->name('store');
+
+        Route::get('/logo', 'logo')->middleware('permission:viewSetting')->name('logo');;
+        Route::get('/footer', 'footer')->middleware('permission:viewSetting')->name('footer');;
+        Route::get('/about', 'about')->middleware('permission:viewSetting')->name('about');;
+        Route::get('/contact', 'contact')->middleware('permission:viewSetting')->name('contact');;
     });
 
 

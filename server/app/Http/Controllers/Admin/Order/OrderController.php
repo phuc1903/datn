@@ -47,7 +47,7 @@ class OrderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(order $order)
+    public function show(Order $order)
     {
         //
     }
@@ -55,9 +55,9 @@ class OrderController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(order $order)
+    public function edit(Order $order)
     {
-        $orderShow = $order->load('user', 'items', 'items.sku', 'items.sku.product', 'items.sku.variantValues');
+        $orderShow = $order->load('user', 'items', 'items.sku', 'items.sku.product', 'items.sku.variantValues', 'province', 'district', 'ward');
         // dd($orderShow);
 
         $orderStatus = OrderStatus::fromValue($orderShow->status);
@@ -173,7 +173,7 @@ class OrderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(order $order)
+    public function destroy(Order $order)
     {
         return redirect()->back()->with('error', 'Bạn không được phép xóa đơn hàng');
     }

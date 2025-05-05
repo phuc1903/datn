@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\v1\ComboFeedback;
+namespace App\Http\Controllers\Api\V1\ComboFeedback;
 
 use App\Enums\Combo\ComboCommentStatus;
 use App\Enums\Combo\ComboCommentUserStatus;

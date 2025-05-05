@@ -1,4 +1,4 @@
-@extends('Layouts.app')
+@extends('layouts.app')
 
 @section('content')
 	<div class="dashboard">
@@ -21,9 +21,9 @@
 				</div>
 				<div class="col-12 col-md-6 col-lg-4">
 					<div class="chart-item">
-						<x-dashboard.chart.order_chart :pending="$statisticsCard['orders']['data']['toatlOrderPending']"
-							:success="$statisticsCard['orders']['data']['totalOrderSuccess']"
-							:cancel="$statisticsCard['orders']['data']['totalOrderCancel']" />
+						<x-dashboard.chart.order_chart :pending="$statisticOrderChart['data']['toatlOrderPending']"
+							:success="$statisticOrderChart['data']['totalOrderSuccess']"
+							:cancel="$statisticOrderChart['data']['totalOrderCancel']" />
 					</div>
 				</div>
 			</div>

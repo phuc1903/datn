@@ -307,31 +307,31 @@
                     'path' => route('admin.setting.index'),
                     'permission_required' => 'viewSetting',
                 ],
-                // [
-                //     'label' => 'Cài đặt Logo',
-                //     'path' => route('admin.setting.logo'),
-                //     'permission_required' => 'viewSetting',
-                // ],
-                // [
-                //     'label' => 'Cài đặt Footer',
-                //     'path' => route('admin.setting.footer'),
-                //     'permission_required' => 'viewSetting',
-                // ],
+                [
+                    'label' => 'Cài đặt Logo',
+                    'path' => route('admin.setting.logo'),
+                    'permission_required' => 'viewSetting',
+                ],
+                [
+                    'label' => 'Cài đặt Footer',
+                    'path' => route('admin.setting.footer'),
+                    'permission_required' => 'viewSetting',
+                ],
                 // [
                 //     'label' => 'Cài đặt Header',
                 //     'path' => route('admin.setting.header'),
                 //     'permission_required' => 'viewSetting',
                 // ],
-                // [
-                //     'label' => 'Cài đặt About',
-                //     'path' => route('admin.setting.about'),
-                //     'permission_required' => 'viewSetting',
-                // ],
-                // [
-                //     'label' => 'Cài đặt Contact',
-                //     'path' => route('admin.setting.contact'),
-                //     'permission_required' => 'viewSetting',
-                // ],
+                [
+                    'label' => 'Cài đặt About',
+                    'path' => route('admin.setting.about'),
+                    'permission_required' => 'viewSetting',
+                ],
+                [
+                    'label' => 'Cài đặt Contact',
+                    'path' => route('admin.setting.contact'),
+                    'permission_required' => 'viewSetting',
+                ],
             ],
         ],
     ];
