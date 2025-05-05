@@ -46,6 +46,7 @@ class OrderFactory extends Factory
             'status' => $status,
             'shipping_cost' => $this->faker->randomElement([0, 10000]),
             'total_amount' => 0,
+            'discount_amount' => 0,
 
             'province_code' => $province->code,
             'district_code' => $district->code,

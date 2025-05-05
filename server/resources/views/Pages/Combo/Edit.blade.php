@@ -117,6 +117,7 @@
                     <div class="card-body">
                         <select class="form-select selec-custom input-text-custom" aria-label="Default select example"
                             name="status">
+                            <option value="{{$sta['value']}}">{{$sta['label']}}</option>
                             <x-form.select.option :options="$status" />
                         </select>
                     </div>

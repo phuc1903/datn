@@ -540,16 +540,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const productTypeSelect = document.getElementById("product-type");
     const simpleProductDiv = document.getElementById("simple-product");
     const variableProductDiv = document.getElementById("variable-product");
-
-    productTypeSelect.addEventListener("change", function () {
-        if (this.value === "simple") {
-            simpleProductDiv.style.display = "flex";
-            variableProductDiv.style.display = "none";
-        } else {
-            simpleProductDiv.style.display = "none";
-            variableProductDiv.style.display = "block";
-        }
-    });
+    if(productTypeSelect) {
+        productTypeSelect.addEventListener("change", function () {
+            if (this.value === "simple") {
+                simpleProductDiv.style.display = "flex";
+                variableProductDiv.style.display = "none";
+            } else {
+                simpleProductDiv.style.display = "none";
+                variableProductDiv.style.display = "block";
+            }
+        });
+    }
 });
 
 // Change theme mode
@@ -663,6 +664,7 @@ $(document).ready(function () {
     checkSkusCombo();
     checkQuantity();
     uploadThumbnailProduct();
+    filterOrderChart();
 
     function addSlug() {
         function createSlug(str) {
@@ -941,7 +943,7 @@ $(document).ready(function () {
             const idTable = $(this).data("id-table");
 
             Swal.fire({
-                title: "Xóa dữ liệu",
+                title: 'Xóa dữ liệu? Khuyến khích thay đổi sang trạng thái "Đang lưu trữ"',
                 text: "Hành động này sẽ xóa các dữ liệu liên quan. Bạn chắc chắn muốn xóa?",
                 icon: "error",
                 showCancelButton: true,
@@ -1181,6 +1183,30 @@ $(document).ready(function () {
         });
     }
     
-    
+    function filterOrderChart(){
+        $('#filterOrder').on('click', function () {
+            let date_start = $('#date_start').val();
+            let date_end = $('#date_end').val();
+
+            console.log(date_end);
+            
+
+            $.ajax({
+                url: routeDashboardIndex,
+                type: "GET", // Hoặc POST nếu cần
+                data: {
+                    date_start: date_start,
+                    date_end: date_end,
+                },
+                success: function (response) {
+                    console.log('Dữ liệu trả về:', response);
+                    // TODO: cập nhật biểu đồ hoặc bảng
+                },
+                error: function (xhr) {
+                    console.error('Lỗi:', xhr.responseText);
+                }
+            });
+        });
+    }
     
 });

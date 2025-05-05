@@ -62,7 +62,7 @@ class ProductRequest extends BaseRequest
 
         if($this->input('type') === 'simple') {
             $this->validate['price'] = ['required', 'numeric', 'max:999999999'];
-            $this->validate['promotion_price'] = ['required', 'numeric', 'max:999999999'];
+            $this->validate['promotion_price'] = ['max:999999999'];
             $this->validate['quantity_default'] = ['required', 'numeric'];
         }else {
             $this->validate['quantity'] = ['required', 'numeric'];

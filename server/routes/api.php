@@ -260,7 +260,7 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    Route::prefix('settings')->controller(SettingController::class)->group(function() {
-        Route::get('/', 'getAllSettings');
+    Route::prefix('settings')->as('api.setting.')->controller(SettingController::class)->group(function() {
+        Route::get('/', 'getAllSettings')->name('index');
     });
 });

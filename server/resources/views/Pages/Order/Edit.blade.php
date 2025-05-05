@@ -35,7 +35,11 @@
                                 <x-form.input_text label="Email" value="{{ $order->email }}" name="email" disabled />
                                 <x-form.input_text label="Số điện thoại" value="{{ $order->phone_number }}"
                                     name="phone_number" disabled />
-                                <x-form.input_text label="Địa chỉ" disabled value="{{ $order->address }}" name="address" />
+                                    <x-form.input_text label="Tỉnh/Thành Phố" disabled value="{{ $order->province->full_name }}" name="province" />
+                                    <x-form.input_text label="Quận/Huyện" disabled value="{{ $order->district->full_name }}" name="district" />
+                                    <x-form.input_text label="Phường/Xã" disabled value="{{ $order->ward->full_name }}" name="ward" />
+                                    <x-form.input_text label="Địa chỉ cụ thể" disabled value="{{ $order->address }}" name="address" />
+                                
                             </div>
                         </div>
                     </div>

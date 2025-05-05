@@ -8,38 +8,43 @@ use App\Enums\Product\ProductStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Combo;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\Sku;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-
+        $date_start = $request->date_start ?? Carbon::today()->toDateString();
+        $date_end = $request->date_end ?? Carbon::today()->toDateString();
         $statisticsCard = [
             'revenues' => $this->statisticRevenuesCard(),
             'orders' => $this->statisticOrdersCard(),
             'users' => $this->statisticUsersCard(),
         ];
 
-        $statisticRevenuesChart = $this->statisticRevenuesChart();
+        $statisticRevenuesChart = $this->statisticRevenuesChart($date_start, $date_end);
 
+        if ($request->ajax()) {
+            return response()->json([
+                'days' => $statisticRevenuesChart['days'],
+                'revenues' => $statisticRevenuesChart['data']
+            ]);
+        }
+
+        $statisticOrderChart = $this->statisticOrdersCard();
         $productsOutOfStock = $this->productsOutOfStock();
-
         $productBestSeller = $this->productBestSeller();
-
         $combosBestSeller = $this->combosBestSeller();
-
         $combosOutOfStock = $this->combosOutOfStock();
-
-        // dd($combosOutOfStock);
 
         return view(
             'Pages.Dashboard.Index',
             compact(
                 'statisticsCard',
+                'statisticOrderChart',
                 'statisticRevenuesChart',
                 'productsOutOfStock',
                 'productBestSeller',
@@ -48,6 +53,7 @@ class DashboardController extends Controller
             )
         );
     }
+
 
     protected function statisticUsersCard()
     {
@@ -86,13 +92,24 @@ class DashboardController extends Controller
                         </svg>'
         ];
     }
-    protected function statisticOrdersCard()
+    protected function statisticOrdersCard($date_start = null, $date_end = null)
     {
-        $totalOrder = Order::count();
-        $toatlOrderCancel = Order::where('status', OrderStatus::Cancel)->count();
-        $toatlOrderSuccess = Order::where('status', OrderStatus::Success)->count();
-        $toatlOrderPending = Order::where('status', OrderStatus::Pending)->count();
-        $totalOrderShiping = Order::where('status', OrderStatus::Shipped)->count();
+        $query = Order::query();
+
+        if ($date_start && $date_end) {
+            $query->whereBetween('created_at', [$date_start, $date_end]);
+        } elseif ($date_start) {
+            $query->where('created_at', '>=', $date_start);
+        } elseif ($date_end) {
+            $query->where('created_at', '<=', $date_end);
+        }
+
+        $totalOrder = $query->count();
+
+        $toatlOrderCancel = (clone $query)->where('status', OrderStatus::Cancel)->count();
+        $toatlOrderSuccess = (clone $query)->where('status', OrderStatus::Success)->count();
+        $toatlOrderPending = (clone $query)->where('status', OrderStatus::Pending)->count();
+        $totalOrderShiping = (clone $query)->where('status', OrderStatus::Shipped)->count();
 
         return [
             'data' => [
@@ -101,34 +118,49 @@ class DashboardController extends Controller
                 'totalOrderSuccess' => ['title' => "Đơn hàng thành công", 'value' => $toatlOrderSuccess, 'color' => 'success'],
                 'toatlOrderPending' => ['title' => "Đơn hàng đang xử lý", 'value' => $toatlOrderPending, 'color' => 'warning'],
                 'totalOrderShiping' => ['title' => 'Đơn hàng đang giao', 'value' => $totalOrderShiping, 'color' => 'neuture'],
-            ],
-            'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-receipt" viewBox="0 0 16 16">
-                            <path d="M1.92.506a.5.5 0 0 1 .434.14L3 1.293l.646-.647a.5.5 0 0 1 .708 0L5 1.293l.646-.647a.5.5 0 0 1 .708 0L7 1.293l.646-.647a.5.5 0 0 1 .708 0L9 1.293l.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .801.13l.5 1A.5.5 0 0 1 15 2v12a.5.5 0 0 1-.053.224l-.5 1a.5.5 0 0 1-.8.13L13 14.707l-.646.647a.5.5 0 0 1-.708 0L11 14.707l-.646.647a.5.5 0 0 1-.708 0L9 14.707l-.646.647a.5.5 0 0 1-.708 0L7 14.707l-.646.647a.5.5 0 0 1-.708 0L5 14.707l-.646.647a.5.5 0 0 1-.708 0L3 14.707l-.646.647a.5.5 0 0 1-.801-.13l-.5-1A.5.5 0 0 1 1 14V2a.5.5 0 0 1 .053-.224l.5-1a.5.5 0 0 1 .367-.27m.217 1.338L2 2.118v11.764l.137.274.51-.51a.5.5 0 0 1 .707 0l.646.647.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.509.509.137-.274V2.118l-.137-.274-.51.51a.5.5 0 0 1-.707 0L12 1.707l-.646.647a.5.5 0 0 1-.708 0L10 1.707l-.646.647a.5.5 0 0 1-.708 0L8 1.707l-.646.647a.5.5 0 0 1-.708 0L6 1.707l-.646.647a.5.5 0 0 1-.708 0L4 1.707l-.646.647a.5.5 0 0 1-.708 0z"/>
-                            <path d="M3 4.5a.5.5 0 0 1 .5-.5h6a.5.5 0 1 1 0 1h-6a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 1 1 0 1h-6a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 1 1 0 1h-6a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5m8-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5"/>
-                        </svg>'
-        ];
+            ],  
+                'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-receipt" viewBox="0 0 16 16">
+                                <path d="M1.92.506a.5.5 0 0 1 .434.14L3 1.293l.646-.647a.5.5 0 0 1 .708 0L5 1.293l.646-.647a.5.5 0 0 1 .708 0L7 1.293l.646-.647a.5.5 0 0 1 .708 0L9 1.293l.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .801.13l.5 1A.5.5 0 0 1 15 2v12a.5.5 0 0 1-.053.224l-.5 1a.5.5 0 0 1-.8.13L13 14.707l-.646.647a.5.5 0 0 1-.708 0L11 14.707l-.646.647a.5.5 0 0 1-.708 0L9 14.707l-.646.647a.5.5 0 0 1-.708 0L7 14.707l-.646.647a.5.5 0 0 1-.708 0L5 14.707l-.646.647a.5.5 0 0 1-.708 0L3 14.707l-.646.647a.5.5 0 0 1-.801-.13l-.5-1A.5.5 0 0 1 1 14V2a.5.5 0 0 1 .053-.224l.5-1a.5.5 0 0 1 .367-.27m.217 1.338L2 2.118v11.764l.137.274.51-.51a.5.5 0 0 1 .707 0l.646.647.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.646.646.646-.646a.5.5 0 0 1 .708 0l.509.509.137-.274V2.118l-.137-.274-.51.51a.5.5 0 0 1-.707 0L12 1.707l-.646.647a.5.5 0 0 1-.708 0L10 1.707l-.646.647a.5.5 0 0 1-.708 0L8 1.707l-.646.647a.5.5 0 0 1-.708 0L6 1.707l-.646.647a.5.5 0 0 1-.708 0L4 1.707l-.646.647a.5.5 0 0 1-.708 0z"/>
+                                <path d="M3 4.5a.5.5 0 0 1 .5-.5h6a.5.5 0 1 1 0 1h-6a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 1 1 0 1h-6a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 1 1 0 1h-6a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5m8-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5"/>
+                            </svg>'
+            ];
     }
 
-    protected function statisticRevenuesChart()
+    protected function statisticRevenuesChart($date_start = null, $date_end = null)
     {
-        $currentYear = Carbon::now()->year;
+        $days = [];
+        $dailyRevenue = [];
 
-        $months = [];
-        Carbon::setLocale('vi');
+        // Khởi tạo truy vấn
+        $query = Order::where('status', OrderStatus::Success);
 
-        for ($i = 0; $i < 12; $i++) {
-            $months[] = Carbon::now()->startOfYear()->addMonths($i)->format('M');
+        if ($date_start && $date_end) {
+            $query->whereBetween('updated_at', [$date_start, $date_end]);
+        } elseif ($date_start) {
+            $query->where('updated_at', '>=', $date_start);
+        } elseif ($date_end) {
+            $query->where('updated_at', '<=', $date_end);
+        } else {
+            $today = Carbon::today()->toDateString();
+            $query->whereDate('updated_at', '=', $today);
         }
 
-        $monthlyRevenue = [];
-        foreach ($months as $month) {
-            $monthlyRevenue[] = Order::whereYear('created_at', $currentYear)
-                ->whereMonth('created_at', Carbon::parse($month)->month)
-                ->where('status', OrderStatus::Success)
-                ->sum('total_amount');
+        $orders = $query->orderBy('updated_at', 'asc')->get();
+
+        foreach ($orders as $order) {
+            $day = $order->updated_at->format('d/m/Y');
+
+            if (!in_array($day, $days)) {
+                $days[] = $day;
+                $dailyRevenue[] = 0;
+            }
+
+            $index = array_search($day, $days);
+            
+            $dailyRevenue[$index] += $order->total_amount;
         }
 
-        return ['months' => $months, 'data' => $monthlyRevenue];
+        return ['days' => $days, 'data' => $dailyRevenue];
     }
 
     protected function statisticOrderChart()

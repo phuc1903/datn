@@ -29,17 +29,17 @@ class DatabaseSeeder extends Seeder
         | - admin
         |
         */
-        Admin::create([
-            'first_name' => 'Trọng Phúc',
-            'last_name' => 'Đinh',
-            'phone_number' => '037746234',
-            'email' => 'admin@gmail.com',
-            'password' => Hash::make('123456'),
-            'status' => 'active',
-            'sex' => 'male',
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
+        // Admin::create([
+        //     'first_name' => 'Trọng Phúc',
+        //     'last_name' => 'Đinh',
+        //     'phone_number' => '037746234',
+        //     'email' => 'admin@gmail.com',
+        //     'password' => Hash::make('123456'),
+        //     'status' => 'active',
+        //     'sex' => 'male',
+        //     'created_at' => now(),
+        //     'updated_at' => now()
+        // ]);
 
         /*
         |--------------------
@@ -51,17 +51,17 @@ class DatabaseSeeder extends Seeder
         | - user
         |
         */
-         User::factory()->create([
-             'first_name' => 'Hữu Hiệp',
-             'last_name' => 'Trần',
-             'phone_number' => '(+84) 1234-5678',
-             'email' => 'admin@gmail.com',
-             'password' => bcrypt('user'),
-             'status' => 'active',
-             'sex' => 'male',
-             'created_at' => now(),
-             'updated_at' => now()
-         ]);
+        //  User::factory()->create([
+        //      'first_name' => 'Hữu Hiệp',
+        //      'last_name' => 'Trần',
+        //      'phone_number' => '(+84) 1234-5678',
+        //      'email' => 'admin@gmail.com',
+        //      'password' => bcrypt('user'),
+        //      'status' => 'active',
+        //      'sex' => 'male',
+        //      'created_at' => now(),
+        //      'updated_at' => now()
+        //  ]);
 
         /*
         |--------------------
@@ -69,33 +69,33 @@ class DatabaseSeeder extends Seeder
         |--------------------
          */
          $this->call([
-            AdminSeeder::class,
-            UserSeeder::class,
-            WalletSeeder::class,
-             CategorySeeder::class,
-             TagSeeder::class,
+            // AdminSeeder::class,
+            // UserSeeder::class,
+            // WalletSeeder::class,
+            //  CategorySeeder::class,
+            //  TagSeeder::class,
 
-             VariantSeeder::class,
-             ProductSeeder::class,
-             ProductImageSeeder::class,
-             ProductTagSeeder::class,
-             ProductCategorySeeder::class,
+            //  VariantSeeder::class,
+            //  ProductSeeder::class,
+            //  ProductImageSeeder::class,
+            //  ProductTagSeeder::class,
+            //  ProductCategorySeeder::class,
 
             OrderSeeder::class,
-            ProductFeedbackSeeder::class,
-             VoucherSeeder::class,
-             UserVoucherSeeder::class,
-            OrderVoucherSeeder::class,
+            // ProductFeedbackSeeder::class,
+            //  VoucherSeeder::class,
+            //  UserVoucherSeeder::class,
+            // OrderVoucherSeeder::class,
 
-            UserAddressSeeder::class,
-            UserFavoriteSeeder::class,
-            UserCartSeeder::class,
+            // UserAddressSeeder::class,
+            // UserFavoriteSeeder::class,
+            // UserCartSeeder::class,
 
-            BlogSeeder::class,
-            BlogTagSeeder::class,
-            BlogProductSeeder::class,
+            // BlogSeeder::class,
+            // BlogTagSeeder::class,
+            // BlogProductSeeder::class,
 
-            SliderSeeder::class,
+            // SliderSeeder::class,
          ]);
     }
 }

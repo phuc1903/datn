@@ -4,7 +4,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ["placehold.co"],
+    domains: ["quantri-zbeauty.tranhuuhiep2004.id.vn"],
     remotePatterns: [
       {
         protocol: "http",

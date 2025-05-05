@@ -47,14 +47,6 @@ class VoucherController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Voucher $voucher)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Voucher $voucher)

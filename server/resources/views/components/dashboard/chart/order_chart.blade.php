@@ -1,9 +1,23 @@
-<div class="mb-3">
-</div>
+{{-- <form method="GET" action="{{ route('admin.dashboard') }}">
+    <div class="mb-2 row">
+        <div class="col-md-6">
+            <x-form.input_text label="Ngày bắt đầu" type="date" name="date_start" id="date_start" value="{{ request('date_start') }}" />
+        </div>
+        <div class="col-md-6">
+            <x-form.input_text label="Ngày kết thúc" type="date" name="date_end" id="date_end" value="{{ request('date_end') }}" />
+        </div>
+    </div>
+    <div class="mb-3">
+        <x-button.index label="Lọc" type="submit" />
+    </div>
+</form> --}}
 
 <canvas id="orderChart"></canvas>
 
 @push('scripts')
+    <script>
+        const routeDashboardIndex = "{{ route('admin.dashboard') }}";
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () { 
             const pieCtx = document.getElementById('orderChart').getContext('2d');
