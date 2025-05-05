@@ -15,6 +15,7 @@ interface Product {
     id: number;
     price: number;
     promotion_price: number;
+    quantity: number;
   }>;
   images: Array<{
     id: number;
@@ -148,6 +149,9 @@ const SearchResults = () => {
                 imageUrl = product.images[0].image_url;
               }
               
+              // Kiểm tra trạng thái hết hàng
+              const isOutOfStock = product.skus[0]?.quantity === 0;
+              
               return (
                 <Link
                   key={product.id}
@@ -159,10 +163,16 @@ const SearchResults = () => {
                       src={imageUrl}
                       alt={product.name}
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform"
+                      className={`object-cover ${isOutOfStock ? "" : "group-hover:scale-105"} transition-transform`}
                       sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       priority={false}
                     />
+                    
+                    {isOutOfStock && (
+                      <div className="absolute inset-0 bg-gray-800/60 flex items-center justify-center">
+                        <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">Hết hàng</span>
+                      </div>
+                    )}
                   </div>
                   <div className="p-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
@@ -185,6 +195,10 @@ const SearchResults = () => {
                           </p>
                         )}
                       </div>
+                      
+                      {isOutOfStock && (
+                        <span className="text-red-500 text-sm font-medium">Hết hàng</span>
+                      )}
                     </div>
                   </div>
                 </Link>

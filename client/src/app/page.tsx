@@ -18,6 +18,7 @@ import HotProductCard from "@/components/home/HotProductCard";
 import { useProducts } from "@/hooks/useProducts";
 import ComboCard from "@/components/home/ComboCard";
 import { useCategoriesAndBlogs } from "@/hooks/useCategoriesAndBlogs";
+import { useRouter } from "next/navigation";
 
 interface Combo {
   id: number;
@@ -107,6 +108,17 @@ export default function HomePage() {
   const handleConfirmAction = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     if (!selectedSku || !selectedProduct) return;
+    
+    // Kiểm tra nếu sản phẩm hết hàng
+    if (selectedSku.quantity === 0) {
+      Swal.fire({
+        icon: "error",
+        title: "Sản phẩm đã hết hàng!",
+        text: "Vui lòng chọn sản phẩm khác hoặc quay lại sau.",
+      });
+      setShowVariantPopup(false);
+      return;
+    }
 
     const cartItem: CartItem = {
       sku_id: selectedSku.id,
@@ -136,8 +148,17 @@ export default function HomePage() {
       }
 
       localStorage.setItem("cart", JSON.stringify(updatedCart));
+      
+      Swal.fire({
+        icon: "success",
+        title: "Thành công!",
+        text: "Đã thêm sản phẩm vào giỏ hàng",
+        timer: 1500,
+        showConfirmButton: false,
+      });
     } else if (actionType === "buyNow") {
-      console.log("Buy Now:", cartItem);
+      localStorage.setItem("buyNow", JSON.stringify([cartItem]));
+      router.push("/checkout");
     }
 
     setShowVariantPopup(false);
@@ -241,6 +262,8 @@ export default function HomePage() {
       });
     }
   };
+
+  const router = useRouter();
 
   if (loading) {
     return (
@@ -547,7 +570,13 @@ export default function HomePage() {
                   </button>
                 </div>
               </div>
-              <p className="text-sm text-gray-600">Còn lại: {selectedSku?.quantity || 0} sản phẩm</p>
+              <p className="text-sm text-gray-600">
+                {selectedSku.quantity === 0 ? (
+                  <span className="text-red-600 font-semibold">Hết hàng</span>
+                ) : (
+                  `Còn lại: ${selectedSku?.quantity || 0} sản phẩm`
+                )}
+              </p>
               <p className="text-lg font-bold text-pink-600">
                 {(selectedSku?.promotion_price > 0 ? selectedSku?.promotion_price : selectedSku?.price || 0).toLocaleString()}đ
               </p>
@@ -563,10 +592,18 @@ export default function HomePage() {
                 Hủy
               </button>
               <button 
-                className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700" 
+                className={`px-4 py-2 rounded-lg ${
+                  selectedSku.quantity === 0 
+                    ? "bg-gray-400 text-white cursor-not-allowed" 
+                    : "bg-pink-600 text-white hover:bg-pink-700"
+                }`}
                 onClick={handleConfirmAction}
+                disabled={selectedSku.quantity === 0}
               >
-                {actionType === "addToCart" ? "Thêm vào giỏ" : "Mua ngay"}
+                {selectedSku.quantity === 0 
+                  ? "Hết hàng" 
+                  : actionType === "addToCart" ? "Thêm vào giỏ" : "Mua ngay"
+                }
               </button>
             </div>
           </div>

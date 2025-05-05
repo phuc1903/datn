@@ -16,6 +16,7 @@ interface Category {
 interface Sku {
   price: number;
   promotion_price: number;
+  quantity: number;
 }
 
 interface Product {
@@ -492,67 +493,84 @@ const ProductListingPage = () => {
               <div className="w-3/4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {displayedProducts.length > 0 ? (
-                    displayedProducts.map((item) => (
-                      <Link
-                        href={`/product/${item.id}`}
-                        key={item.id}
-                        className="block"
-                      >
-                        <div className="relative bg-white rounded-lg shadow-md overflow-hidden group p-4">
-                          <div className="relative w-full aspect-square mb-4 overflow-hidden">
-                            <Image
-                              src={item.images?.[0]?.image_url || "/oxy.jpg"}
-                              alt={item.name}
-                              fill
-                              className="object-cover transform transition-transform duration-300 group-hover:scale-110"
-                            />
-                          </div>
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {item.categories.map((tag) => (
-                              <span
-                                key={tag.id}
-                                className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full"
-                              >
-                                {tag.name}
-                              </span>
-                            ))}
-                          </div>
-                          <h3 className="text-sm font-medium mb-2 line-clamp-2 text-gray-900">
-                            {item.name}
-                          </h3>
-                          <p className="text-sm text-gray-500 line-clamp-3">
-                            {item.short_description}
-                          </p>
-                          <div className="mb-4">
-                            {item.skus?.[0]?.promotion_price > 0 ? (
-                              <>
-                                <span className="line-through text-gray-500 text-sm mr-2">
+                    displayedProducts.map((item) => {
+                      // Kiểm tra trạng thái hết hàng
+                      const isOutOfStock = item.skus?.[0]?.quantity === 0;
+                      
+                      return (
+                        <Link
+                          href={`/product/${item.id}`}
+                          key={item.id}
+                          className="block"
+                        >
+                          <div className="relative bg-white rounded-lg shadow-md overflow-hidden group p-4">
+                            <div className="relative w-full aspect-square mb-4 overflow-hidden">
+                              <Image
+                                src={item.images?.[0]?.image_url || "/oxy.jpg"}
+                                alt={item.name}
+                                fill
+                                className={`object-cover transform transition-transform duration-300 ${isOutOfStock ? "" : "group-hover:scale-110"}`}
+                              />
+                              {isOutOfStock && (
+                                <div className="absolute inset-0 bg-gray-800/60 flex items-center justify-center">
+                                  <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">Hết hàng</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {item.categories.map((tag) => (
+                                <span
+                                  key={tag.id}
+                                  className="bg-green-100 text-green-600 text-xs font-medium px-2 py-1 rounded-full"
+                                >
+                                  {tag.name}
+                                </span>
+                              ))}
+                            </div>
+                            <h3 className="text-sm font-medium mb-2 line-clamp-2 text-gray-900">
+                              {item.name}
+                            </h3>
+                            <p className="text-sm text-gray-500 line-clamp-3">
+                              {item.short_description}
+                            </p>
+                            <div className="mb-4">
+                              {item.skus?.[0]?.promotion_price > 0 ? (
+                                <>
+                                  <span className="line-through text-gray-500 text-sm mr-2">
+                                    {item.skus?.[0]?.price.toLocaleString()}đ
+                                  </span>
+                                  <span className="text-pink-600 font-bold text-lg">
+                                    {item.skus?.[0]?.promotion_price.toLocaleString()}đ
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-pink-600 font-bold text-lg">
                                   {item.skus?.[0]?.price.toLocaleString()}đ
                                 </span>
-                                <span className="text-pink-600 font-bold text-lg">
-                                  {item.skus?.[0]?.promotion_price.toLocaleString()}đ
-                                </span>
-                              </>
-                            ) : (
-                              <span className="text-pink-600 font-bold text-lg">
-                                {item.skus?.[0]?.price.toLocaleString()}đ
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between mb-4">
+                              <span className="text-yellow-500 text-sm ml-2">
+                                ★{" "}
+                                {item.feedbacks_avg_rating
+                                  ? Number(item.feedbacks_avg_rating).toFixed(1)
+                                  : "0"}
                               </span>
-                            )}
+                              <button 
+                                className={`py-2 px-4 rounded text-sm ${
+                                  isOutOfStock 
+                                    ? "bg-gray-400 text-white cursor-not-allowed" 
+                                    : "bg-pink-600 text-white hover:bg-pink-700"
+                                }`}
+                                disabled={isOutOfStock}
+                              >
+                                {isOutOfStock ? "Hết hàng" : "Mua Ngay"}
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex items-center justify-between mb-4">
-                            <span className="text-yellow-500 text-sm ml-2">
-                              ★{" "}
-                              {item.feedbacks_avg_rating
-                                ? Number(item.feedbacks_avg_rating).toFixed(1)
-                                : "0"}
-                            </span>
-                            <button className="bg-pink-600 text-white py-2 px-4 rounded text-sm hover:bg-pink-700">
-                              Mua Ngay
-                            </button>
-                          </div>
-                        </div>
-                      </Link>
-                    ))
+                        </Link>
+                      );
+                    })
                   ) : (
                     <p className="text-gray-500 text-center col-span-full">
                       Không tìm thấy sản phẩm nào.

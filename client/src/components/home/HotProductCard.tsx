@@ -19,8 +19,21 @@ const HotProductCard = ({ product, isLarge = false, onAction, onToggleFavorite, 
   const router = useRouter();
   const token = Cookies.get("accessToken");
   const isFavorited = userFavorites.has(product.id);
+  const isOutOfStock = product.skus?.[0]?.quantity === 0;
 
   const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isOutOfStock) {
+      Swal.fire({
+        icon: "error",
+        title: "Sản phẩm đã hết hàng!",
+        text: "Vui lòng chọn sản phẩm khác.",
+      });
+      return;
+    }
+    
     if (!token) {
       Swal.fire({
         icon: "warning",
@@ -70,6 +83,18 @@ const HotProductCard = ({ product, isLarge = false, onAction, onToggleFavorite, 
   };
 
   const handleBuyNow = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isOutOfStock) {
+      Swal.fire({
+        icon: "error",
+        title: "Sản phẩm đã hết hàng!",
+        text: "Vui lòng chọn sản phẩm khác.",
+      });
+      return;
+    }
+    
     if (!token) {
       Swal.fire({
         icon: "warning",
@@ -125,19 +150,28 @@ const HotProductCard = ({ product, isLarge = false, onAction, onToggleFavorite, 
           src={product.images?.[0]?.image_url || "/oxy.jpg"}
           alt={product.name}
           fill
-          className="object-cover transform transition-transform duration-300 group-hover:scale-105"
+          className={`object-cover transform transition-transform duration-300 ${isOutOfStock ? "" : "group-hover:scale-105"}`}
           sizes={isLarge ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, 33vw"}
           loading={isLarge ? "eager" : "lazy"}
         />
+        
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-gray-800/60 flex items-center justify-center z-10">
+            <span className="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+              Hết hàng
+            </span>
+          </div>
+        )}
+        
         <button
           onClick={handleToggleFavorite}
-          className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white transition-colors z-20"
         >
           <HeartIcon
             className={`w-6 h-6 ${isFavorited ? "text-red-500 fill-red-500" : "text-gray-500"}`}
           />
         </button>
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 z-10">
           <h3 className={`font-semibold text-white mb-2 line-clamp-${isLarge ? "2" : "1"} ${isLarge ? "text-2xl" : "text-base"}`}>
             {product.name}
           </h3>
@@ -155,14 +189,24 @@ const HotProductCard = ({ product, isLarge = false, onAction, onToggleFavorite, 
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleBuyNow}
-                className="bg-gray-900 text-white px-6 py-2 rounded hover:bg-gray-800"
+                disabled={isOutOfStock}
+                className={`px-6 py-2 rounded ${
+                  isOutOfStock 
+                    ? "bg-gray-400 text-white cursor-not-allowed" 
+                    : "bg-gray-900 text-white hover:bg-gray-800"
+                }`}
               >
-                Mua
+                {isOutOfStock ? "Hết hàng" : "Mua"}
               </button>
               <button
                 onClick={handleAddToCart}
-                className="bg-pink-600 text-white p-2 rounded hover:bg-pink-700"
-                title="Thêm vào giỏ hàng"
+                disabled={isOutOfStock}
+                className={`p-2 rounded ${
+                  isOutOfStock 
+                    ? "bg-gray-400 text-white cursor-not-allowed" 
+                    : "bg-pink-600 text-white hover:bg-pink-700"
+                }`}
+                title={isOutOfStock ? "Sản phẩm hết hàng" : "Thêm vào giỏ hàng"}
               >
                 <ShoppingCartIcon className="w-5 h-5" />
               </button>

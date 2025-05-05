@@ -19,6 +19,8 @@ export default function ComboCard({ combo, isComingSoon = false }: ComboCardProp
   const discount = Math.round(
     ((combo.price - combo.promotion_price) / combo.price) * 100
   );
+  
+  const isOutOfStock = combo.quantity === 0 && !isComingSoon;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -39,7 +41,7 @@ export default function ComboCard({ combo, isComingSoon = false }: ComboCardProp
   };
 
   const CardContent = () => (
-    <div className={`bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 group-hover:scale-105 h-[450px]`}>
+    <div className={`bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 ${isOutOfStock ? "" : "group-hover:scale-105"} h-[450px] relative`}>
       <div className="relative aspect-square">
         <Image
           src={combo.image_url}
@@ -47,8 +49,15 @@ export default function ComboCard({ combo, isComingSoon = false }: ComboCardProp
           fill
           className="object-cover"
         />
-        <div className={`absolute top-2 left-2 ${isComingSoon ? 'bg-blue-600' : 'bg-red-600'} text-white px-2 py-1 rounded-md text-sm`}>
-          {isComingSoon ? 'Sắp mở bán' : `-${discount}%`}
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-gray-800/60 flex items-center justify-center z-10">
+            <span className="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+              Hết hàng
+            </span>
+          </div>
+        )}
+        <div className={`absolute top-2 left-2 ${isComingSoon ? 'bg-blue-600' : isOutOfStock ? 'bg-gray-600' : 'bg-red-600'} text-white px-2 py-1 rounded-md text-sm z-20`}>
+          {isComingSoon ? 'Sắp mở bán' : isOutOfStock ? 'Hết hàng' : `-${discount}%`}
         </div>
       </div>
       <div className="p-4 flex flex-col h-[210px]">
@@ -64,8 +73,8 @@ export default function ComboCard({ combo, isComingSoon = false }: ComboCardProp
               {formatPrice(combo.price)}
             </p>
           </div>
-          <div className="text-sm text-gray-600">
-            Còn lại: {combo.quantity}
+          <div className={`text-sm ${isOutOfStock ? "text-red-500 font-semibold" : "text-gray-600"}`}>
+            {isOutOfStock ? "Hết hàng" : `Còn lại: ${combo.quantity}`}
           </div>
         </div>
         <div className="bg-gray-50 p-2 rounded-lg mt-auto">

@@ -18,8 +18,21 @@ const ProductCard = ({ product, onAction, onToggleFavorite, userFavorites }: Pro
   const router = useRouter();
   const token = Cookies.get("accessToken");
   const isFavorited = userFavorites.has(product.id);
+  const isOutOfStock = product.skus?.[0]?.quantity === 0;
 
   const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isOutOfStock) {
+      Swal.fire({
+        icon: "error",
+        title: "Sản phẩm đã hết hàng!",
+        text: "Vui lòng chọn sản phẩm khác.",
+      });
+      return;
+    }
+    
     if (!token) {
       Swal.fire({
         icon: "warning",
@@ -69,6 +82,18 @@ const ProductCard = ({ product, onAction, onToggleFavorite, userFavorites }: Pro
   };
 
   const handleBuyNow = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isOutOfStock) {
+      Swal.fire({
+        icon: "error",
+        title: "Sản phẩm đã hết hàng!",
+        text: "Vui lòng chọn sản phẩm khác.",
+      });
+      return;
+    }
+    
     if (!token) {
       Swal.fire({
         icon: "warning",
@@ -125,13 +150,18 @@ const ProductCard = ({ product, onAction, onToggleFavorite, userFavorites }: Pro
             src={product.images?.[0]?.image_url || product.skus?.[0]?.image_url || "/oxy.jpg"}
             alt={product.name}
             fill
-            className="object-cover transform transition-transform duration-300 group-hover:scale-110"
+            className={`object-cover transform transition-transform duration-300 ${isOutOfStock ? "" : "group-hover:scale-110"}`}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             loading="lazy"
           />
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-gray-800/60 flex items-center justify-center">
+              <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">Hết hàng</span>
+            </div>
+          )}
           <button
             onClick={handleToggleFavorite}
-            className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+            className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors z-10"
           >
             <HeartIcon
               className={`w-5 h-5 ${isFavorited ? "text-red-500 fill-red-500" : "text-gray-500"}`}
@@ -158,14 +188,24 @@ const ProductCard = ({ product, onAction, onToggleFavorite, userFavorites }: Pro
       <div className="flex items-center space-x-2">
         <button
           onClick={handleBuyNow}
-          className="bg-gray-900 text-white px-6 py-2 rounded hover:bg-gray-800"
+          disabled={isOutOfStock}
+          className={`px-6 py-2 rounded ${
+            isOutOfStock 
+              ? "bg-gray-400 text-white cursor-not-allowed" 
+              : "bg-gray-900 text-white hover:bg-gray-800"
+          }`}
         >
-          Mua
+          {isOutOfStock ? "Hết hàng" : "Mua"}
         </button>
         <button
           onClick={handleAddToCart}
-          className="bg-pink-600 text-white p-2 rounded hover:bg-pink-700"
-          title="Thêm vào giỏ hàng"
+          disabled={isOutOfStock}
+          className={`p-2 rounded ${
+            isOutOfStock 
+              ? "bg-gray-400 text-white cursor-not-allowed" 
+              : "bg-pink-600 text-white hover:bg-pink-700"
+          }`}
+          title={isOutOfStock ? "Sản phẩm hết hàng" : "Thêm vào giỏ hàng"}
         >
           <ShoppingCartIcon className="w-5 h-5" />
         </button>
