@@ -233,7 +233,9 @@ export default function VoucherPage() {
                   <div className="flex justify-between">
                     <span className="text-gray-500">Tối đa:</span>
                     <span className="font-medium">
-                      {voucher.max_discount_value.toLocaleString()}đ
+                      {voucher.max_discount_value 
+                        ? `${voucher.max_discount_value.toLocaleString()}đ`
+                        : "Không giới hạn"}
                     </span>
                   </div>
                   <div className="flex justify-between">
