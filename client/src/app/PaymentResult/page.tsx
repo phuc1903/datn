@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import Cookies from "js-cookie";
 import { API_BASE_URL } from "@/config/config";
@@ -37,7 +37,7 @@ interface CartItem {
   quantity: number;
 }
 
-const PaymentResultContent = () => {
+export default function PaymentResult() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
@@ -131,10 +131,25 @@ const PaymentResultContent = () => {
         Swal.fire({
           icon: "success",
           title: "Thanh toán thành công!",
-          text: `Đơn hàng ${result.orderId} đã được thanh toán thành công. Số tiền: ${Number(
-            result.amount
-          ).toLocaleString()} VND.`,
+          html: `
+            <div class="text-center">
+              <div class="mb-4">
+                <svg class="w-16 h-16 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 mb-2">Cảm ơn quý khách!</h3>
+              <p class="text-gray-600 mb-2">Đơn hàng ${result.orderId} đã được thanh toán thành công.</p>
+              <p class="text-gray-600 mb-2">Số tiền: ${Number(result.amount).toLocaleString()} VND</p>
+              <p class="text-gray-600">Chúng tôi sẽ liên hệ với quý khách trong thời gian sớm nhất.</p>
+            </div>
+          `,
           confirmButtonText: "Tiếp tục mua sắm",
+          confirmButtonColor: "#EC4899",
+          customClass: {
+            popup: 'rounded-lg',
+            confirmButton: 'px-6 py-2 rounded-lg'
+          }
         }).then(() => {
           router.push("/shop");
         });
@@ -204,26 +219,22 @@ const PaymentResultContent = () => {
               <span className="text-gray-900">{paymentResult.transId}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Thời gian:</span>
+              <span className="text-gray-600">Thời gian phản hồi:</span>
               <span className="text-gray-900">{paymentResult.responseTime}</span>
             </div>
-            <button
-              onClick={handleContinueShopping}
-              className="w-full mt-6 bg-pink-600 text-white py-2 px-4 rounded-md hover:bg-pink-700 transition-colors"
-            >
-              Tiếp tục mua sắm
-            </button>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Thông báo:</span>
+              <span className="text-gray-900">{paymentResult.message}</span>
+            </div>
           </div>
         )}
+        <button
+          onClick={handleContinueShopping}
+          className="mt-6 w-full bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700"
+        >
+          Tiếp tục mua sắm
+        </button>
       </div>
     </div>
-  );
-};
-
-export default function PaymentResult() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <PaymentResultContent />
-    </Suspense>
   );
 }

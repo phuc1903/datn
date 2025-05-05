@@ -7,7 +7,6 @@ import { useParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import Cookies from "js-cookie";
 import { API_BASE_URL } from "@/config/config";
-import Avatar from 'react-avatar';
 
 interface ProductVariant {
   id: number;
@@ -62,25 +61,6 @@ interface Review {
   };
 }
 
-interface Comment {
-  id: number;
-  product_id: number;
-  user_id: number;
-  admin_id: number | null;
-  comment: string;
-  parents_id: number | null;
-  status: string;
-  anonymous: string;
-  created_at: string;
-  updated_at: string;
-  user?: {
-    first_name: string;
-    last_name: string;
-  };
-  replies?: Comment[];
-  isOrphan?: boolean;
-}
-
 interface Product {
   id: number;
   name: string;
@@ -88,6 +68,7 @@ interface Product {
   short_description: string;
   skus: Sku[];
   categories: { name: string }[];
+  image_url?: string; // Add this line
 }
 
 export default function ProductDetail() {
@@ -106,217 +87,8 @@ export default function ProductDetail() {
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [cartLoading, setCartLoading] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [newComment, setNewComment] = useState("");
-  const [replyingTo, setReplyingTo] = useState<number | null>(null);
-  const [replyText, setReplyText] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAnonymous, setIsAnonymous] = useState(false);
-  const [isReplyAnonymous, setIsReplyAnonymous] = useState(false);
-  const [expandedComments, setExpandedComments] = useState<Set<number>>(new Set());
 
   const token = Cookies.get("accessToken");
-
-  // Hàm xử lý dữ liệu comment thành cấu trúc phân cấp
-  const processComments = (comments: Comment[]): Comment[] => {
-    const commentMap = new Map<number, Comment>();
-    const rootComments: Comment[] = [];
-    const orphanComments: Comment[] = [];
-
-    // Tạo map cho tất cả comments
-    comments.forEach(comment => {
-      commentMap.set(comment.id, {
-        ...comment,
-        replies: []
-      });
-    });
-
-    // Phân loại comments
-    comments.forEach(comment => {
-      const processedComment = commentMap.get(comment.id);
-      if (!processedComment) return;
-
-      if (comment.parents_id === null) {
-        rootComments.push(processedComment);
-      } else {
-        const parentComment = commentMap.get(comment.parents_id);
-        if (parentComment) {
-          if (!parentComment.replies) {
-            parentComment.replies = [];
-          }
-          parentComment.replies.push(processedComment);
-        } else {
-          // Nếu không tìm thấy parent, thêm vào danh sách orphan
-          orphanComments.push(processedComment);
-        }
-      }
-    });
-
-    // Thêm orphan comments vào cuối danh sách root
-    orphanComments.forEach(comment => {
-      rootComments.push({
-        ...comment,
-        isOrphan: true
-      });
-    });
-
-    return rootComments;
-  };
-
-  // Hàm đếm tổng số replies (bao gồm cả replies của replies)
-  const countTotalReplies = (comment: Comment): number => {
-    let count = comment.replies?.length || 0;
-    comment.replies?.forEach(reply => {
-      count += countTotalReplies(reply);
-    });
-    return count;
-  };
-
-  // Hàm toggle hiển thị replies
-  const toggleReplies = (commentId: number) => {
-    const newExpandedComments = new Set(expandedComments);
-    if (expandedComments.has(commentId)) {
-      newExpandedComments.delete(commentId);
-    } else {
-      newExpandedComments.add(commentId);
-    }
-    setExpandedComments(newExpandedComments);
-  };
-
-  // Hàm hiển thị comment và các replies của nó
-  const renderComment = (comment: Comment, level: number = 0) => {
-    const totalReplies = countTotalReplies(comment);
-    const isExpanded = expandedComments.has(comment.id);
-    const shouldShowReplies = totalReplies > 0;
-    const visibleReplies = isExpanded ? comment.replies : (comment.replies || []);
-
-    // Hàm xử lý hiển thị tên ẩn danh
-    const getAnonymousName = (firstName: string, lastName: string) => {
-      const firstChar = firstName.charAt(0);
-      const lastChar = lastName.charAt(0);
-      return `${firstChar}**** ${lastChar}*`;
-    };
-
-    // Lấy tên hiển thị
-    const displayName = comment.anonymous === "enable" 
-      ? getAnonymousName(comment.user?.first_name || '', comment.user?.last_name || '')
-      : `${comment.user?.first_name} ${comment.user?.last_name}`;
-
-    return (
-      <div key={comment.id} className={`${level > 0 ? 'ml-4 mt-4' : 'border-b pb-4'}`}>
-        {comment.isOrphan ? (
-          <div className="text-gray-500 italic mb-2">
-            Bình luận mà người dùng đang trả lời đã bị xóa
-          </div>
-        ) : null}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center space-x-2">
-            {comment.anonymous === "enable" ? (
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-600 font-bold">?</span>
-              </div>
-            ) : (
-              <Avatar 
-                name={displayName}
-                size="32"
-                round={true}
-                textSizeRatio={2}
-                className="flex-shrink-0"
-              />
-            )}
-            <div className="font-medium">
-              {displayName}
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-500">
-              {new Date(comment.created_at).toLocaleDateString()}
-            </div>
-            {token && comment.user_id.toString() === Cookies.get("userId") && (
-              <button
-                onClick={() => handleDeleteComment(comment.id)}
-                className="text-red-500 hover:text-red-700"
-              >
-                Xóa
-              </button>
-            )}
-          </div>
-        </div>
-        <p className="text-gray-700 mb-2">{comment.comment}</p>
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-            className="text-sm text-pink-600 hover:text-pink-700"
-          >
-            {replyingTo === comment.id ? "Hủy" : "Trả lời"}
-          </button>
-          {totalReplies > 0 && (
-            <button
-              onClick={() => toggleReplies(comment.id)}
-              className="text-sm text-gray-600 hover:text-gray-800"
-            >
-              {isExpanded ? "Ẩn bớt" : `Xem ${totalReplies} phản hồi`}
-            </button>
-          )}
-        </div>
-
-        {replyingTo === comment.id && (
-          <div className="mt-2 ml-4">
-            <div className="flex items-center mb-2">
-              <input
-                type="checkbox"
-                id={`anonymous-reply-${comment.id}`}
-                checked={isReplyAnonymous}
-                onChange={(e) => setIsReplyAnonymous(e.target.checked)}
-                className="mr-2"
-              />
-              <label htmlFor={`anonymous-reply-${comment.id}`} className="text-sm text-gray-600">
-                Bình luận ẩn danh
-              </label>
-            </div>
-            <textarea
-              rows={2}
-              placeholder="Viết phản hồi..."
-              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-            />
-            <div className="flex justify-end space-x-2 mt-2">
-              <button
-                onClick={() => {
-                  setReplyingTo(null);
-                  setReplyText("");
-                  setIsReplyAnonymous(false);
-                }}
-                className="text-sm text-gray-600 hover:text-gray-800"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={() => {
-                  if (replyText.trim()) {
-                    handleSubmitComment(replyText, comment.id);
-                  }
-                }}
-                disabled={isSubmitting || !replyText.trim()}
-                className={`text-sm text-pink-600 hover:text-pink-700 ${
-                  (isSubmitting || !replyText.trim()) ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                {isSubmitting ? "Đang gửi..." : "Gửi"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {shouldShowReplies && visibleReplies && visibleReplies.length > 0 && (
-          <div className={`space-y-4 mt-4 ${!isExpanded ? 'hidden' : ''}`}>
-            {visibleReplies.map((reply) => renderComment(reply, level + 1))}
-          </div>
-        )}
-      </div>
-    );
-  };
 
   const refreshToken = async () => {
     const refreshToken = Cookies.get("refreshToken");
@@ -352,7 +124,6 @@ export default function ProductDetail() {
       let currentToken = token;
   
       try {
-        // Lấy thông tin sản phẩm
         const productResponse = await fetch(`${API_BASE_URL}/products/detail/${id}`, {
           method: "GET",
           headers: {
@@ -391,7 +162,6 @@ export default function ProductDetail() {
           setSelectedSku(result.data.skus[0]);
         }
   
-        // Lấy danh sách yêu thích (wishlist) nếu có token
         if (currentToken) {
           const wishlistResponse = await fetch(`${API_BASE_URL}/users/favorites`, {
             headers: {
@@ -445,7 +215,6 @@ export default function ProductDetail() {
           }
         }
   
-        // Lấy đánh giá sản phẩm (tách biệt để không ảnh hưởng đến việc hiển thị sản phẩm)
         try {
           const reviewsResponse = await fetch(`${API_BASE_URL}/products/feedback-product/${id}`, {
             method: "GET",
@@ -458,38 +227,14 @@ export default function ProductDetail() {
   
           if (reviewsResponse.ok) {
             const reviewsData = await reviewsResponse.json();
-            setReviews(reviewsData.data || []); // Nếu không có đánh giá, gán mảng rỗng
+            setReviews(reviewsData.data || []);
           } else {
             console.warn(`Không thể lấy đánh giá: ${reviewsResponse.status}`);
-            setReviews([]); // Nếu lỗi, gán mảng rỗng để không ảnh hưởng đến giao diện
+            setReviews([]);
           }
         } catch (error) {
           console.error("Lỗi khi lấy đánh giá:", error);
-          setReviews([]); // Nếu có lỗi, gán mảng rỗng
-        }
-  
-        // Lấy danh sách comment
-        try {
-          const commentsResponse = await fetch(`${API_BASE_URL}/product_comments/getProductComment/${parseInt(id as string)}`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "Accept": "application/json",
-            },
-          });
-
-          if (commentsResponse.ok) {
-            const commentsData = await commentsResponse.json();
-            // Không cần chuyển đổi dữ liệu user nữa vì API đã trả về đầy đủ thông tin
-            const hierarchicalComments = processComments(commentsData.data);
-            setComments(hierarchicalComments);
-          } else {
-            console.warn(`Không thể lấy bình luận: ${commentsResponse.status}`);
-            setComments([]);
-          }
-        } catch (error) {
-          console.error("Lỗi khi lấy bình luận:", error);
-          setComments([]);
+          setReviews([]);
         }
   
       } catch (error) {
@@ -728,206 +473,59 @@ export default function ProductDetail() {
       Swal.fire({
         icon: "warning",
         title: "Bạn cần đăng nhập!",
-        text: "Vui lòng đăng nhập để mua hàng.",
-        confirmButtonText: "Đăng nhập",
-      }).then(() => router.push("/login"));
-      return;
-    }
-    Swal.fire({
-      icon: "success",
-      title: "Đang xử lý!",
-      text: "Chuyển đến trang thanh toán...",
-      timer: 1500,
-      showConfirmButton: false,
-    });
-    router.push("/checkout");
-  };
-
-  // Hàm gửi comment mới
-  const handleSubmitComment = async (comment: string, parentId: number | null = null) => {
-    if (!token) {
-      Swal.fire({
-        icon: "warning",
-        title: "Bạn cần đăng nhập!",
-        text: "Vui lòng đăng nhập để bình luận.",
+        text: "Vui lòng đăng nhập để mua ngay.",
         confirmButtonText: "Đăng nhập",
       }).then(() => router.push("/login"));
       return;
     }
 
-    if (!comment.trim()) return;
-
-    setIsSubmitting(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/product_comments/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          product_id: parseInt(id as string),
-          comment: comment.trim(),
-          parents_id: parentId,
-          anonymous: parentId ? isReplyAnonymous : isAnonymous
-        }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          const newToken = await refreshToken();
-          if (newToken) {
-            // Thử lại với token mới
-            const retryResponse = await fetch(`${API_BASE_URL}/product_comments/create`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": `Bearer ${newToken}`,
-              },
-              body: JSON.stringify({
-                product_id: parseInt(id as string),
-                comment: comment.trim(),
-                parents_id: parentId,
-                anonymous: parentId ? isReplyAnonymous : isAnonymous
-              }),
-            });
-            if (!retryResponse.ok) {
-              throw new Error("Không thể gửi bình luận");
-            }
-          } else {
-            Swal.fire({
-              icon: "warning",
-              title: "Phiên đăng nhập hết hạn!",
-              text: "Vui lòng đăng nhập lại.",
-              confirmButtonText: "Đăng nhập",
-            }).then(() => {
-              Cookies.remove("accessToken");
-              Cookies.remove("refreshToken");
-              router.push("/login");
-            });
-            return;
-          }
-        } else {
-          throw new Error("Không thể gửi bình luận");
-        }
-      }
-
-      // Refresh lại danh sách comment
-      const commentsResponse = await fetch(`${API_BASE_URL}/product_comments/getProductComment/${parseInt(id as string)}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-      });
-
-      if (commentsResponse.ok) {
-        const commentsData = await commentsResponse.json();
-        // Không cần chuyển đổi dữ liệu user nữa vì API đã trả về đầy đủ thông tin
-        const hierarchicalComments = processComments(commentsData.data);
-        setComments(hierarchicalComments);
-      }
-
-      // Reset form
-      if (parentId) {
-        setReplyText("");
-        setReplyingTo(null);
-      } else {
-        setNewComment("");
-      }
-
-      Swal.fire({
-        icon: "success",
-        title: "Thành công!",
-        text: "Đã gửi bình luận của bạn.",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    } catch (error) {
-      console.error("Lỗi khi gửi bình luận:", error);
+    if (!selectedSku || !product) {
       Swal.fire({
         icon: "error",
         title: "Lỗi!",
-        text: "Không thể gửi bình luận. Vui lòng thử lại sau.",
+        text: "Vui lòng chọn sản phẩm hợp lệ.",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Create CartItem similar to HomePage
+      const cartItem = {
+        sku_id: selectedSku.id,
+        name: product.name,
+        image_url: selectedSku.image_url || product.image_url || "/placeholder.jpg",
+        price: selectedSku.promotion_price > 0 ? selectedSku.promotion_price : selectedSku.price,
+        quantity: quantity,
+        variants: selectedSku.variant_values.map((variant) => ({
+          name: variant.variant.name,
+          value: variant.value,
+        })),
+      };
+
+      // Validate quantity
+      if (quantity > selectedSku.quantity) {
+        Swal.fire({
+          icon: "error",
+          title: "Lỗi!",
+          text: "Số lượng vượt quá tồn kho.",
+        });
+        return;
+      }
+
+      // Save cart item to sessionStorage and redirect to checkout
+      sessionStorage.setItem("checkoutItem", JSON.stringify([cartItem]));
+      router.push("/checkout?from=buy-now");
+    } catch (error) {
+      console.error("Error during Buy Now:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Lỗi!",
+        text: "Có lỗi xảy ra khi thực hiện mua ngay.",
       });
     } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Hàm xóa comment
-  const handleDeleteComment = async (commentId: number) => {
-    if (!token) return;
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/product_comments/${commentId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          const newToken = await refreshToken();
-          if (newToken) {
-            const retryResponse = await fetch(`${API_BASE_URL}/product_comments/${commentId}`, {
-              method: "DELETE",
-              headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": `Bearer ${newToken}`,
-              },
-            });
-            if (!retryResponse.ok) throw new Error("Không thể xóa bình luận");
-          } else {
-            throw new Error("Token hết hạn");
-          }
-        } else {
-          throw new Error("Không thể xóa bình luận");
-        }
-      }
-
-      // Refresh lại danh sách comment
-      const commentsResponse = await fetch(`${API_BASE_URL}/product_comments/getProductComment/${parseInt(id as string)}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-      });
-
-      if (commentsResponse.ok) {
-        const commentsData = await commentsResponse.json();
-        const processedComments = commentsData.data.map((comment: Comment) => ({
-          ...comment,
-          user: {
-            first_name: "Người dùng",
-            last_name: comment.user_id.toString()
-          }
-        }));
-        const hierarchicalComments = processComments(processedComments);
-        setComments(hierarchicalComments);
-      }
-
-      Swal.fire({
-        icon: "success",
-        title: "Thành công!",
-        text: "Đã xóa bình luận.",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    } catch (error) {
-      console.error("Lỗi khi xóa bình luận:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Lỗi!",
-        text: "Không thể xóa bình luận. Vui lòng thử lại sau.",
-      });
+      setLoading(false);
     }
   };
 
@@ -1113,7 +711,7 @@ export default function ProductDetail() {
         <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-20 md:mb-8">
           <div className="border-b sticky top-0 bg-white z-10">
             <nav className="flex">
-              {["description", "specifications", "reviews", "comments"].map((tab) => (
+              {["description", "specifications", "reviews"].map((tab) => (
                 <button
                   key={tab}
                   className={`px-6 py-4 text-sm font-medium ${activeTab === tab
@@ -1125,7 +723,6 @@ export default function ProductDetail() {
                   {tab === "description" && "Mô tả"}
                   {tab === "specifications" && "Thông số"}
                   {tab === "reviews" && "Đánh giá"}
-                  {tab === "comments" && "Bình luận"}
                 </button>
               ))}
             </nav>
@@ -1164,7 +761,12 @@ export default function ProductDetail() {
               <div>
                 <div className="flex justify-between items-center mb-8 text-black">
                   <h3 className="text-lg font-medium">Đánh giá từ khách hàng</h3>
-                  
+                  <button
+                    className="text-pink-600 hover:text-pink-700 font-medium transition-colors duration-300"
+                    onClick={() => setShowReviewForm(true)}
+                  >
+                    Viết đánh giá
+                  </button>
                 </div>
 
                 {showReviewForm && (
@@ -1228,7 +830,6 @@ export default function ProductDetail() {
                         variantOptionsForSku[variantName].push(variant.value);
                       });
 
-                      // Lấy ảnh từ sku.image_url, nếu không có thì dùng placeholder
                       const reviewImages = sku.image_url ? [sku.image_url] : [];
 
                       return (
@@ -1269,7 +870,6 @@ export default function ProductDetail() {
                               <p>Không có thông tin biến thể</p>
                             )}
                           </div>
-                          {/* Hiển thị ảnh từ sku.image_url */}
                           {reviewImages.length > 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                               {reviewImages.map((image, index) => (
@@ -1296,45 +896,6 @@ export default function ProductDetail() {
                 ) : (
                   <p className="text-gray-500">Chưa có đánh giá nào.</p>
                 )}
-              </div>
-            )}
-
-            {activeTab === "comments" && (
-              <div className="space-y-6">
-                <div className="flex flex-col space-y-4">
-                  <div className="flex items-center mb-2">
-                    <input
-                      type="checkbox"
-                      id="anonymous-comment"
-                      checked={isAnonymous}
-                      onChange={(e) => setIsAnonymous(e.target.checked)}
-                      className="mr-2"
-                    />
-                    <label htmlFor="anonymous-comment" className="text-sm text-gray-600">
-                      Bình luận ẩn danh
-                    </label>
-                  </div>
-                  <textarea
-                    rows={3}
-                    placeholder="Viết bình luận của bạn..."
-                    className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-pink-300"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                  />
-                  <button
-                    onClick={() => handleSubmitComment(newComment)}
-                    disabled={isSubmitting || !newComment.trim()}
-                    className={`self-end px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 ${
-                      (isSubmitting || !newComment.trim()) ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    {isSubmitting ? "Đang gửi..." : "Gửi bình luận"}
-                  </button>
-                </div>
-
-                <div className="space-y-6">
-                  {comments.map((comment) => renderComment(comment))}
-                </div>
               </div>
             )}
           </div>
