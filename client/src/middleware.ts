@@ -27,5 +27,5 @@ export function middleware(req: NextRequest) {
 
 // Áp dụng middleware cho tất cả các trang cần kiểm soát
 export const config = {
-  matcher: ["/login", "/register", "/forgot-password", "/profile", "/change-password", "/order", "/order/:path*"],
+  matcher: ["/login", "/register", "/forgot-password", "/reset-password/:path*", "/profile", "/change-password", "/order", "/order/:path*"],
 };

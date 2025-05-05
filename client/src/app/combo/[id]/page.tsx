@@ -562,8 +562,8 @@ export default function ComboDetail() {
 
     setWishlistLoading(true);
     const url = isWishlisted
-      ? "http://127.0.0.1:8000/api/v1/users/remove-favorite"
-      : "http://127.0.0.1:8000/api/v1/users/add-favorite";
+      ? `${API_BASE_URL}/users/remove-favorite`
+      : `${API_BASE_URL}/users/add-favorite`;
 
     try {
       const response = await fetch(url, {

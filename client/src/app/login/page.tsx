@@ -101,8 +101,15 @@ export default function LoginPage() {
 
         Cookies.set("accessToken", result.data.token);
         Cookies.set("userData", JSON.stringify(result.data.user));
-
-        router.push("/profile");
+        Cookies.set("userEmail", result.data.user.email);
+        
+        console.log("Đăng nhập thành công, token đã được lưu", result.data.token.substring(0, 15) + "...");
+        console.log("Email đã được lưu:", result.data.user.email);
+        console.log("Chuyển hướng đến /profile");
+        
+        setTimeout(() => {
+          router.push("/profile");
+        }, 100);
       }
     } catch (error) {
       console.error("Login error:", error);

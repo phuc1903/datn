@@ -2,15 +2,16 @@
 
 import Link from 'next/link';
 import { Facebook, Instagram, Twitter, Clock, Phone } from 'lucide-react';
-import { useSettings } from '../context/SettingsContext';
 
 const Footer = () => {
-  const { getSetting } = useSettings();
-  const contactSetting = getSetting('Contact');
-  const footerHouseOpen = getSetting('FooterHouseOpen');
-  const footerComplaints = getSetting('FooterComplaints');
-  
-  const contactInfo = contactSetting ? JSON.parse(contactSetting.value) : null;
+  // Thay thế các giá trị từ Settings bằng giá trị tĩnh
+  const contactInfo = {
+    Address: '49 Trần Hưng Đạo, Phường Tân Thành, Quận Tân Phú',
+    Phone: '0377461482',
+    Email: 'zbeautyshop@gmail.com'
+  };
+  const footerHouseOpen = 'Từ 9:00 - 21:30 tất cả các ngày trong tuần';
+  const footerComplaints = '0377461482';
 
   return (
     <footer className="bg-gray-800 text-white py-8">
@@ -42,12 +43,12 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/privacy-policy" className="text-gray-400 hover:text-pink-600 text-sm">
+                <Link href="#" className="text-gray-400 hover:text-pink-600 text-sm">
                   Chính sách bảo mật
                 </Link>
               </li>
               <li>
-                <Link href="/terms-of-service" className="text-gray-400 hover:text-pink-600 text-sm">
+                <Link href="#" className="text-gray-400 hover:text-pink-600 text-sm">
                   Điều khoản dịch vụ
                 </Link>
               </li>
@@ -98,7 +99,7 @@ const Footer = () => {
                   </svg>
                 </div>
                 <p className="text-gray-400 text-sm">
-                  {contactInfo?.Address || '49 Trần Hưng Đạo, Phường Tân Thành, Quận Tân Phú'}
+                  {contactInfo.Address}
                 </p>
               </div>
               <div className="flex items-start gap-3">
@@ -106,7 +107,7 @@ const Footer = () => {
                   <Clock className="h-5 w-5" />
                 </div>
                 <p className="text-gray-400 text-sm">
-                  {footerHouseOpen?.value || 'Từ 9:00 - 21:30 tất cả các ngày trong tuần'}
+                  {footerHouseOpen}
                 </p>
               </div>
               <div className="flex items-start gap-3">
@@ -115,10 +116,10 @@ const Footer = () => {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">
-                    {contactInfo?.Phone || '0377461482'}
+                    {contactInfo.Phone}
                   </p>
                   <p className="text-gray-400 text-sm mt-1">
-                    {contactInfo?.Email || 'zbeautyshop@gmail.com'}
+                    {contactInfo.Email}
                   </p>
                 </div>
               </div>
@@ -134,7 +135,7 @@ const Footer = () => {
             </p>
             <div className="flex items-center gap-2 text-gray-400 text-sm">
               <Phone className="h-4 w-4" />
-              <span>Hotline khiếu nại: {footerComplaints?.value || '0377461482'}</span>
+              <span>Hotline khiếu nại: {footerComplaints}</span>
             </div>
           </div>
         </div>

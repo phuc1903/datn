@@ -23,6 +23,7 @@ import {
   Eye,
 } from "lucide-react";
 import Image from "next/image";
+import { API_BASE_URL } from "@/config/config";
 
 // Types
 interface UserData {
@@ -383,7 +384,7 @@ const Vouchers = () => {
       if (!token) return;
 
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/v1/users/vouchers", {
+        const response = await fetch(`${API_BASE_URL}/users/vouchers`, {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
@@ -496,15 +497,25 @@ export default function ProfilePage() {
       const token = Cookies.get("accessToken");
       const userData = Cookies.get("userData");
 
-      if (!token || !userData) return router.push("/login");
+      console.log("Profile page - Checking auth:", { 
+        hasToken: !!token, 
+        hasUserData: !!userData,
+        tokenPreview: token ? token.substring(0, 15) + "..." : null
+      });
+
+      if (!token || !userData) {
+        console.error("Missing token or userData in profile page, redirecting to login");
+        return router.push("/login");
+      }
 
       try {
         // Parse user data from cookie
         const user = JSON.parse(userData);
+        console.log("User data parsed successfully:", user.email);
         setUser(user);
 
         // Fetch addresses
-        const addressRes = await fetch("http://127.0.0.1:8000/api/v1/users/addresses", {
+        const addressRes = await fetch(`${API_BASE_URL}/users/addresses`, {
           headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
         });
         if (!addressRes.ok) throw new Error("Addresses fetch failed");
@@ -512,7 +523,7 @@ export default function ProfilePage() {
         setAddresses(addressData.data);
 
         // Fetch orders
-        const ordersRes = await fetch("http://127.0.0.1:8000/api/v1/users/orders", {
+        const ordersRes = await fetch(`${API_BASE_URL}/users/orders`, {
           headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
         });
         if (!ordersRes.ok) throw new Error("Orders fetch failed");
@@ -536,7 +547,7 @@ export default function ProfilePage() {
         }
 
         // Fetch wishlist
-        const wishlistRes = await fetch("http://127.0.0.1:8000/api/v1/users/favorites", {
+        const wishlistRes = await fetch(`${API_BASE_URL}/users/favorites`, {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         });
         if (!wishlistRes.ok) throw new Error("Wishlist fetch failed");
@@ -545,7 +556,7 @@ export default function ProfilePage() {
 
         const detailedItems = await Promise.all(
           favorites.map(async (favorite: any) => {
-            const productRes = await fetch(`http://127.0.0.1:8000/api/v1/products/detail/${favorite.id}`, {
+            const productRes = await fetch(`${API_BASE_URL}/products/detail/${favorite.id}`, {
               headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
             });
             const productData = await productRes.json();
@@ -578,15 +589,46 @@ export default function ProfilePage() {
     if (!token) return;
 
     try {
-      await fetch("http://127.0.0.1:8000/api/v1/auth/logout", {
+      console.log("Đang gửi yêu cầu đăng xuất đến API...");
+      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+        headers: { 
+          "Authorization": `Bearer ${token}`, 
+          "Accept": "application/json",
+          "Content-Type": "application/json" 
+        },
       });
+
+      console.log("Kết quả từ API logout:", response.status);
+      
+      // Xóa tất cả cookies đăng nhập
       Cookies.remove("accessToken");
       Cookies.remove("userEmail");
+      Cookies.remove("userData");
+      
+      // Xóa dữ liệu trong localStorage nếu có
+      localStorage.removeItem("orders");
+      
+      console.log("Đã xóa tất cả thông tin đăng nhập");
+      
+      // Chuyển hướng về trang đăng nhập
       router.push("/login");
     } catch (error) {
-      Swal.fire({ icon: "error", title: "Lỗi", text: "Đăng xuất thất bại", confirmButtonColor: "#f472b6" });
+      console.error("Lỗi khi đăng xuất:", error);
+      Swal.fire({ 
+        icon: "error", 
+        title: "Lỗi", 
+        text: "Đăng xuất thất bại, nhưng đã xóa dữ liệu đăng nhập ở local", 
+        confirmButtonColor: "#f472b6" 
+      });
+      
+      // Xóa cookies ngay cả khi API thất bại
+      Cookies.remove("accessToken");
+      Cookies.remove("userEmail");
+      Cookies.remove("userData");
+      
+      // Chuyển hướng về trang đăng nhập
+      router.push("/login");
     }
   };
 
@@ -604,7 +646,7 @@ export default function ProfilePage() {
     if (result.isConfirmed) {
       const token = Cookies.get("accessToken");
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/v1/users/delete-addresses", {
+        const res = await fetch(`${API_BASE_URL}/users/delete-addresses`, {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify({ address_id: id }),
@@ -632,7 +674,7 @@ export default function ProfilePage() {
     if (result.isConfirmed) {
       const token = Cookies.get("accessToken");
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/v1/users/remove-favorite", {
+        const res = await fetch(`${API_BASE_URL}/users/remove-favorite`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           body: JSON.stringify({ product_id: id }),

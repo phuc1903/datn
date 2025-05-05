@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { Search, ShoppingBag, User, Heart, ChevronDown, Menu, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { API_BASE_URL } from "@/config/config";
-import { useSettings } from '../context/SettingsContext';
 
 interface Category {
   id: number;
@@ -30,8 +29,8 @@ interface Product {
 }
 
 const Header: React.FC = () => {
-  const { getSetting } = useSettings();
-  const announcementBar = getSetting('AnnouncementBar');
+  // Thay thế giá trị từ useSettings bằng giá trị tĩnh
+  const announcementBar = "Miễn phí vận chuyển cho đơn hàng từ 500.000đ";
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [categories, setCategories] = useState<ProcessedCategory[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -73,7 +72,7 @@ const Header: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/v1/categories");
+        const response = await fetch(`${API_BASE_URL}/categories`);
         const result = await response.json();
         if (result.status === "success") {
           const mainCategories = result.data.filter((cat: Category) => cat.parent_id === 0);
@@ -113,7 +112,7 @@ const Header: React.FC = () => {
     if (!searchQuery.trim()) return;
     setIsSearching(true);
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/v1/products");
+      const response = await fetch(`${API_BASE_URL}/products`);
       const data = await response.json();
       const filtered = data.data
         .filter((product: Product) =>
@@ -226,7 +225,7 @@ const Header: React.FC = () => {
       {announcementBar && (
         <div className="bg-gray-100 py-2">
           <div className="container mx-auto px-4 text-center text-sm text-gray-600">
-            {announcementBar.value}
+            {announcementBar}
           </div>
         </div>
       )}
@@ -310,6 +309,10 @@ const Header: React.FC = () => {
                     {cartCount}
                   </span>
                 )}
+              </Link>
+
+              <Link href="/wishlist" className="p-2 hover:text-pink-600 transition-colors">
+                <Heart className="h-6 w-6" />
               </Link>
 
               <Link href="/profile" className="p-2 hover:text-pink-600 transition-colors">
@@ -452,7 +455,7 @@ const Header: React.FC = () => {
               <div className="flex space-x-4">
                 <Link 
                   href="/cart" 
-                  className="flex items-center justify-center w-1/2 p-3 rounded-lg border border-gray-200 hover:bg-pink-50 hover:text-pink-600 transition-colors"
+                  className="flex items-center justify-center w-1/3 p-3 rounded-lg border border-gray-200 hover:bg-pink-50 hover:text-pink-600 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <ShoppingBag className="h-5 w-5 mr-2" />
@@ -464,8 +467,16 @@ const Header: React.FC = () => {
                   )}
                 </Link>
                 <Link 
+                  href="/wishlist" 
+                  className="flex items-center justify-center w-1/3 p-3 rounded-lg border border-gray-200 hover:bg-pink-50 hover:text-pink-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Heart className="h-5 w-5 mr-2" />
+                  <span>Yêu thích</span>
+                </Link>
+                <Link 
                   href="/profile" 
-                  className="flex items-center justify-center w-1/2 p-3 rounded-lg border border-gray-200 hover:bg-pink-50 hover:text-pink-600 transition-colors"
+                  className="flex items-center justify-center w-1/3 p-3 rounded-lg border border-gray-200 hover:bg-pink-50 hover:text-pink-600 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <User className="h-5 w-5 mr-2" />

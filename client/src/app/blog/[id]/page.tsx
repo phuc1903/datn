@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { API_BASE_URL } from "@/config/config";
 
 interface Product {
   id: number;
@@ -28,7 +29,7 @@ const BlogDetail = () => {
   useEffect(() => {
     const fetchBlogDetail = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/v1/blogs/${id}`);
+        const response = await fetch(`${API_BASE_URL}/blogs/${id}`);
         const data = await response.json();
         
         if (data?.status === "success") {

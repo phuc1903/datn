@@ -1,27 +1,12 @@
 import Image from "next/image";
 
-async function getSettings() {
-  try {
-    const res = await fetch('https://test.zbeauty.id.vn/api/v1/settings', {
-      next: { revalidate: 3600 }
-    });
-    
-    if (!res.ok) {
-      throw new Error('Failed to fetch settings');
-    }
-
-    const data = await res.json();
-    return data.data;
-  } catch (error) {
-    console.error('Error fetching settings:', error);
-    return [];
-  }
-}
-
-export default async function Contact() {
-  const settings = await getSettings();
-  const contactSetting = settings.find((setting: any) => setting.name === 'Contact');
-  const contactInfo = contactSetting ? JSON.parse(contactSetting.value) : null;
+export default function Contact() {
+  // Thay thế dữ liệu từ API bằng dữ liệu tĩnh
+  const contactInfo = {
+    Email: 'zbeautyshop@gmail.com',
+    Phone: '0377461482',
+    Address: '49 Trần Hưng Đạo, Phường Tân Thành, Quận Tân Phú'
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -106,7 +91,7 @@ export default async function Contact() {
                 </div>
                 <div>
                   <p className="text-gray-800 font-medium">Email</p>
-                  <p className="text-gray-600">{contactInfo?.Email || 'zbeautyshop@gmail.com'}</p>
+                  <p className="text-gray-600">{contactInfo.Email}</p>
                 </div>
               </li>
               <li className="flex items-center gap-4">
@@ -128,7 +113,7 @@ export default async function Contact() {
                 </div>
                 <div>
                   <p className="text-gray-800 font-medium">Điện thoại</p>
-                  <p className="text-gray-600">{contactInfo?.Phone || '0377461482'}</p>
+                  <p className="text-gray-600">{contactInfo.Phone}</p>
                 </div>
               </li>
               <li className="flex items-center gap-4">
@@ -156,7 +141,7 @@ export default async function Contact() {
                 </div>
                 <div>
                   <p className="text-gray-800 font-medium">Địa chỉ</p>
-                  <p className="text-gray-600">{contactInfo?.Address || '49 Trần Hưng Đạo, Phường Tân Thành, Quận Tân Phú'}</p>
+                  <p className="text-gray-600">{contactInfo.Address}</p>
                 </div>
               </li>
             </ul>
