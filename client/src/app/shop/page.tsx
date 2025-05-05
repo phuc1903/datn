@@ -26,6 +26,7 @@ interface Product {
   categories: Category[];
   skus: Sku[];
   feedbacks_avg_rating?: number;
+  comments?: { id: number }[];
 }
 
 const ProductListingPage = () => {
@@ -35,6 +36,7 @@ const ProductListingPage = () => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [sortOrder, setSortOrder] = useState<string>("");
+  const [ratingCounts, setRatingCounts] = useState<{ [key: string]: number }>({});
 
   // Fetch products from API
   useEffect(() => {
@@ -341,12 +343,12 @@ const ProductListingPage = () => {
                       className="w-4 h-4 rounded border-gray-300 accent-pink-500 focus:ring-pink-500"
                     />
                     <div className="flex items-center">
+                      <span className="text-yellow-400 mr-1">★</span>
                       <span className="text-sm mr-1">{rating}</span>
-                      <span className="text-yellow-400">★</span>
                       <span className="text-sm ml-1">& lên</span>
                     </div>
                   </div>
-                  <span className="text-sm text-gray-400">1345</span>
+                  <span className="text-sm text-gray-400">{products.filter(p => p.feedbacks_avg_rating && Math.floor(p.feedbacks_avg_rating) === rating).length}</span>
                 </div>
               ))}
             </div>
@@ -668,8 +670,8 @@ const ProductListingPage = () => {
                         <button
                           key={page}
                           className={`px-3 py-1 rounded-lg ${page === currentPage
-                              ? "bg-pink-600 text-white"
-                              : "text-gray-500 hover:bg-gray-50"
+                            ? "bg-pink-600 text-white"
+                            : "text-gray-500 hover:bg-gray-50"
                             }`}
                           onClick={() => handlePageChange(page)}
                         >
