@@ -1,25 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
-    domains: ["placehold.co"],
-    remotePatterns: [
-      {
-        protocol: "http",
-        hostname: "127.0.0.1",
-        port: "8000",
-        pathname: "/**",
-      },
-      {
-        protocol: "http",
-        hostname: "localhost",
-        port: "8000",
-        pathname: "/**",
-      },
-    ],
+    domains: ['quantri-zbeauty.tranhuuhiep2004.id.vn', '127.0.0.1'],
   },
-};
+}
 
-module.exports = nextConfig; 
+module.exports = nextConfig 
