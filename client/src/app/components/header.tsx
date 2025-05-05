@@ -1,4 +1,5 @@
 "use client"
+// Khai báo là client component để sử dụng các tính năng client-side như useState, useEffect
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -6,21 +7,24 @@ import { Search, ShoppingBag, User, Heart, ChevronDown, Menu, X } from 'lucide-r
 import { useRouter } from 'next/navigation';
 import { API_BASE_URL } from "@/config/config";
 
+// Interface định nghĩa cấu trúc dữ liệu danh mục từ API
 interface Category {
   id: number;
   name: string;
   short_description: string;
-  parent_id: number;
+  parent_id: number; // ID danh mục cha (0 nếu là danh mục gốc)
   slug: string;
 }
 
+// Interface định nghĩa cấu trúc danh mục đã được xử lý để hiển thị
 interface ProcessedCategory {
   id: number;
   name: string;
   slug: string;
-  subcategories: { name: string; path: string }[];
+  subcategories: { name: string; path: string }[]; // Mảng các danh mục con
 }
 
+// Interface định nghĩa cấu trúc sản phẩm từ API
 interface Product {
   id: number;
   name: string;
@@ -28,23 +32,43 @@ interface Product {
   skus: Array<{ price: number }>;
 }
 
-const Header: React.FC = () => {
-  // Thay thế giá trị từ useSettings bằng giá trị tĩnh
-  const announcementBar = "Miễn phí vận chuyển cho đơn hàng từ 500.000đ";
+// Interface cho props của Header
+interface HeaderProps {
+  settings?: any[];
+}
+
+const Header: React.FC<HeaderProps> = ({ settings = [] }) => {
+  // Tìm thông báo từ settings nếu có, nếu không dùng giá trị mặc định
+  const announcementBar = settings?.find(item => item.name === "AnnouncementBar")?.value || 
+    "Miễn phí vận chuyển cho đơn hàng từ 500.000đ";
+  
+  // Lấy logo từ settings
+  const logoHeaderLightMode = settings?.find(item => item.name === "logoHeaderLightMode")?.value;
+  
+  // State quản lý việc mở/đóng menu mobile
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // State lưu trữ danh mục đã xử lý
   const [categories, setCategories] = useState<ProcessedCategory[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Product[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [selectedResultIndex, setSelectedResultIndex] = useState(-1);
+  
+  // State quản lý chức năng tìm kiếm
+  const [searchQuery, setSearchQuery] = useState(""); // Từ khóa tìm kiếm
+  const [searchResults, setSearchResults] = useState<Product[]>([]); // Kết quả tìm kiếm
+  const [isSearching, setIsSearching] = useState(false); // Trạng thái đang tìm kiếm
+  const [showResults, setShowResults] = useState(false); // Hiển thị kết quả tìm kiếm
+  const [selectedResultIndex, setSelectedResultIndex] = useState(-1); // Vị trí đang chọn trong kết quả
+  
+  // State số lượng sản phẩm trong giỏ hàng
   const [cartCount, setCartCount] = useState(0);
+  
+  // State kiểm tra đang chạy phía client
   const [isClient, setIsClient] = useState(false);
 
+  // Tham chiếu đến khung tìm kiếm để bắt sự kiện click bên ngoài
   const searchRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Handle click outside to close search results
+  // Xử lý click ra ngoài để đóng kết quả tìm kiếm
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -55,7 +79,7 @@ const Header: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Debounce search
+  // Debounce tìm kiếm - chờ 300ms sau khi người dùng ngừng gõ để gọi API
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchQuery.trim()) {
@@ -68,14 +92,17 @@ const Header: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Fetch categories
+  // Fetch danh mục sản phẩm từ API khi component mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/categories`);
         const result = await response.json();
         if (result.status === "success") {
+          // Lọc ra các danh mục gốc (parent_id = 0)
           const mainCategories = result.data.filter((cat: Category) => cat.parent_id === 0);
+          
+          // Xử lý dữ liệu danh mục, tìm danh mục con cho mỗi danh mục gốc
           const processedCategories = mainCategories.map((mainCat: Category) => {
             const subCategories = result.data
               .filter((cat: Category) => cat.parent_id === mainCat.id)
@@ -99,26 +126,29 @@ const Header: React.FC = () => {
     fetchCategories();
   }, []);
 
-  // Initialize cart count
+  // Khởi tạo số lượng sản phẩm trong giỏ hàng từ localStorage
   useEffect(() => {
-    setIsClient(true);
+    setIsClient(true); // Đánh dấu đang chạy phía client
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
     const totalQuantity = storedCart.reduce((sum: number, item: any) => sum + item.quantity, 0);
     setCartCount(totalQuantity);
   }, []);
 
-  // Search handler
+  // Xử lý tìm kiếm sản phẩm
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     setIsSearching(true);
     try {
+      // Gọi API lấy danh sách sản phẩm
       const response = await fetch(`${API_BASE_URL}/products`);
       const data = await response.json();
+      
+      // Lọc sản phẩm theo tên chứa từ khóa tìm kiếm (không phân biệt hoa thường)
       const filtered = data.data
         .filter((product: Product) =>
           product.name.toLowerCase().includes(searchQuery.toLowerCase())
         )
-        .slice(0, 5);
+        .slice(0, 5); // Giới hạn 5 kết quả để không quá dài
       setSearchResults(filtered);
       setShowResults(true);
     } catch (error) {
@@ -128,7 +158,7 @@ const Header: React.FC = () => {
     }
   };
 
-  // Navigate to product page
+  // Xử lý chuyển hướng đến trang sản phẩm khi chọn kết quả tìm kiếm
   const navigateToProduct = (productId: number) => {
     router.push(`/product/${productId}`);
     setShowResults(false);
@@ -136,7 +166,7 @@ const Header: React.FC = () => {
     setIsMenuOpen(false);
   };
 
-  // Redirect to search page
+  // Xử lý chuyển hướng đến trang tìm kiếm với từ khóa hiện tại
   const handleSearchRedirect = () => {
     if (searchQuery.trim()) {
       router.push(`/search?query=${encodeURIComponent(searchQuery.trim())}`);
@@ -145,19 +175,19 @@ const Header: React.FC = () => {
     }
   };
 
-  // Keyboard navigation for search results
+  // Xử lý điều hướng bằng bàn phím trong kết quả tìm kiếm
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showResults || !searchResults.length) return;
     switch (e.key) {
-      case "ArrowDown":
+      case "ArrowDown": // Di chuyển xuống
         e.preventDefault();
         setSelectedResultIndex((prev) => (prev < searchResults.length - 1 ? prev + 1 : prev));
         break;
-      case "ArrowUp":
+      case "ArrowUp": // Di chuyển lên
         e.preventDefault();
         setSelectedResultIndex((prev) => (prev > -1 ? prev - 1 : -1));
         break;
-      case "Enter":
+      case "Enter": // Chọn kết quả hoặc tìm kiếm
         e.preventDefault();
         if (selectedResultIndex >= 0) {
           navigateToProduct(searchResults[selectedResultIndex].id);
@@ -165,13 +195,14 @@ const Header: React.FC = () => {
           handleSearchRedirect();
         }
         break;
-      case "Escape":
+      case "Escape": // Đóng kết quả tìm kiếm
         e.preventDefault();
         setShowResults(false);
         break;
     }
   };
 
+  // Dữ liệu tĩnh cho menu chính
   const staticCategories = [
     { id: 1, name: "Trang Chủ", path: "/" },
     {
@@ -188,6 +219,7 @@ const Header: React.FC = () => {
     { id: 6, name: "Mã giảm giá", path: "/voucher" },
   ];
 
+  // Render kết quả tìm kiếm
   const renderSearchResults = () => {
     if (!showResults || searchResults.length === 0) return null;
     return (
@@ -200,14 +232,16 @@ const Header: React.FC = () => {
             }`}
             onClick={() => navigateToProduct(product.id)}
           >
+            {/* Ảnh sản phẩm */}
             <div className="relative w-12 h-12 rounded overflow-hidden">
               <Image
-                src={product.images?.[0]?.image_url || "/oxy.jpg"}
+                src={product.images?.[0]?.image_url || "/oxy.jpg"} // Sử dụng ảnh mặc định nếu không có
                 alt={product.name}
                 fill
                 className="object-cover"
               />
             </div>
+            {/* Thông tin sản phẩm */}
             <div className="ml-3 flex-1">
               <h4 className="text-sm font-medium text-gray-900">{product.name}</h4>
               <p className="text-sm text-pink-600">
@@ -222,6 +256,7 @@ const Header: React.FC = () => {
 
   return (
     <>
+      {/* Thanh thông báo trên cùng */}
       {announcementBar && (
         <div className="bg-gray-100 py-2">
           <div className="container mx-auto px-4 text-center text-sm text-gray-600">
@@ -230,14 +265,17 @@ const Header: React.FC = () => {
         </div>
       )}
       
+      {/* Phần header chính */}
       <header className="bg-white shadow-sm z-50 sticky top-0">
         <div className="max-w-7xl container mx-auto px-4">
           <div className="flex items-center justify-between h-20">
+            {/* Logo */}
             <Link href="/" className="flex items-center">
               <span className="text-pink-600 font-serif font-bold text-2xl">Z</span>
               <span className="text-gray-700 font-serif font-bold text-2xl">BEAUTY</span>
             </Link>
 
+            {/* Navigation - Chỉ hiển thị trên desktop */}
             <nav className="hidden md:flex items-center space-x-8">
               {staticCategories.map((category) => (
                 <div key={category.id} className="group relative">
@@ -246,10 +284,12 @@ const Header: React.FC = () => {
                     className="flex items-center text-gray-700 hover:text-pink-600 py-4 text-sm font-medium"
                   >
                     {category.name}
+                    {/* Hiển thị mũi tên xuống nếu có danh mục con */}
                     {category.subcategories && category.subcategories.length > 0 && (
                       <ChevronDown className="ml-1 h-4 w-4 transition-transform group-hover:rotate-180" />
                     )}
                   </Link>
+                  {/* Dropdown menu cho danh mục con */}
                   {category.subcategories && category.subcategories.length > 0 && (
                     <div className="hidden group-hover:block absolute top-full left-0 w-screen max-w-4xl bg-white shadow-lg rounded-lg py-6 px-8 transition-all duration-300">
                       <div className="grid grid-cols-4 gap-4">
@@ -269,7 +309,9 @@ const Header: React.FC = () => {
               ))}
             </nav>
 
+            {/* Các icon và chức năng bên phải */}
             <div className="flex items-center space-x-6">
+              {/* Thanh tìm kiếm - Chỉ hiển thị trên desktop */}
               <div className="hidden md:flex items-center relative" ref={searchRef}>
                 <div className="relative text-black">
                   <input
@@ -280,6 +322,7 @@ const Header: React.FC = () => {
                     onKeyDown={handleKeyDown}
                     className="w-64 px-4 py-2 bg-gray-50 border border-gray-200 rounded-l-lg focus:outline-none focus:border-pink-300 focus:ring-1 focus:ring-pink-200 transition-colors text-sm"
                   />
+                  {/* Nút xóa từ khóa tìm kiếm */}
                   {searchQuery && (
                     <button
                       onClick={() => {
@@ -293,15 +336,18 @@ const Header: React.FC = () => {
                     </button>
                   )}
                 </div>
+                {/* Nút tìm kiếm */}
                 <button
                   onClick={handleSearchRedirect}
                   className="px-4 py-2 bg-pink-600 text-white rounded-r-lg hover:bg-pink-500 transition-colors"
                 >
                   <Search className="h-5 w-5" />
                 </button>
+                {/* Hiển thị kết quả tìm kiếm */}
                 {renderSearchResults()}
               </div>
 
+              {/* Icon giỏ hàng với số lượng sản phẩm */}
               <Link href="/cart" className="p-2 hover:text-pink-600 transition-colors relative">
                 <ShoppingBag className="h-6 w-6" />
                 {isClient && cartCount > 0 && (
@@ -311,14 +357,17 @@ const Header: React.FC = () => {
                 )}
               </Link>
 
+              {/* Icon yêu thích */}
               <Link href="/wishlist" className="p-2 hover:text-pink-600 transition-colors">
                 <Heart className="h-6 w-6" />
               </Link>
 
+              {/* Icon tài khoản */}
               <Link href="/profile" className="p-2 hover:text-pink-600 transition-colors">
                 <User className="h-6 w-6" />
               </Link>
 
+              {/* Nút menu cho mobile */}
               <button 
                 className="md:hidden p-2 hover:text-pink-600 transition-colors" 
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -331,25 +380,28 @@ const Header: React.FC = () => {
         </div>
       </header>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Chỉ hiển thị trên mobile */}
       <div
         className={`md:hidden fixed inset-0 bg-black bg-opacity-60 z-50 transition-opacity duration-300 ${
           isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setIsMenuOpen(false)}
       >
+        {/* Vùng menu bên phải */}
         <div
           className={`fixed inset-y-0 right-0 w-[80%] max-w-sm bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
             isMenuOpen ? "translate-x-0" : "translate-x-full"
           }`}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()} // Ngăn sự kiện click lan ra ngoài (đóng menu)
         >
           <div className="flex flex-col h-full">
+            {/* Header của menu mobile */}
             <div className="flex items-center justify-between p-4 border-b">
               <div className="flex items-center">
                 <span className="text-pink-600 font-serif font-bold text-xl">Z</span>
                 <span className="text-gray-700 font-serif font-bold text-xl">BEAUTY</span>
               </div>
+              {/* Nút đóng menu */}
               <button 
                 onClick={() => setIsMenuOpen(false)}
                 className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -359,6 +411,7 @@ const Header: React.FC = () => {
               </button>
             </div>
             
+            {/* Thanh tìm kiếm trên mobile */}
             <div className="p-4 border-b">
               <div className="relative flex items-center">
                 <input
@@ -369,12 +422,14 @@ const Header: React.FC = () => {
                   onKeyDown={handleKeyDown}
                   className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-l-lg focus:outline-none focus:border-pink-300 text-sm"
                 />
+                {/* Nút tìm kiếm */}
                 <button
                   onClick={handleSearchRedirect}
                   className="px-3 py-2 bg-pink-600 text-white rounded-r-lg hover:bg-pink-500 transition-colors"
                 >
                   <Search className="h-5 w-5" />
                 </button>
+                {/* Nút xóa từ khóa tìm kiếm */}
                 {searchQuery && (
                   <button
                     onClick={() => {
@@ -388,6 +443,7 @@ const Header: React.FC = () => {
                   </button>
                 )}
               </div>
+              {/* Kết quả tìm kiếm trên mobile */}
               {showResults && searchResults.length > 0 && (
                 <div className="absolute left-4 right-4 mt-1 bg-white rounded-lg shadow-lg overflow-hidden z-50">
                   {searchResults.map((product, index) => (
@@ -418,6 +474,7 @@ const Header: React.FC = () => {
               )}
             </div>
             
+            {/* Phần danh mục chính trên mobile */}
             <div className="flex-1 overflow-y-auto">
               <nav className="p-4">
                 {staticCategories.map((category) => (
@@ -428,10 +485,12 @@ const Header: React.FC = () => {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <span>{category.name}</span>
+                      {/* Hiển thị mũi tên xuống nếu có danh mục con */}
                       {category.subcategories && category.subcategories.length > 0 && (
                         <ChevronDown className="h-4 w-4" />
                       )}
                     </Link>
+                    {/* Danh mục con trên mobile */}
                     {category.subcategories && category.subcategories.length > 0 && (
                       <div className="mt-2 ml-4 grid grid-cols-2 gap-2">
                         {category.subcategories.map((sub, index) => (
@@ -451,8 +510,10 @@ const Header: React.FC = () => {
               </nav>
             </div>
             
+            {/* Footer của menu mobile với các shortcut */}
             <div className="p-4 border-t">
               <div className="flex space-x-4">
+                {/* Shortcut giỏ hàng */}
                 <Link 
                   href="/cart" 
                   className="flex items-center justify-center w-1/3 p-3 rounded-lg border border-gray-200 hover:bg-pink-50 hover:text-pink-600 transition-colors"
@@ -466,6 +527,7 @@ const Header: React.FC = () => {
                     </span>
                   )}
                 </Link>
+                {/* Shortcut yêu thích */}
                 <Link 
                   href="/wishlist" 
                   className="flex items-center justify-center w-1/3 p-3 rounded-lg border border-gray-200 hover:bg-pink-50 hover:text-pink-600 transition-colors"
@@ -474,6 +536,7 @@ const Header: React.FC = () => {
                   <Heart className="h-5 w-5 mr-2" />
                   <span>Yêu thích</span>
                 </Link>
+                {/* Shortcut tài khoản */}
                 <Link 
                   href="/profile" 
                   className="flex items-center justify-center w-1/3 p-3 rounded-lg border border-gray-200 hover:bg-pink-50 hover:text-pink-600 transition-colors"

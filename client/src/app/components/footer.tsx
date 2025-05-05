@@ -3,15 +3,34 @@
 import Link from 'next/link';
 import { Facebook, Instagram, Twitter, Clock, Phone } from 'lucide-react';
 
-const Footer = () => {
-  // Thay thế các giá trị từ Settings bằng giá trị tĩnh
-  const contactInfo = {
-    Address: '49 Trần Hưng Đạo, Phường Tân Thành, Quận Tân Phú',
-    Phone: '0377461482',
-    Email: 'zbeautyshop@gmail.com'
-  };
-  const footerHouseOpen = 'Từ 9:00 - 21:30 tất cả các ngày trong tuần';
-  const footerComplaints = '0377461482';
+interface FooterProps {
+  settings?: any[];
+}
+
+const Footer: React.FC<FooterProps> = ({ settings = [] }) => {
+  // Lấy thông tin từ settings nếu có
+  const contactInfo = settings?.find(item => item.name === "Contact")?.value
+    ? JSON.parse(settings.find(item => item.name === "Contact").value)
+    : {
+        Address: '49 Trần Hưng Đạo, Phường Tân Thành, Quận Tân Phú',
+        Phone: '0377461482',
+        Email: 'zbeautyshop@gmail.com'
+      };
+  
+  const footerHouseOpen = settings?.find(item => item.name === "FooterHouseOpen")?.value || 
+    'Từ 9:00 - 21:30 tất cả các ngày trong tuần';
+  
+  const footerComplaints = settings?.find(item => item.name === "FooterComplaints")?.value || 
+    '0377461482';
+  
+  const footerSlogan = settings?.find(item => item.name === "FooterSlogan")?.value || 
+    'Chúng tôi cung cấp các sản phẩm mỹ phẩm chất lượng cao giúp bạn tỏa sáng mỗi ngày.';
+
+  // Lấy logo footer từ settings
+  const logoFooterLightMode = settings?.find(item => item.name === "logoFooterLightMode")?.value;
+  
+  // Lấy tên website từ settings
+  const nameWebsite = settings?.find(item => item.name === "NameWebsite")?.value || "ZBEAUTY HCMC";
 
   return (
     <footer className="bg-gray-800 text-white py-8">
@@ -21,10 +40,10 @@ const Footer = () => {
           {/* Vùng logo và mô tả */}
           <div>
             <Link href="/" className="text-2xl font-bold text-pink-600 hover:text-pink-700">
-              ZBEAUTY HCMC
+              {nameWebsite.split(' - ')[0] || "ZBEAUTY"}
             </Link>
             <p className="mt-2 text-gray-400 text-sm">
-              Chúng tôi cung cấp các sản phẩm mỹ phẩm chất lượng cao giúp bạn tỏa sáng mỗi ngày.
+              {footerSlogan}
             </p>
           </div>
 
@@ -73,71 +92,35 @@ const Footer = () => {
 
           {/* Địa chỉ và thông tin liên hệ */}
           <div>
-            <h3 className="font-semibold text-lg text-gray-300">Liên hệ</h3>
-            <div className="mt-4 space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="flex items-center justify-center w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex-shrink-0">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-gray-400 text-sm">
-                  {contactInfo.Address}
-                </p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="flex items-center justify-center w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex-shrink-0">
-                  <Clock className="h-5 w-5" />
-                </div>
-                <p className="text-gray-400 text-sm">
-                  {footerHouseOpen}
-                </p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="flex items-center justify-center w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex-shrink-0">
-                  <Phone className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm">
-                    {contactInfo.Phone}
-                  </p>
-                  <p className="text-gray-400 text-sm mt-1">
-                    {contactInfo.Email}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <h3 className="font-semibold text-lg text-gray-300">Thông tin liên hệ</h3>
+            <ul className="mt-4 space-y-2">
+              <li className="flex items-start space-x-2 text-gray-400 text-sm">
+                <span className="mt-1 flex-shrink-0">
+                  <Clock size={16} />
+                </span>
+                <span>{footerHouseOpen}</span>
+              </li>
+              <li className="flex items-start space-x-2 text-gray-400 text-sm">
+                <span className="mt-1 flex-shrink-0">
+                  <Phone size={16} />
+                </span>
+                <span>
+                  <strong>Hotline:</strong> {contactInfo?.Phone || '0377461482'}
+                  <br />
+                  <strong>CSKH:</strong> {footerComplaints}
+                </span>
+              </li>
+              <li className="text-gray-400 text-sm mt-2">
+                <strong className="block mb-1">Địa chỉ:</strong>
+                <span>{contactInfo?.Address || '49 Trần Hưng Đạo, Phường Tân Thành, Quận Tân Phú'}</span>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* Dòng bản quyền và khiếu nại */}
-        <div className="mt-8 border-t border-gray-700 pt-4">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-gray-400 text-sm">
-              &copy; 2025 Zbeauty. Tất cả quyền được bảo vệ.
-            </p>
-            <div className="flex items-center gap-2 text-gray-400 text-sm">
-              <Phone className="h-4 w-4" />
-              <span>Hotline khiếu nại: {footerComplaints}</span>
-            </div>
-          </div>
+        {/* Phần dưới cùng */}
+        <div className="mt-8 pt-6 border-t border-gray-700 text-center text-sm text-gray-400">
+          <p>© {new Date().getFullYear()} {nameWebsite}. Tất cả quyền được bảo lưu.</p>
         </div>
       </div>
     </footer>

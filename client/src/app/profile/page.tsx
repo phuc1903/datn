@@ -475,10 +475,10 @@ const Vouchers = () => {
 };
 
 const ChangePassword = () => (
-  <div>
-    <h2 className="text-xl font-semibold mb-4 text-pink-500">Đổi mật khẩu</h2>
-    <Link href="/change-password" className="inline-flex items-center px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-md">
-      <Eye className="w-4 h-4 mr-2" /> Đổi mật khẩu
+  <div className="bg-white rounded-lg shadow-sm p-4 text-black">
+    <h2 className="text-xl font-semibold mb-4">Đổi mật khẩu</h2>
+    <Link href="/change-password" className="inline-flex items-center px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-md">
+      <Lock className="w-4 h-4 mr-2" /> Đổi mật khẩu
     </Link>
   </div>
 );

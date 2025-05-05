@@ -1,0 +1,191 @@
+# PHÂN TÍCH CHI TIẾT VỀ PROJECT ZBEAUTY CLIENT
+
+## Tổng quan về Project
+
+Dự án này là một ứng dụng web thương mại điện tử chuyên về mỹ phẩm và làm đẹp với tên "Zbeauty HCMC". Project được xây dựng bằng Next.js 15, sử dụng TypeScript và Tailwind CSS cho giao diện. Đây là phần frontend (client) của ứng dụng, kết nối với backend API qua endpoint "https://quantri-zbeauty.tranhuuhiep2004.id.vn/api/v1".
+
+## Cấu trúc Project
+
+### Công nghệ chính
+- **Next.js 15**: Framework React với tính năng server-side rendering và API routes
+- **TypeScript**: Ngôn ngữ lập trình với kiểu dữ liệu tĩnh
+- **Tailwind CSS**: Framework CSS cho việc xây dựng UI
+- **React Query**: Thư viện quản lý trạng thái và caching dữ liệu từ API
+- **Zustand**: Thư viện quản lý state nhẹ nhưng mạnh mẽ
+- **SweetAlert2**: Thư viện hiển thị thông báo và dialog
+- **Swiper**: Thư viện slider/carousel hiện đại
+
+### Cấu trúc Thư mục
+
+- **/src/app**: Chứa tất cả các trang của ứng dụng theo cấu trúc App Router của Next.js 13+
+- **/src/components**: Chứa các components có thể tái sử dụng
+- **/src/hooks**: Chứa các custom hooks
+- **/src/lib**: Chứa các utility functions
+- **/src/context**: Chứa các React context providers
+- **/src/types**: Chứa các TypeScript type definitions
+- **/src/config**: Chứa các cấu hình cho ứng dụng (API URL,...)
+
+## Phân tích các Trang chính
+
+### 1. Trang Chủ (Homepage - `/src/app/page.tsx`)
+
+**Cơ chế hoạt động:**
+- Trang chủ hiển thị nhiều phần khác nhau như slider hero, sản phẩm nổi bật, sản phẩm mới, danh mục và blog
+- Sử dụng custom hook `useCategoriesAndBlogs` và `useProducts` để fetch dữ liệu từ API
+- Hiển thị popup chọn biến thể khi người dùng click vào "Thêm vào giỏ hàng" hoặc "Mua ngay"
+- Có chức năng quản lý sản phẩm yêu thích, phải đăng nhập để sử dụng
+- Sử dụng localStorage để lưu thông tin giỏ hàng cho người dùng chưa đăng nhập
+
+**Logic chính:**
+- Quản lý trạng thái sản phẩm yêu thích thông qua API gọi đến `/users/add-favorite` và `/users/remove-favorite`
+- Xử lý thông tin biến thể sản phẩm (variants) và chọn SKU phù hợp
+- Thêm sản phẩm vào giỏ hàng sử dụng localStorage hoặc API tùy thuộc vào trạng thái đăng nhập
+- Chức năng chọn mua ngay chuyển thẳng đến trang checkout
+
+### 2. Trang Đăng nhập (`/src/app/login/page.tsx`)
+
+**Cơ chế hoạt động:**
+- Form đăng nhập với email và mật khẩu
+- Tích hợp đăng nhập bằng Google (OAuth)
+- Validate form trước khi gửi request
+- Lưu thông tin người dùng và token vào Cookies sau khi đăng nhập thành công
+
+**Logic chính:**
+- Gửi request POST đến `/auth/login` với email và password
+- Lưu trữ accessToken, userData vào Cookies khi đăng nhập thành công
+- Chuyển hướng đến trang profile sau khi đăng nhập
+- Xử lý đăng nhập bằng Google bằng cách redirect người dùng đến URL OAuth được trả về từ API
+
+### 3. Trang Giỏ hàng (`/src/app/cart/page.tsx`)
+
+**Cơ chế hoạt động:**
+- Hiển thị tất cả sản phẩm trong giỏ hàng của người dùng
+- Cho phép thay đổi số lượng, xóa sản phẩm
+- Tính toán tổng tiền và áp dụng voucher giảm giá
+- Chọn tất cả hoặc từng sản phẩm để thanh toán
+
+**Logic chính:**
+- Fetch dữ liệu giỏ hàng từ API `/users/carts` khi người dùng đã đăng nhập
+- Quản lý số lượng sản phẩm thông qua API PUT `/carts/{product_id}`
+- Xóa sản phẩm bằng API DELETE `/carts/{product_id}`
+- Tính toán giá trị giỏ hàng dựa trên sản phẩm được chọn
+- Áp dụng voucher và tính giảm giá
+
+### 4. Trang Thanh toán (`/src/app/checkout/page.tsx`)
+
+**Cơ chế hoạt động:**
+- Hiển thị tổng quan về đơn hàng (sản phẩm, số lượng, giá)
+- Chọn địa chỉ giao hàng từ danh sách địa chỉ người dùng đã lưu
+- Chọn phương thức thanh toán (Tiền mặt hoặc Momo)
+- Áp dụng voucher giảm giá nếu có
+- Xác nhận đặt hàng và xử lý thanh toán
+
+**Logic chính:**
+- Fetch dữ liệu giỏ hàng từ API `/users/carts`
+- Fetch địa chỉ người dùng từ API `/users/addresses`
+- Xử lý việc chọn địa chỉ giao hàng mặc định
+- Kiểm tra và áp dụng voucher nếu thỏa mãn điều kiện
+- Gửi request tạo đơn hàng đến API khi xác nhận thanh toán
+- Xử lý các phương thức thanh toán khác nhau (tiền mặt, Momo)
+
+### 5. Trang Sản phẩm (`/src/app/product/[slug]/page.tsx`)
+
+**Cơ chế hoạt động:**
+- Hiển thị chi tiết sản phẩm, hình ảnh, giá, mô tả
+- Chọn biến thể sản phẩm (màu sắc, kích cỡ,...)
+- Thêm vào giỏ hàng hoặc mua ngay
+- Hiển thị sản phẩm liên quan
+- Hiển thị đánh giá và bình luận của khách hàng
+
+**Logic chính:**
+- Fetch dữ liệu sản phẩm chi tiết từ API `/products/{slug}`
+- Quản lý việc chọn biến thể và SKU tương ứng
+- Xử lý thêm vào giỏ hàng và mua ngay
+- Hiển thị sản phẩm liên quan dựa trên category
+- Hiển thị và cho phép thêm đánh giá sản phẩm
+
+### 6. Trang Hồ sơ người dùng (`/src/app/profile/page.tsx`)
+
+**Cơ chế hoạt động:**
+- Hiển thị và cho phép chỉnh sửa thông tin cá nhân
+- Quản lý địa chỉ giao hàng
+- Xem lịch sử đơn hàng
+- Quản lý sản phẩm yêu thích
+- Đổi mật khẩu và cài đặt tài khoản
+
+**Logic chính:**
+- Fetch thông tin người dùng từ API `/users/profile`
+- Cập nhật thông tin cá nhân thông qua API PUT `/users/profile`
+- Quản lý địa chỉ giao hàng (thêm, sửa, xóa)
+- Hiển thị danh sách đơn hàng và cho phép xem chi tiết
+- Đổi mật khẩu và quản lý cài đặt tài khoản
+
+### 7. Trang Search và Category
+
+**Cơ chế hoạt động:**
+- Hiển thị sản phẩm dựa trên từ khóa tìm kiếm hoặc danh mục
+- Lọc sản phẩm theo nhiều tiêu chí (giá, rating, các thuộc tính)
+- Sắp xếp kết quả theo các tiêu chí khác nhau
+- Phân trang kết quả
+
+**Logic chính:**
+- Fetch dữ liệu sản phẩm từ API `/products/search` hoặc `/categories/{slug}`
+- Xử lý các tham số tìm kiếm và filter
+- Quản lý phân trang và sắp xếp kết quả
+- Hiển thị sản phẩm dưới dạng grid hoặc list view
+
+## Phân tích các Hooks chính
+
+### 1. useProducts (`/src/hooks/useProducts.ts`)
+- Quản lý việc fetch dữ liệu sản phẩm từ API
+- Cung cấp các hàm tiện ích cho việc lọc và sắp xếp sản phẩm
+
+### 2. useUserProfile (`/src/hooks/useUserProfile.ts`)
+- Quản lý thông tin profile người dùng
+- Cung cấp các hàm để cập nhật thông tin, đổi mật khẩu
+
+### 3. useCategoriesAndBlogs (`/src/hooks/useCategoriesAndBlogs.ts`)
+- Fetch và quản lý dữ liệu về danh mục và bài viết blog
+- Cung cấp các phương thức để thao tác với dữ liệu này
+
+### 4. useCart (`/src/hooks/useCart.ts`)
+- Quản lý giỏ hàng cho người dùng
+- Xử lý logic thêm, xóa, cập nhật số lượng sản phẩm
+
+## Các Component Chính
+
+### 1. Layout Components
+- Header, Footer, Navigation
+- Sidebar, Breadcrumb
+
+### 2. Product Components
+- ProductCard: Hiển thị thông tin sản phẩm tóm tắt
+- ProductDetail: Hiển thị chi tiết sản phẩm
+- ProductList: Hiển thị danh sách sản phẩm
+
+### 3. Cart & Checkout Components
+- CartItem: Hiển thị sản phẩm trong giỏ hàng
+- Checkout Forms: Các form phục vụ quá trình thanh toán
+
+### 4. User Components
+- ProfileForm: Form chỉnh sửa thông tin cá nhân
+- AddressForm: Form quản lý địa chỉ
+- OrderHistory: Hiển thị lịch sử đơn hàng
+
+## Quản lý Authentication
+
+- Sử dụng JWT token lưu trong Cookies
+- Refresh token khi token hết hạn
+- Middleware để bảo vệ các routes cần xác thực
+- Chức năng đăng nhập, đăng ký, quên mật khẩu, đổi mật khẩu
+
+## Quản lý State
+
+- Zustand cho global state management
+- React Context cho các state cần được chia sẻ giữa nhiều components
+- Local state với useState cho các component đơn lẻ
+- LocalStorage để lưu trữ thông tin không nhạy cảm như giỏ hàng của người dùng chưa đăng nhập
+
+## Kết luận
+
+Dự án Zbeauty là một ứng dụng thương mại điện tử đầy đủ tính năng với giao diện hiện đại, được xây dựng trên nền tảng công nghệ mới nhất. Ứng dụng có đầy đủ các chức năng của một website thương mại điện tử từ xem sản phẩm, đăng nhập, quản lý giỏ hàng, thanh toán đến quản lý tài khoản cá nhân. Kiến trúc dự án được tổ chức tốt với việc tách biệt rõ ràng các thành phần UI, logic nghiệp vụ và quản lý state. 
