@@ -152,6 +152,8 @@
                         <x-form.input_text hidden id="typeFile" onchange="previewImage(this);" type="file"
                             accept="image/png, image/jpeg, image/jpg" name="image" />
                     </div>
+                </div>
+                <div class="card mb-3">
                     <div class="card mb-3">
                         <div class="card-header">
                             <h5 class="title">Thư viện ảnh</h5>
