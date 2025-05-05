@@ -26,6 +26,7 @@ interface Product {
   categories: Category[];
   skus: Sku[];
   feedbacks_avg_rating?: number;
+  comments?: { id: number }[];
 }
 
 const ProductListingPage = () => {
@@ -35,6 +36,7 @@ const ProductListingPage = () => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [sortOrder, setSortOrder] = useState<string>("");
+  const [ratingCounts, setRatingCounts] = useState<{ [key: string]: number }>({});
 
   // Fetch products from API
   useEffect(() => {
@@ -341,12 +343,12 @@ const ProductListingPage = () => {
                       className="w-4 h-4 rounded border-gray-300 accent-pink-500 focus:ring-pink-500"
                     />
                     <div className="flex items-center">
+                      <span className="text-yellow-400 mr-1">★</span>
                       <span className="text-sm mr-1">{rating}</span>
-                      <span className="text-yellow-400">★</span>
                       <span className="text-sm ml-1">& lên</span>
                     </div>
                   </div>
-                  <span className="text-sm text-gray-400">1345</span>
+                  <span className="text-sm text-gray-400">{products.filter(p => p.feedbacks_avg_rating && Math.floor(p.feedbacks_avg_rating) === rating).length}</span>
                 </div>
               ))}
             </div>
@@ -369,9 +371,21 @@ const ProductListingPage = () => {
           {expandedCategories.price && (
             <div className="px-2 mt-4">
               <ReactSlider
-                className="w-full h-2 bg-gray-200 rounded-full"
-                thumbClassName="w-4 h-4 bg-pink-500 rounded-full cursor-pointer"
-                trackClassName="bg-pink-500 h-2 rounded-full"
+                className="w-full h-2 bg-gray-200 rounded-full relative"
+                thumbClassName="w-5 h-5 bg-white rounded-full cursor-pointer focus:outline-none border-2 border-pink-500 shadow-md transform translate-y-[-50%] top-1/2"
+                trackClassName="h-2 rounded-full"
+                renderTrack={(props, state) => {
+                  const { key, ...restProps } = props;
+                  const backgroundColor =
+                    state.index === 1 ? "bg-pink-500" : "bg-white";
+                  return (
+                    <div
+                      key={key}
+                      {...restProps}
+                      className={`h-2 rounded-full ${backgroundColor}`}
+                    />
+                  );
+                }}
                 min={MIN_PRICE}
                 max={MAX_PRICE}
                 value={[
@@ -420,11 +434,41 @@ const ProductListingPage = () => {
     searchTerm: string;
     setSearchTerm: (value: string) => void;
   }) => {
-    return <div></div>;
+    return (
+      <div className="lg:hidden mb-4">
+        <button
+          className="w-full flex items-center justify-center gap-2 bg-pink-500 text-white py-2 px-4 rounded-lg hover:bg-pink-600 transition"
+          onClick={() => setIsMobileFilterOpen(true)}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 -ish24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="4" x2="4" y1="21" y2="14" />
+            <line x1="4" x2="4" y1="10" y2="3" />
+            <line x1="12" x2="12" y1="21" y2="12" />
+            <line x1="12" x2="12" y1="8" y2="3" />
+            <line x1="20" x2="20" y1="21" y2="16" />
+            <line x1="20" x2="20" y1="12" y2="3" />
+            <line x1="2" x2="6" y1="14" y2="14" />
+            <line x1="10" x2="14" y1="8" y2="8" />
+            <line x1="18" x2="22" y1="16" y2="16" />
+          </svg>
+          <span className="font-medium">Bộ lọc</span>
+        </button>
+      </div>
+    );
   };
 
   return (
-    <div className="bg-white py-4 mb-4 px-[100px] shadow-md">
+    <div className="bg-white py-4 mb-4 px-4 sm:px-[100px] shadow-md">
       <div className="flex items-center gap-4">
         <div className="min-h-screen bg-gray-50 w-full">
           <FilterSearchHeader
@@ -432,10 +476,50 @@ const ProductListingPage = () => {
             setSearchTerm={setSearchTerm}
           />
           <div className="container mx-auto px-4 py-4 sm:py-8">
+            {/* Mobile Filter Modal */}
+            {isMobileFilterOpen && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden">
+                <div className="absolute top-0 left-0 w-3/4 bg-white h-full p-4 overflow-y-auto">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold">Bộ lọc</h2>
+                    <button
+                      className="text-gray-600"
+                      onClick={() => setIsMobileFilterOpen(false)}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-6 h-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <Sidebar />
+                  <button
+                    className="w-full bg-pink-500 text-white py-2 rounded-lg mt-4"
+                    onClick={() => setIsMobileFilterOpen(false)}
+                  >
+                    Áp dụng
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Search and Filter Bar */}
             <div className="w-full mb-6 border-b border-gray-300 pb-4">
-              <div className="flex items-center gap-4">
-                <button className="flex items-center gap-2 border border-pink-500 text-pink-500 py-2 px-4 rounded-lg hover:bg-pink-100 transition">
+              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+                <button
+                  className="lg:hidden flex items-center gap-2 border border-pink-500 text-pink-500 py-2 px-4 rounded-lg hover:bg-pink-100 transition w-full sm:w-auto"
+                  onClick={() => setIsMobileFilterOpen(true)}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -462,7 +546,7 @@ const ProductListingPage = () => {
                     3
                   </span>
                 </button>
-                <div className="flex-grow relative">
+                <div className="flex-grow relative w-full">
                   <input
                     type="text"
                     value={searchTerm}
@@ -473,7 +557,7 @@ const ProductListingPage = () => {
                   <Search className="absolute right-3 top-3 text-gray-400 w-5 h-5" />
                 </div>
                 <select
-                  className="border border-gray-300 px-2 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="border border-gray-300 px-2 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 w-full sm:w-auto"
                   onChange={(e) => setSortOrder(e.target.value)}
                   value={sortOrder}
                 >
@@ -489,7 +573,7 @@ const ProductListingPage = () => {
               <div className="w-1/4 hidden lg:block">
                 <Sidebar />
               </div>
-              <div className="w-3/4">
+              <div className="w-full lg:w-3/4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {displayedProducts.length > 0 ? (
                     displayedProducts.map((item) => (
@@ -547,7 +631,20 @@ const ProductListingPage = () => {
                                 : "0"}
                             </span>
                             <button className="bg-pink-600 text-white py-2 px-4 rounded text-sm hover:bg-pink-700">
-                              Mua Ngay
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="w-5 h-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                                />
+                              </svg>
                             </button>
                           </div>
                         </div>
@@ -572,11 +669,10 @@ const ProductListingPage = () => {
                       (page) => (
                         <button
                           key={page}
-                          className={`px-3 py-1 rounded-lg ${
-                            page === currentPage
-                              ? "bg-pink-600 text-white"
-                              : "text-gray-500 hover:bg-gray-50"
-                          }`}
+                          className={`px-3 py-1 rounded-lg ${page === currentPage
+                            ? "bg-pink-600 text-white"
+                            : "text-gray-500 hover:bg-gray-50"
+                            }`}
                           onClick={() => handlePageChange(page)}
                         >
                           {page}
