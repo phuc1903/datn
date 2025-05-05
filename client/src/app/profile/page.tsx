@@ -434,19 +434,19 @@ const Vouchers = () => {
                     <span className="font-medium text-pink-600">
                       {voucher.type === "percent"
                         ? `${voucher.discount_value}%`
-                        : `${voucher.discount_value.toLocaleString()}đ`}
+                        : `${voucher.discount_value?.toLocaleString() || 0}đ`}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Tối đa:</span>
                     <span className="font-medium">
-                      {voucher.max_discount_value.toLocaleString()}đ
+                      {voucher.max_discount_value?.toLocaleString() || 0}đ
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Đơn tối thiểu:</span>
                     <span className="font-medium">
-                      {voucher.min_order_value.toLocaleString()}đ
+                      {voucher.min_order_value?.toLocaleString() || 0}đ
                     </span>
                   </div>
                   <div className="flex justify-between">
