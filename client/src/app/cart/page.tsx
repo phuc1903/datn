@@ -141,6 +141,8 @@ export default function CartPage() {
           item.sku.product_id === product_id ? { ...item, quantity } : item
         )
       );
+      // Dispatch custom event to update cart count
+      window.dispatchEvent(new Event('cartUpdated'));
     } catch (error) {
       console.error("Lỗi khi cập nhật số lượng sản phẩm:", error);
     }
@@ -160,6 +162,8 @@ export default function CartPage() {
       });
 
       setCart((prevCart) => prevCart.filter((item) => item.sku.product_id !== product_id));
+      // Dispatch custom event to update cart count
+      window.dispatchEvent(new Event('cartUpdated'));
     } catch (error) {
       console.error("Lỗi khi xóa sản phẩm:", error);
     }
@@ -240,9 +244,9 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 py-4">
-      <div className="max-w-7xl mx-auto px-4 flex gap-4">
+      <div className="max-w-7xl mx-auto px-4 flex flex-col lg:flex-row gap-4">
         {/* Left: Product List */}
-        <div className="w-2/3 bg-white rounded-lg shadow">
+        <div className="w-full lg:w-2/3 bg-white rounded-lg shadow">
           <div className="p-4 border-b">
             <span className="text-lg font-medium text-gray-900">
               Giỏ Hàng ({totalItems})
@@ -253,7 +257,7 @@ export default function CartPage() {
           ) : cart.length > 0 ? (
             <div className="divide-y divide-gray-200">
               {cart.map((item) => (
-                <div key={item.id} className="p-4 flex items-center gap-4">
+                <div key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <div className="w-16 h-16 flex-shrink-0">
                     <Image
                       src={item.sku.image_url}
@@ -263,7 +267,7 @@ export default function CartPage() {
                       className="object-cover rounded-md"
                     />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 w-full">
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="flex items-center">
@@ -284,7 +288,7 @@ export default function CartPage() {
                         <X className="w-5 h-5" />
                       </button>
                     </div>
-                    <div className="mt-2 flex justify-between items-center">
+                    <div className="mt-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                       <div className="flex items-center border rounded-lg">
                         <button
                           className="p-2 hover:bg-gray-50 text-gray-600"
@@ -314,7 +318,7 @@ export default function CartPage() {
         </div>
 
         {/* Right: Products, Voucher, and Summary */}
-        <div className="w-1/3 space-y-4">
+        <div className="w-full lg:w-1/3 space-y-4">
           {/* Products */}
           <div className="bg-white rounded-lg shadow p-4">
             <h2 className="text-lg font-medium text-gray-900 mb-4">Sản phẩm</h2>
@@ -331,14 +335,14 @@ export default function CartPage() {
                         className="object-cover rounded-md"
                       />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-sm font-medium text-gray-900">{item.sku.product.name}</h3>
-                      <div className="text-xs text-gray-600">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-medium text-gray-900 truncate">{item.sku.product.name}</h3>
+                      <div className="text-xs text-gray-600 truncate">
                         {item.sku.variant_values.map((v) => v.value).join(", ") || "Không có biến thể"}
                       </div>
                       <div className="text-sm text-gray-900">x{item.quantity}</div>
                     </div>
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-gray-900 whitespace-nowrap">
                       ₫{(item.sku.price * item.quantity).toLocaleString()}
                     </div>
                   </div>
@@ -360,15 +364,15 @@ export default function CartPage() {
                 className="w-full p-2 border rounded-md text-left flex justify-between items-center"
                 onClick={() => setShowVoucherModal(true)}
               >
-                <span>{selectedVoucher ? selectedVoucher.title : "Chọn hoặc nhập mã"}</span>
-                <ChevronRight className="w-5 h-5 text-gray-500" />
+                <span className="truncate">{selectedVoucher ? selectedVoucher.title : "Chọn hoặc nhập mã"}</span>
+                <ChevronRight className="w-5 h-5 text-gray-500 flex-shrink-0" />
               </button>
               {showVoucherModal && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                  <div className="bg-white rounded-md shadow-lg w-full max-w-md">
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+                  <div className="bg-white rounded-md shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
                     <div className="p-4">
-                      <div className="flex mb-4">
-                        <button className="flex-1 py-2 text-center border-b-2 border-blue-500 text-blue-500">
+                      <div className="flex flex-col sm:flex-row mb-4">
+                        <button className="flex-1 py-2 text-center border-b-2 sm:border-b-0 sm:border-r-2 border-blue-500 text-blue-500">
                           Mã Miễn Phí Vận Chuyển
                         </button>
                         <button className="flex-1 py-2 text-center text-gray-500">
@@ -382,7 +386,7 @@ export default function CartPage() {
                         {uniqueVouchers.map((voucher) => (
                           <div
                             key={voucher.id}
-                            className="border rounded-md p-4 flex items-center justify-between"
+                            className="border rounded-md p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2"
                           >
                             <div className="flex items-center">
                               <div className="bg-teal-100 p-2 rounded-md mr-4">
@@ -402,19 +406,14 @@ export default function CartPage() {
                             </div>
                             <button
                               onClick={() => handleVoucherChange(voucher)}
-                              className="text-blue-500 hover:text-blue-700"
+                              className="text-blue-500 hover:text-blue-700 w-full sm:w-auto text-center"
                             >
                               Áp dụng
                             </button>
                           </div>
                         ))}
-                        {subtotal < 50000 && (
-                          <div className="text-orange-500 text-sm mt-2">
-                            
-                          </div>
-                        )}
                       </div>
-                      <div className="flex justify-between mt-4">
+                      <div className="flex flex-col sm:flex-row justify-between gap-2 mt-4">
                         <button
                           onClick={() => setShowVoucherModal(false)}
                           className="py-2 px-4 border rounded-md text-gray-500"
@@ -456,7 +455,7 @@ export default function CartPage() {
               href="#"
               className={`block mt-4 py-3 px-6 rounded-lg font-medium text-white text-center ${
                 cart.length > 0 && !loading
-                  ? "bg-red-500 hover:bg-red-600"
+                  ? "bg-pink-600 hover:bg-red-500"
                   : "bg-gray-400 cursor-not-allowed"
               }`}
               onClick={handleCheckout}

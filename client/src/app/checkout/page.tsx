@@ -426,7 +426,7 @@ export default function CheckoutOrder() {
           throw new Error("Không nhận được URL thanh toán");
         }
       } else {
-        await fetch(`${API_BASE_URL}/carts/clear`, {
+        await fetch(`${API_BASE_URL}/carts`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
