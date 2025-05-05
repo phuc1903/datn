@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Package, Truck, CheckCircle, XCircle,EyeIcon,XIcon } from "lucide-react";
+import { Package, Truck, CheckCircle, XCircle, EyeIcon, XIcon } from "lucide-react";
 import Swal from "sweetalert2";
 import Cookies from "js-cookie";
 import Link from "next/link";
@@ -14,20 +14,13 @@ interface Order {
   status: string;
   date: string;
   totalAmount: number;
-  items: {
-    product: {
-      name: string;
-      price: number;
-    };
-    quantity: number;
-  }[];
 }
 
 const OrderListPage = () => {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("Tất cả");
 
   const statusMap: { [key: string]: string } = {
     waiting: "Chờ thanh toán",
@@ -46,54 +39,29 @@ const OrderListPage = () => {
   };
 
   const statusFilters = [
-    { label: "Tất cả", value: "all" },
-    { label: "Chờ thanh toán", value: "waiting" },
-    { label: "Cửa hàng đang xử lý", value: "pending" },
-    { label: "Đã giao hàng", value: "shipped" },
-    { label: "Giao hàng thành công", value: "success" },
-    { label: "Đã hủy", value: "cancel" },
+    { label: "Tất cả", value: "Tất cả" },
+    { label: "Chờ thanh toán", value: "Chờ thanh toán" },
+    { label: "Cửa hàng đang xử lý", value: "Cửa hàng đang xử lý" },
+    { label: "Đã giao hàng", value: "Đã giao hàng" },
+    { label: "Giao hàng thành công", value: "Giao hàng thành công" },
+    { label: "Đã hủy", value: "Đã hủy" },
   ];
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "Chưa có ngày";
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "Ngày không hợp lệ";
-      return date.toLocaleDateString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch (error) {
-      return "Ngày không hợp lệ";
-    }
-  };
-
-  const formatPrice = (price: number | string) => {
-    if (!price) return "0 ₫";
-    const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
-    if (isNaN(numericPrice)) return "0 ₫";
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(numericPrice);
-  };
 
   useEffect(() => {
     const fetchOrders = async () => {
-      const userToken = Cookies.get("accessToken");
-      const userData = Cookies.get("userData");
-
-      if (!userToken || !userData) {
-        router.push("/login");
-        return;
-      }
-
       try {
-        const parsedUserData = JSON.parse(userData);
-        const response = await fetch(`${API_BASE_URL}/users/orders`, {
+        const userToken = Cookies.get("accessToken");
+        const userEmail = Cookies.get("userEmail");
+
+        if (!userToken || !userEmail) {
+          router.push("/login");
+          setIsLoading(false);
+          return;
+        }
+
+        const url = `${API_BASE_URL}/users/orders`; // Updated endpoint
+        const response = await fetch(url, {
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${userToken}`,
@@ -105,14 +73,26 @@ const OrderListPage = () => {
         }
 
         const result = await response.json();
-        if (result.data) {
-          const formattedOrders = result.data.map((order: any) => ({
-            ...order,
-            date: order.created_at || order.date,
-            totalAmount: order.total_amount || order.totalAmount
-          }));
-          setOrders(formattedOrders);
+        if (result.status !== "success") {
+          throw new Error(result.message || "Không thể lấy danh sách đơn hàng");
         }
+
+        const ordersData = result.data;
+        if (!Array.isArray(ordersData)) {
+          throw new Error("Dữ liệu đơn hàng không hợp lệ");
+        }
+
+        const fetchedOrders: Order[] = ordersData.map((order: any) => ({
+          id: order.id?.toString() || "",
+          orderNumber: order.order_number || `OD-${order.id}`,
+          status: statusMap[order.status?.toLowerCase()] || "Không xác định",
+          date: order.created_at
+            ? new Date(order.created_at).toISOString().split("T")[0]
+            : new Date().toISOString().split("T")[0],
+          totalAmount: order.total_amount || 0,
+        }));
+
+        setOrders(fetchedOrders);
       } catch (error: any) {
         Swal.fire({
           icon: "error",
@@ -205,9 +185,15 @@ const OrderListPage = () => {
   };
 
   const filteredOrders =
-    selectedStatus === "all"
+    selectedStatus === "Tất cả"
       ? orders
       : orders.filter((order) => order.status === selectedStatus);
+
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
 
   if (isLoading) {
     return <div className="text-center py-8">Đang tải danh sách đơn hàng...</div>;
@@ -230,7 +216,7 @@ const OrderListPage = () => {
                     : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
                 }`}
               >
-                {filter.value !== "all" && statusIcons[filter.value]}
+                {filter.value !== "Tất cả" && statusIcons[filter.value]}
                 {filter.label}
               </button>
             ))}
@@ -251,51 +237,53 @@ const OrderListPage = () => {
                         Mã đơn hàng: {order.orderNumber}
                       </span>
                       <div className="text-sm text-gray-600 flex items-center gap-1">
-                        {statusIcons[order.status]}
-                        <span>{statusMap[order.status]}</span>
+                        {statusIcons[order.status] || (
+                          <Package className="w-5 h-5 text-gray-500" />
+                        )}
+                        <span>{order.status}</span>
                       </div>
                       <span className="text-sm text-gray-500">
-                        Ngày đặt: {formatDate(order.date)}
+                        Ngày đặt: {order.date}
                       </span>
                     </div>
                   </div>
                   <div className="text-right flex flex-col items-end gap-2">
-  <span className="font-medium block">
-    {formatPrice(order.totalAmount)}
-  </span>
-  <div className="relative group">
-    <Link
-      href={`/order/${order.id}`}
-      className="text-pink-600 hover:text-pink-800"
-    >
-      <EyeIcon className="w-5 h-5" />
-    </Link>
-    <span className="absolute right-full mr-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-      Xem sản phẩm
-    </span>
-  </div>
-  {order.status === "Cửa hàng đang xử lý" && (
-    <div className="relative group">
-      <button
-        onClick={() => handleCancelOrder(order.id)}
-        className="text-red-600 hover:text-red-800"
-      >
-        <XCircle className="w-5 h-5 text-red-500" />
-      </button>
-      <span className="absolute right-full mr-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-        Hủy đơn
-      </span>
-    </div>
-  )}
-</div>
+                    <span className="font-medium block">
+                      {formatPrice(order.totalAmount)}
+                    </span>
+                    <div className="relative group">
+                      <Link
+                        href={`/order/${order.id}`}
+                        className="text-pink-600 hover:text-pink-800"
+                      >
+                        <EyeIcon className="w-5 h-5" />
+                      </Link>
+                      <span className="absolute right-full mr-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        Xem sản phẩm
+                      </span>
+                    </div>
+                    {order.status === "Cửa hàng đang xử lý" && (
+                      <div className="relative group">
+                        <button
+                          onClick={() => handleCancelOrder(order.id)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <XCircle className="w-5 h-5 text-red-500" />
+                        </button>
+                        <span className="absolute right-full mr-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          Hủy đơn
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
             <p className="text-gray-500">
-              {selectedStatus === "all"
+              {selectedStatus === "Tất cả"
                 ? "Bạn chưa có đơn hàng nào."
-                : `Không có đơn hàng nào ở trạng thái "${statusMap[selectedStatus]}".`}
+                : `Không có đơn hàng nào ở trạng thái "${selectedStatus}".`}
             </p>
           )}
         </div>
