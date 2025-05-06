@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle, Star, PenSquare, Check } from "lucide-react";
 import Swal from "sweetalert2";
@@ -26,7 +26,7 @@ interface Order {
   date: string;
   totalAmount: number;
   isReviewed: boolean;
-  isCombo?: boolean; // Thêm thuộc tính để nhận diện combo
+  isCombo?: boolean;
   items: OrderItem[];
   reviews?: Review[];
 }
@@ -50,7 +50,7 @@ interface Review {
   };
 }
 
-const FeedbackContent = () => {
+const FeedbackPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const refresh = searchParams.get("refresh") === "true";
@@ -96,15 +96,14 @@ const FeedbackContent = () => {
   const fetchData = async () => {
     try {
       const userToken = Cookies.get("accessToken");
-      const userData = Cookies.get("userData");
+      const userEmail = Cookies.get("userEmail");
 
-      if (!userToken || !userData) {
+      if (!userToken || !userEmail) {
         router.push("/login");
         setIsLoading(false);
         return;
       }
 
-      const parsedUserData = JSON.parse(userData);
       const ordersUrl = `${API_BASE_URL}/users/orders`;
       const ordersResponse = await fetchWithRetry(ordersUrl, {
         method: "GET",
@@ -138,7 +137,7 @@ const FeedbackContent = () => {
 
       const reviewsResult = await reviewsResponse.json();
       const reviewsData: Review[] = reviewsResult.data?.product_feedbacks || [];
-      const userId = reviewsResult.data?.id?.toString(); // Lấy user_id từ API /users
+      const userId = reviewsResult.data?.id?.toString();
       if (!userId) {
         throw new Error("Không thể lấy user_id từ API");
       }
@@ -160,7 +159,6 @@ const FeedbackContent = () => {
             },
           }));
 
-          // Kiểm tra xem đơn hàng đã có đánh giá nào từ user_id hiện tại hay chưa
           const isReviewed = orderReviews.some(
             (review: Review) => review.user_id === userId && review.status === "active"
           );
@@ -174,7 +172,7 @@ const FeedbackContent = () => {
               : new Date().toISOString().split("T")[0],
             totalAmount: order.total_amount || 0,
             isReviewed,
-            isCombo: order.isCombo || false, // Giả định API trả về isCombo
+            isCombo: order.isCombo || false,
             items,
             reviews: orderReviews,
           };
@@ -228,7 +226,7 @@ const FeedbackContent = () => {
         <div className="mb-6">
           <div className="flex border-b">
             <button
-              className={`px-4 py-2 font-medium ${
+              className={`px-4imetricTypeface py-2 font-medium ${
                 activeTab === "pending"
                   ? "border-b-2 border-pink-500 text-pink-500"
                   : "text-gray-500"
@@ -378,14 +376,6 @@ const FeedbackContent = () => {
         </div>
       </div>
     </div>
-  );
-};
-
-const FeedbackPage = () => {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <FeedbackContent />
-    </Suspense>
   );
 };
 

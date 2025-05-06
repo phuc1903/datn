@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCartIcon, HeartIcon } from "lucide-react";
+import { ShoppingCartIcon, HeartIcon, ArrowRightIcon } from "lucide-react";
 import { Product } from "@/types/product";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
@@ -81,59 +81,9 @@ const ProductCard = ({ product, onAction, onToggleFavorite, userFavorites }: Pro
     }
   };
 
-  const handleBuyNow = async (e: React.MouseEvent) => {
+  const handleViewDetail = (e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-    
-    if (isOutOfStock) {
-      Swal.fire({
-        icon: "error",
-        title: "Sản phẩm đã hết hàng!",
-        text: "Vui lòng chọn sản phẩm khác.",
-      });
-      return;
-    }
-    
-    if (!token) {
-      Swal.fire({
-        icon: "warning",
-        title: "Bạn cần đăng nhập!",
-        text: "Vui lòng đăng nhập để mua hàng.",
-        confirmButtonText: "Đăng nhập",
-      }).then(() => router.push("/login"));
-      return;
-    }
-
-    try {
-      const cartItem = {
-        product_id: parseInt(product.id),
-        sku_id: product.skus?.[0]?.id,
-        quantity: 1
-      };
-
-      const response = await fetch(`${API_BASE_URL}/carts`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(cartItem),
-      });
-
-      if (!response.ok) {
-        throw new Error("Lỗi khi thêm vào giỏ hàng");
-      }
-
-      router.push("/checkout");
-    } catch (error) {
-      console.error("Lỗi khi mua hàng:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Lỗi!",
-        text: "Không thể mua hàng. Vui lòng thử lại sau.",
-      });
-    }
+    router.push(`/product/${product.id}`);
   };
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
@@ -187,15 +137,11 @@ const ProductCard = ({ product, onAction, onToggleFavorite, userFavorites }: Pro
       </div>
       <div className="flex items-center space-x-2">
         <button
-          onClick={handleBuyNow}
-          disabled={isOutOfStock}
-          className={`px-6 py-2 rounded ${
-            isOutOfStock 
-              ? "bg-gray-400 text-white cursor-not-allowed" 
-              : "bg-gray-900 text-white hover:bg-gray-800"
-          }`}
+          onClick={handleViewDetail}
+          className="flex items-center px-4 py-2 rounded bg-gray-900 text-white hover:bg-gray-800"
         >
-          {isOutOfStock ? "Hết hàng" : "Mua"}
+          <span>Xem thêm</span>
+          <ArrowRightIcon className="w-4 h-4 ml-2" />
         </button>
         <button
           onClick={handleAddToCart}

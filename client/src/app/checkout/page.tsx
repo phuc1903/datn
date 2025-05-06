@@ -167,6 +167,53 @@ export default function CheckoutOrder() {
       try {
         setIsLoading(true);
 
+        // Kiểm tra xem có dữ liệu buyNow trong localStorage không
+        const buyNowData = localStorage.getItem("buyNow");
+        
+        if (buyNowData) {
+          const buyNowItems = JSON.parse(buyNowData);
+          const subtotal = buyNowItems.reduce(
+            (sum: number, item: any) => sum + item.price * item.quantity,
+            0
+          );
+
+          // Load selected voucher from localStorage
+          const savedVoucher = localStorage.getItem("selectedVoucher");
+          let voucher: Voucher | null = null;
+          if (savedVoucher) {
+            voucher = JSON.parse(savedVoucher);
+            setSelectedVoucher(voucher);
+          }
+
+          const discount = voucher ? calculateDiscount(subtotal, voucher) : 0;
+          const total = subtotal - discount;
+
+          setCartSummary({ 
+            items: buyNowItems.map((item: any) => ({
+              sku: {
+                id: item.sku_id,
+                price: item.price,
+                image_url: item.image_url,
+                product: {
+                  name: item.name,
+                  id: item.product_id || ""
+                },
+                variant_values: item.variants || []
+              },
+              sku_id: item.sku_id,
+              quantity: item.quantity
+            })), 
+            subtotal, 
+            total 
+          });
+          setAppliedDiscount(discount);
+          setOrderId(`OD-${Date.now()}`);
+          setOrderDate(new Date().toISOString().split("T")[0]);
+          
+          setIsLoading(false);
+          return; // Không cần tiếp tục lấy dữ liệu từ API nếu đã có buyNow
+        }
+
         const cartResponse = await fetch(`${API_BASE_URL}/users/carts`, {
           headers: {
             "Content-Type": "application/json",
@@ -316,6 +363,9 @@ export default function CheckoutOrder() {
 
     const apiPaymentMethod = paymentMethod === "Tiền mặt" ? "cod" : "bank";
 
+    // Kiểm tra xem đơn hàng có được tạo từ buyNow không
+    const isBuyNow = localStorage.getItem("buyNow") !== null;
+
     const orderData = {
       user_email: parsedUserData.email,
       orders: orders,
@@ -393,19 +443,42 @@ export default function CheckoutOrder() {
         const result = await response.json();
         const paymentUrl = result.data?.payment_url;
         if (paymentUrl) {
+          // Xóa buyNow data nếu tồn tại
+          if (isBuyNow) {
+            localStorage.removeItem("buyNow");
+          } else {
+            // Xóa giỏ hàng nếu không phải buyNow
+            for (const item of cartSummary.items) {
+              await fetch(`${API_BASE_URL}/carts/${item.sku.product.id}`, {
+                method: "DELETE",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${userToken}`,
+                },
+              });
+            }
+          }
+          // Clear selected voucher after successful order
+          localStorage.removeItem("selectedVoucher");
           window.location.href = paymentUrl;
         } else {
           throw new Error("No payment URL received");
         }
       } else {
-        for (const item of cartSummary.items) {
-          await fetch(`${API_BASE_URL}/carts/${item.sku.product.id}`, {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${userToken}`,
-            },
-          });
+        // Xóa buyNow data nếu tồn tại
+        if (isBuyNow) {
+          localStorage.removeItem("buyNow");
+        } else {
+          // Xóa giỏ hàng nếu không phải buyNow
+          for (const item of cartSummary.items) {
+            await fetch(`${API_BASE_URL}/carts/${item.sku.product.id}`, {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${userToken}`,
+              },
+            });
+          }
         }
 
         // Clear selected voucher after successful order

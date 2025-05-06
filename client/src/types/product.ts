@@ -10,10 +10,17 @@ export interface Sku {
   quantity: number;
   image_url?: string;
   variant_values: Array<{
+    id: number;
+    value: string;
+    variant_id: number;
+    pivot?: {
+      sku_id: string | number;
+      variant_value_id: number;
+    };
     variant: {
+      id: number;
       name: string;
     };
-    value: string;
   }>;
 }
 
@@ -44,6 +51,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   variants: Variant[];
+  product_id: number;
 }
 
 export interface ComboProduct extends Product {

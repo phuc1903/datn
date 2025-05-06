@@ -355,13 +355,31 @@ export default function ProductDetail() {
         console.warn("No product ID provided");
         return;
       }
+      
+      // Kiểm tra ID có phải số không
+      let productId: number;
+      try {
+        productId = parseInt(id as string);
+        if (isNaN(productId)) {
+          throw new Error("ID không hợp lệ");
+        }
+      } catch (error) {
+        console.error("ID sản phẩm không hợp lệ:", id);
+        Swal.fire({
+          icon: "error",
+          title: "Lỗi!",
+          text: "ID sản phẩm không hợp lệ",
+        });
+        router.push("/");
+        return;
+      }
   
       setLoading(true);
       let currentToken = token;
   
       try {
         // Lấy thông tin sản phẩm
-        const productResponse = await fetch(`${API_BASE_URL}/products/detail/${id}`, {
+        const productResponse = await fetch(`${API_BASE_URL}/products/detail/${productId}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -375,7 +393,7 @@ export default function ProductDetail() {
             const newToken = await refreshToken();
             if (newToken) {
               currentToken = newToken;
-              const retryResponse = await fetch(`${API_BASE_URL}/products/detail/${id}`, {
+              const retryResponse = await fetch(`${API_BASE_URL}/products/detail/${productId}`, {
                 method: "GET",
                 headers: {
                   "Content-Type": "application/json",
@@ -425,7 +443,7 @@ export default function ProductDetail() {
                   throw new Error(`Lỗi lấy danh sách yêu thích sau khi làm mới token: ${retryWishlistResponse.status}`);
                 const retryWishlistData = await retryWishlistResponse.json();
                 const isInWishlist = retryWishlistData.data?.favorites?.some(
-                  (item: { id: number }) => item.id === parseInt(id as string)
+                  (item: { id: number }) => item.id === productId
                 );
                 setIsWishlisted(isInWishlist);
               } else {
@@ -447,7 +465,7 @@ export default function ProductDetail() {
           } else {
             const wishlistData = await wishlistResponse.json();
             const isInWishlist = wishlistData.data?.favorites?.some(
-              (item: { id: number }) => item.id === parseInt(id as string)
+              (item: { id: number }) => item.id === productId
             );
             setIsWishlisted(isInWishlist);
           }
@@ -455,7 +473,7 @@ export default function ProductDetail() {
   
         // Lấy đánh giá sản phẩm (tách biệt để không ảnh hưởng đến việc hiển thị sản phẩm)
         try {
-          const reviewsResponse = await fetch(`${API_BASE_URL}/products/feedback-product/${id}`, {
+          const reviewsResponse = await fetch(`${API_BASE_URL}/products/feedback-product/${productId}`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
@@ -478,7 +496,7 @@ export default function ProductDetail() {
   
         // Lấy danh sách comment
         try {
-          const commentsResponse = await fetch(`${API_BASE_URL}/product_comments/getProductComment/${parseInt(id as string)}`, {
+          const commentsResponse = await fetch(`${API_BASE_URL}/product_comments/getProductComment/${productId}`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
@@ -529,13 +547,18 @@ export default function ProductDetail() {
     (variantName: string, value: string) => {
       const newSelectedVariants = { ...selectedVariants, [variantName]: value };
       setSelectedVariants(newSelectedVariants);
-      const matchedSku = product?.skus.find((sku: Sku) =>
-        sku.variant_values.every(
-          (variant) =>
-            newSelectedVariants[variant.variant.name] === variant.value ||
-            !newSelectedVariants[variant.variant.name]
-        )
-      );
+      
+      // Tìm SKU phù hợp với biến thể đã chọn
+      const matchedSku = product?.skus.find((sku: Sku) => {
+        // Kiểm tra xem sku này có chứa tất cả các giá trị biến thể đã chọn không
+        return Object.entries(newSelectedVariants).every(([name, selectedValue]) => {
+          // Tìm trong variant_values của sku xem có variant nào phù hợp không
+          return sku.variant_values.some(
+            (variant) => variant.variant?.name === name && variant.value === selectedValue
+          );
+        });
+      });
+      
       if (matchedSku) setSelectedSku(matchedSku);
       setQuantity(1);
     },
@@ -586,9 +609,26 @@ export default function ProductDetail() {
       return;
     }
 
+    // Parse ID thành số
+    let productId: number;
+    try {
+      productId = parseInt(id as string);
+      if (isNaN(productId)) {
+        throw new Error("ID không hợp lệ");
+      }
+    } catch (error) {
+      console.error("ID sản phẩm không hợp lệ:", id);
+      Swal.fire({
+        icon: "error",
+        title: "Lỗi!",
+        text: "ID sản phẩm không hợp lệ",
+      });
+      return;
+    }
+
     setCartLoading(true);
     let currentToken = token;
-    const cartItem = { product_id: parseInt(id as string), sku_id: selectedSku.id, quantity };
+    const cartItem = { product_id: productId, sku_id: selectedSku.id, quantity };
 
     try {
       const response = await fetch(`${API_BASE_URL}/carts`, {
@@ -670,6 +710,23 @@ export default function ProductDetail() {
     }
     if (!product || !id) return;
 
+    // Parse ID thành số
+    let productId: number;
+    try {
+      productId = parseInt(id as string);
+      if (isNaN(productId)) {
+        throw new Error("ID không hợp lệ");
+      }
+    } catch (error) {
+      console.error("ID sản phẩm không hợp lệ:", id);
+      Swal.fire({
+        icon: "error",
+        title: "Lỗi!",
+        text: "ID sản phẩm không hợp lệ",
+      });
+      return;
+    }
+
     setWishlistLoading(true);
     let currentToken = token;
     const url = isWishlisted ? `${API_BASE_URL}/users/remove-favorite` : `${API_BASE_URL}/users/add-favorite`;
@@ -682,7 +739,7 @@ export default function ProductDetail() {
           "Accept": "application/json",
           Authorization: `Bearer ${currentToken}`,
         },
-        body: JSON.stringify({ product_id: parseInt(id as string) }),
+        body: JSON.stringify({ product_id: productId }),
       });
 
       if (!response.ok) {
@@ -697,7 +754,7 @@ export default function ProductDetail() {
                 "Accept": "application/json",
                 Authorization: `Bearer ${newToken}`,
               },
-              body: JSON.stringify({ product_id: parseInt(id as string) }),
+              body: JSON.stringify({ product_id: productId }),
             });
             if (!retryResponse.ok)
               throw new Error(`Lỗi cập nhật danh sách yêu thích sau khi làm mới token: ${retryResponse.status}`);
@@ -955,18 +1012,33 @@ export default function ProductDetail() {
     }
   };
 
+  // Thêm hàm để lấy các tùy chọn biến thể từ sản phẩm
+  const getVariantOptions = useCallback((product: Product | null) => {
+    if (!product || !product.skus || product.skus.length === 0) return {};
+    
+    const options: Record<string, Set<string>> = {};
+    
+    product.skus.forEach((sku) => {
+      if (!sku.variant_values) return;
+      
+      sku.variant_values.forEach((variant) => {
+        const variantName = variant.variant?.name;
+        if (!variantName) return;
+        
+        if (!options[variantName]) {
+          options[variantName] = new Set();
+        }
+        options[variantName].add(variant.value);
+      });
+    });
+    
+    return options;
+  }, []);
+
   if (loading) return <p className="text-center p-5">Đang tải...</p>;
   if (!product) return <p className="text-center p-5">Không tìm thấy sản phẩm</p>;
 
   const getDisplayPrice = (sku: Sku) => (sku.promotion_price > 0 ? sku.promotion_price : sku.price);
-
-  const variantOptions: { [key: string]: Set<string> } = {};
-  product?.skus.forEach((sku: Sku) => {
-    sku.variant_values.forEach((variant) => {
-      if (!variantOptions[variant.variant.name]) variantOptions[variant.variant.name] = new Set();
-      variantOptions[variant.variant.name].add(variant.value);
-    });
-  });
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 relative">
@@ -1061,7 +1133,7 @@ export default function ProductDetail() {
                 )}
               </div>
 
-              {Object.entries(variantOptions).map(([variantName, values]) => (
+              {Object.entries(getVariantOptions(product)).map(([variantName, values]) => (
                 <div key={variantName}>
                   <h3 className="text-sm font-medium text-gray-900 mb-4">{variantName}:</h3>
                   <div className="grid grid-cols-3 gap-4">
@@ -1069,7 +1141,7 @@ export default function ProductDetail() {
                       const isAvailable = product.skus.some(
                         (sku: Sku) =>
                           sku.variant_values.some(
-                            (v) => v.value === value && v.variant.name === variantName
+                            (v) => v.value === value && v.variant?.name === variantName
                           ) && sku.quantity > 0
                       );
                       return (
@@ -1127,24 +1199,15 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 hidden md:grid">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-1 hidden md:grid">
                 <button
                   onClick={handleAddToCart}
                   disabled={cartLoading || isOutOfStock}
-                  className={`bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700 ${
+                  className={`bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700 text-lg font-semibold ${
                     (cartLoading || isOutOfStock) ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
                   {cartLoading ? "Đang thêm..." : isOutOfStock ? "Hết hàng" : "Thêm vào giỏ hàng"}
-                </button>
-                <button
-                  onClick={handleBuyNow}
-                  disabled={isOutOfStock}
-                  className={`bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 font-semibold ${
-                    isOutOfStock ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                >
-                  {isOutOfStock ? "Hết hàng" : "Mua ngay"}
                 </button>
               </div>
             </div>
@@ -1394,20 +1457,11 @@ export default function ProductDetail() {
           <button
             onClick={handleAddToCart}
             disabled={cartLoading || isOutOfStock}
-            className={`bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 flex-1 mx-2 ${
+            className={`bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700 flex-1 font-semibold ${
               (cartLoading || isOutOfStock) ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
             {cartLoading ? "Đang thêm..." : isOutOfStock ? "Hết hàng" : "Thêm vào giỏ"}
-          </button>
-          <button
-            onClick={handleBuyNow}
-            disabled={isOutOfStock}
-            className={`bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 flex-1 font-semibold ${
-              isOutOfStock ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-          >
-            {isOutOfStock ? "Hết hàng" : "Mua ngay"}
           </button>
         </div>
       </div>

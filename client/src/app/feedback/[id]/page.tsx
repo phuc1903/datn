@@ -132,7 +132,7 @@ const ReviewPage = () => {
 
       const feedbackData = await feedbackResponse.json();
       if (feedbackResponse.ok && feedbackData.status === "success") {
-        const hasFeedback = feedbackData.data.some(
+        const hasFeedback = Array.isArray(feedbackData.data) && feedbackData.data.some(
           (feedback: any) =>
             feedback.order_id.toString() === orderId &&
             feedback.user_id.toString() === userId
@@ -140,8 +140,6 @@ const ReviewPage = () => {
         if (hasFeedback) {
           return true; // Đơn hàng đã được đánh giá bởi người dùng
         }
-      } else if (feedbackData.status === "error" && feedbackData.code !== 404) {
-        throw new Error(feedbackData.message || "Không thể kiểm tra trạng thái đánh giá");
       }
 
       // Kiểm tra thêm qua endpoint /product_feedbacks/getAllOrderItem
@@ -153,18 +151,12 @@ const ReviewPage = () => {
         },
       });
 
-      if (!orderItemResponse.ok) {
-        const errorText = await orderItemResponse.text();
-        console.error("Lỗi khi kiểm tra trạng thái đánh giá:", errorText);
-        throw new Error(`Không thể kiểm tra trạng thái đánh giá: ${orderItemResponse.status}`);
-      }
-
       const orderItemData = await orderItemResponse.json();
       if (!orderItemResponse.ok || orderItemData.status !== "success") {
         throw new Error(orderItemData.message || "Không thể kiểm tra trạng thái đơn hàng");
       }
 
-      const orderItems = orderItemData.data;
+      const orderItems = Array.isArray(orderItemData.data) ? orderItemData.data : [];
       return orderItems.some(
         (item: any) =>
           item.order_id.toString() === orderId &&
@@ -184,37 +176,18 @@ const ReviewPage = () => {
       }
 
       const userToken = Cookies.get("accessToken");
-      const userData = Cookies.get("userData");
+      const userEmail = Cookies.get("userEmail");
 
-      console.log("Token:", userToken ? "Có token" : "Không có token");
-      console.log("userData:", userData ? "Có userData" : "Không có userData");
-
-      if (!userToken || !userData) {
-        console.log("Không tìm thấy token hoặc userData, chuyển hướng về trang login");
-        router.push("/login");
-        return;
+      if (!userToken || !userEmail) {
+        throw new Error("Vui lòng đăng nhập lại");
       }
 
-      try {
-        const parsedUserData = JSON.parse(userData);
-        console.log("parsedUserData:", parsedUserData ? "Parse thành công" : "Parse thất bại");
-        
-        // Tiếp tục xử lý với parsedUserData
-        const isReviewed = await checkOrderReviewedStatus(id as string, userToken);
-        if (isReviewed) {
-          throw new Error("Đơn hàng đã được đánh giá!");
-        }
-      } catch (error) {
-        console.error("Lỗi khi parse userData:", error);
-        Cookies.remove("accessToken");
-        Cookies.remove("userData");
-        router.push("/login");
-        return;
+      const isReviewed = await checkOrderReviewedStatus(id as string, userToken);
+      if (isReviewed) {
+        throw new Error("Đơn hàng đã được đánh giá!");
       }
 
-      // Lấy thông tin đơn hàng
       const ordersUrl = `${API_BASE_URL}/users/orders`;
-      console.log("Đang fetch orders từ URL:", ordersUrl);
       const ordersResponse = await fetchWithRetry(ordersUrl, {
         method: "GET",
         headers: {
@@ -222,19 +195,6 @@ const ReviewPage = () => {
           Authorization: `Bearer ${userToken}`,
         },
       });
-
-      if (!ordersResponse.ok) {
-        if (ordersResponse.status === 401) {
-          console.log("Token không hợp lệ (401), chuyển hướng về trang login");
-          Cookies.remove("accessToken");
-          Cookies.remove("userData");
-          router.push("/login");
-          return;
-        }
-        const errorText = await ordersResponse.text();
-        console.error("Lỗi khi lấy danh sách đơn hàng:", errorText);
-        throw new Error(`Không thể lấy danh sách đơn hàng: ${ordersResponse.status}`);
-      }
 
       const ordersData = await ordersResponse.json();
       if (ordersData.status !== "success") {
@@ -248,14 +208,14 @@ const ReviewPage = () => {
         throw new Error(`Không tìm thấy đơn hàng với ID ${id}`);
       }
 
-      if (targetOrder.status?.toLowerCase() !== "success") {
+      if (targetOrder.status.toLowerCase() !== "success") {
         throw new Error("Chỉ các đơn hàng giao thành công mới có thể được đánh giá");
       }
 
       const items = (targetOrder.items || [])
         .filter((item: any) => item.sku || item.combo)
         .map((item: any) => ({
-          id: item.id?.toString() || "",
+          id: item.id.toString(),
           quantity: item.quantity || 0,
           price: item.price || 0,
           sku_id: item.sku_id ? item.sku_id.toString() : undefined,
@@ -303,7 +263,6 @@ const ReviewPage = () => {
       setOrder(mappedOrder);
       setFeedbacks(feedbacksData);
     } catch (error: any) {
-      console.error("Lỗi khi lấy dữ liệu đơn hàng:", error);
       Swal.fire({
         icon: "error",
         title: "Lỗi",
@@ -350,26 +309,10 @@ const ReviewPage = () => {
 
     try {
       const userToken = Cookies.get("accessToken");
-      const userData = Cookies.get("userData");
+      const userEmail = Cookies.get("userEmail");
 
-      console.log("Submit - Token:", userToken ? "Có token" : "Không có token");
-      console.log("Submit - userData:", userData ? "Có userData" : "Không có userData");
-
-      if (!userToken || !userData) {
-        console.log("Không tìm thấy token hoặc userData khi submit, chuyển hướng về trang login");
-        router.push("/login");
-        return;
-      }
-
-      let parsedUserData;
-      try {
-        parsedUserData = JSON.parse(userData);
-      } catch (error) {
-        console.error("Lỗi khi parse userData khi submit:", error);
-        Cookies.remove("accessToken");
-        Cookies.remove("userData");
-        router.push("/login");
-        return;
+      if (!userToken || !userEmail) {
+        throw new Error("Vui lòng đăng nhập lại");
       }
 
       const hasInvalidFeedback = feedbacks.some((feedback) => feedback.rating === 0);
